@@ -42,26 +42,26 @@ class OpenLabsVPC:
 
         Parameters:
             cidr: Subnet with cidr range
-            name: Name VPC will be initialized with
             subnets: List of OpenLabsSubnet. All subnets that will be created in VPC
         """
         self.__cidr: IPv4Network = IPv4Network(cidr)
-        self.__name: str = name
         self.__subnets: list[OpenLabsSubnet] = subnets
 
 
 class OpenLabsRange:
     """Range object for OpenLabs"""
-    def __init__(self, vpc: OpenLabsVPC, provider: OpenLabsProvider, vnc: bool = False, vpn: bool = False) -> None:
+    def __init__(self, name: str, vpc: OpenLabsVPC, provider: OpenLabsProvider, vnc: bool = False, vpn: bool = False) -> None:
         """
         Initialize an OpenLabsRange object
 
         Parameters:
+            name: Name of Range. Will be partial identifier of VPC
             vpc: OpenLabsVPC object. None will use default VPC for provider
             provider: Provider to be used for network. Can be OpenLabsProvider{AWS, AZURE}
             vnc: Should OpenLabs set up VNC for you
             vpn: Should OpenLabs set up VPN for you
         """
+        self.__name: str = name
         self.__vpc: OpenLabsVPC = vpc
         self.__provider: OpenLabsProvider = provider
         self.__vnc: bool = vnc
