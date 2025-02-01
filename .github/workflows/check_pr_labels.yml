@@ -18,6 +18,9 @@ jobs:
         with:
           node-version: '18.x'
 
+      - name: Install Auto and Plugins
+        run: npm install -g @auto-it/git-tag
+
       - name: Check if auto PR label is applied
         if: github.event_name == 'pull_request'
         env:
