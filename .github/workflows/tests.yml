@@ -1,0 +1,51 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ vars.PYTHON_VERSION }}
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r dev-requirements.txt
+
+      # Run Ruff linter and formatter
+      - name: Run Ruff
+        run: |
+          ruff check --fix .
+
+      # Run Black formatter
+      - name: Run Black
+        run: |
+          black .
+
+      # Run MyPy checks
+      - name: Run MyPy
+        run: |
+          mypy --install-types --non-interactive .
+
+      # Run Tests
+      - name: Run Tests
+        run: |
+          pytest
