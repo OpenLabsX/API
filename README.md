@@ -159,13 +159,3 @@ This workflow automatically creates GitHub tagged releases based on the tag of t
     ```bash
     auto init
     ```
-
-4) Create the GitHub PAT ([Link](https://github.com/settings/tokens/new))
-
-    Select all `repo` (should have 5 sub permissions) and `workflow` (should only be one) permissions. If this is too permissive for you feel free to tweak the permissions at your own risk.
-
-5) Configure `RELEASE_TOKEN` repository secret
-
-    Navigate to your repo. Then click `Settings > Secrets and variables > Actions > New repository secret`. 
-
-    Name it `RELEASE_TOKEN` and paste in the new GitHub PAT your generated in the previous step.
