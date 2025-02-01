@@ -5,8 +5,10 @@
 1. [Developer Quickstart](#developer-quickstart)
 2. [Tests](#tests)
 3. [Project Structure](#project-structure)
-4. [Workflows](#workflows)
-5. [Contributing](/CONTRIBUTING.md)
+4. [VScode Extensions](#vscode-extensions)
+5. [Workflows](#workflows)
+6. [Contributing](/CONTRIBUTING.md)
+7. [License](/LICENSE)
 
 ## Developer Quickstart
 
@@ -98,6 +100,28 @@ src/
     |   └── network.py          # Networking config input validation
     |
     └── main.py                 # Main App Entry Point
+```
+
+## VScode Extensions
+
+This is a list of extensions that this project was configured to work with. It has only been tested on VScode.
+
+**Extensions:**
+- [Black Formatter](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter)
+- [Mypy Type Checker](https://marketplace.visualstudio.com/items?itemName=ms-python.mypy-type-checker)
+- [Pylance](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance)
+- [Python Debugger](https://marketplace.visualstudio.com/items?itemName=ms-python.debugpy)
+- [Ruff](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff)
+
+### Black Formatter
+
+You can configure Black to format on save (`Ctrl`+`S`) with the following configuration in **Preferences: Open User Settings (JSON)** (`Ctrl`+`Shift`+`P`).
+
+```
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true
+  }
 ```
 
 ## Workflows
