@@ -1,5 +1,13 @@
 # API
 
+## Table of Contents
+
+1. [Developer Quickstart](#developer-quickstart)
+2. [Tests](#tests)
+3. [Project Structure](#project-structure)
+4. [Workflows](#workflows)
+5. [Contributing](/CONTRIBUTING.md)
+
 ## Developer Quickstart
 
 1) Create virtual environment ([Python Download Link](https://www.python.org/downloads/))
