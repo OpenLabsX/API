@@ -1,0 +1,1 @@
+"""OpenLabsX API schemas."""
