@@ -4,6 +4,9 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
 
+permissions:
+  statuses: write
+
 jobs:
   check-pr-labels:
     runs-on: ubuntu-latest
