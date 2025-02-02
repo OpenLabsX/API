@@ -19,7 +19,7 @@ class OpenLabsHost(BaseModel):
     spec: OpenLabsSpec = Field(
         ...,
         description="Ram and CPU size",
-        examples=[OpenLabsSpec.TINY.value, OpenLabsSpec.SMALL.value],
+        examples=[OpenLabsSpec.TINY, OpenLabsSpec.SMALL],
     )
     size: int = Field(..., description="Size in GB of disk", gt=0)
     tags: list[str] = Field(
@@ -100,7 +100,7 @@ class OpenLabsRange(BaseModel):
     provider: OpenLabsProvider = Field(
         ...,
         description="Cloud provider",
-        examples=[OpenLabsProvider.AWS.value, OpenLabsProvider.AZURE.value],
+        examples=[OpenLabsProvider.AWS, OpenLabsProvider.AZURE],
     )
     vnc: bool = Field(default=False, description="Enable automatic VNC configuration")
     vpn: bool = Field(default=False, description="Enable automatic VPN configuration")
