@@ -1,0 +1,33 @@
+name: Check PR Labels
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  statuses: write
+
+jobs:
+  check-pr-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare repository
+        run: git fetch --unshallow --tags
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Auto and Plugins
+        run: npm install -g @auto-it/git-tag
+
+      - name: Check if auto PR label is applied
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          yarn install --frozen-lockfile
+          npx auto pr-check --url ${{ github.server_url }}/${{ github.repository }}/blob/main/CONTRIBUTING.md#no-semver-label --context auto/check-semver-label --pr ${{ github.event.pull_request.number }}

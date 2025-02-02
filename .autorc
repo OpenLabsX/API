@@ -1,0 +1,9 @@
+{
+  "plugins": [
+    "git-tag"
+  ],
+  "owner": "OpenLabsX",
+  "repo": "API",
+  "name": "Alex Christy",
+  "email": "a.christy@ufl.edu"
+}
