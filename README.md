@@ -159,3 +159,35 @@ This workflow automatically creates GitHub tagged releases based on the tag of t
     ```bash
     auto init
     ```
+
+4) Create repository tags
+
+    This will allow you to tag your PRs and control the semantic version changes.
+
+    ```bash
+    auto create-labels
+    ```
+
+5) Create a GitHub App
+
+    ***Note:** OpenLabsX already has the `auto-release-app` installed. Skip to step 7.*
+
+    This allows us to enforce branch protection rules while allowing the Auto release tool to bypass the protections when running automated workflows. (Source: [Comment Link](https://github.com/orgs/community/discussions/13836#discussioncomment-8535364))
+    
+    Link: [Making authenticated API requests with a GitHub App in a GitHub Actions workflow](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/making-authenticated-api-requests-with-a-github-app-in-a-github-actions-workflow)
+
+6) Configure the app with the following permissions
+
+    * Actions (read/write)
+    * Administration (read/write)
+    * Contents (read/write)
+
+7) Update the ruleset bypass list to include the GitHub App
+
+8) Add GitHub app variables and secrets
+
+    **Variables:**
+    * `AUTO_RELEASE_APP_ID`
+
+    **Secrets:**
+    * `AUTO_RELEASE_APP_PRIVATE_KEY`
