@@ -14,6 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
     steps:
+    - name: Create app token
+      uses: actions/create-github-app-token@v1
+      id: app-token
+      with:
+        app-id: ${{ vars.AUTO_RELEASE_APP_ID }}
+        private-key: ${{ secrets.AUTO_RELEASE_APP }}
+
       - uses: actions/checkout@v4
 
       - name: Prepare repository
@@ -29,5 +36,5 @@ jobs:
 
       - name: Release with Auto
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: npx auto shipit
