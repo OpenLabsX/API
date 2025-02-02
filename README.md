@@ -24,7 +24,7 @@
     source venv/bin/activate
     ```
 
-3) Instal dependencies
+3) Install dependencies
 
     ```bash
     pip install --upgrade pip
