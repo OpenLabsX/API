@@ -186,8 +186,6 @@ This workflow automatically creates GitHub tagged releases based on the tag of t
 
 8) Add GitHub app variables and secrets
 
-    **Variables:**
-    * `AUTO_RELEASE_APP_ID`
-
     **Secrets:**
     * `AUTO_RELEASE_APP_PRIVATE_KEY`
+    * `AUTO_RELEASE_APP_ID`

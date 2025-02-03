@@ -1,0 +1,43 @@
+name: auto_release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    
+    if: ${{ !contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci') }}
+
+    steps:
+      - name: Generate a token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.AUTO_RELEASE_APP_ID }}
+          private-key: ${{ secrets.AUTO_RELEASE_APP_PRIVATE_KEY }}
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+
+      - name: Fetch tags
+        run: git fetch --unshallow --tags
+
+      - name: Setup Node 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Install Auto and Plugins
+        run: npm install -g @auto-it/git-tag
+
+      - name: Ship release
+        env:
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: |
+          npx auto shipit
