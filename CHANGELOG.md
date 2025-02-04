@@ -1,3 +1,15 @@
+# v0.2.0 (Tue Feb 04 2025)
+
+#### 🚀 Enhancement
+
+- Add Docker configurations [#17](https://github.com/OpenLabsX/API/pull/17) ([@alexchristy](https://github.com/alexchristy))
+
+#### Authors: 1
+
+- Alex Christy ([@alexchristy](https://github.com/alexchristy))
+
+---
+
 # v0.1.1 (Tue Feb 04 2025)
 
 #### 🐛 Bug Fix
