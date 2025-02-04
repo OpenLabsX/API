@@ -69,6 +69,8 @@ POSTGRES_DEBUG_PORT=5432  # Expose PostgreSQL on host port for debugging
       psql -h localhost -p 5432 -U postgres -d openlabsx
       ```
 
+*See [Python Environment Setup](#python-environment-setup) to configure your virtual environment.*
+
 ## Run Locally (Without Docker)
 
 **Prerequisites**
