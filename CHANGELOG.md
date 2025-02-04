@@ -1,3 +1,15 @@
+# v0.1.1 (Tue Feb 04 2025)
+
+#### 🐛 Bug Fix
+
+- add codeowners file so we are auto requested for review [#12](https://github.com/OpenLabsX/API/pull/12) ([@Adamkadaban](https://github.com/Adamkadaban))
+
+#### Authors: 1
+
+- Adam Hassan ([@Adamkadaban](https://github.com/Adamkadaban))
+
+---
+
 # v0.1.0 (Mon Feb 03 2025)
 
 #### 🚀 Enhancement
