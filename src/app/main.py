@@ -1,7 +1,5 @@
-from fastapi import FastAPI
-
 from .api import router
+from .core.config import settings
+from .core.setup import create_application
 
-app = FastAPI()
-
-app.include_router(router=router)
+app = create_application(router=router, settings=settings)
