@@ -1,7 +1,9 @@
 from enum import Enum
 
+
 class OpenLabsOS(Enum):
-  """OpenLabs supported OS"""
+  """OpenLabs supported OS."""
+
   DEBIAN_11      = "Debian 11"
   DEBIAN_12      = "Debian 12"
   UBUNTU_20      = "Ubuntu 20.04"
