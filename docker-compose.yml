@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: postgres_db_openlabsx
+    env_file:
+      - .env
+    ports:
+      - "${POSTGRES_DEBUG_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - fastapi_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  fastapi:
+    build: .
+    container_name: fastapi_app
+    env_file:
+      - .env
+    ports:
+      - "8000:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - fastapi_network
+
+volumes:
+  postgres_data:
+
+networks:
+  fastapi_network:
+    driver: bridge

@@ -1,0 +1,61 @@
+import os
+
+from pydantic_settings import BaseSettings
+from setuptools_scm import get_version
+from starlette.config import Config
+
+current_file_dir = os.path.dirname(os.path.realpath(__file__))
+env_path = os.path.join(current_file_dir, "..", "..", "..", ".env")
+config = Config(env_path)
+
+
+class AppSettings(BaseSettings):
+    """FastAPI app settings."""
+
+    APP_NAME: str = config("APP_NAME", default="OpenLabsX API")
+    APP_DESCRIPTION: str | None = config(
+        "APP_DESCRIPTION", default="OpenLabsX backend API."
+    )
+    APP_VERSION: str | None = config(
+        "APP_VERSION", default=get_version()
+    )  # Latest tagged release
+    LICENSE_NAME: str | None = config("LICENSE", default="GPLv3")
+    LICENSE_URL: str | None = config(
+        "LICENSE_URL",
+        default="https://github.com/OpenLabsX/API?tab=GPL-3.0-1-ov-file#readme",
+    )
+    CONTACT_NAME: str | None = config("CONTACT_NAME", default="OpenLabsX Support")
+    CONTACT_EMAIL: str | None = config("CONTACT_EMAIL", default="support@openlabsx.com")
+
+
+class DatabaseSettings(BaseSettings):
+    """Base class for database settings."""
+
+    pass
+
+
+class PostgresSettings(DatabaseSettings):
+    """Postgres database settings."""
+
+    POSTGRES_USER: str = config("POSTGRES_USER", default="postgres")
+    POSTGRES_PASSWORD: str = config("POSTGRES_PASSWORD", default="postgres")
+    POSTGRES_SERVER: str = config("POSTGRES_SERVER", default="localhost")
+    POSTGRES_PORT: int = config("POSTGRES_PORT", default=5432)
+    POSTGRES_DB: str = config("POSTGRES_DB", default="postgres")
+    POSTGRES_SYNC_PREFIX: str = config("POSTGRES_SYNC_PREFIX", default="postgresql://")
+    POSTGRES_ASYNC_PREFIX: str = config(
+        "POSTGRES_ASYNC_PREFIX", default="postgresql+asyncpg://"
+    )
+    POSTGRES_URI: str = (
+        f"{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
+    )
+    POSTGRES_URL: str | None = config("POSTGRES_URL", default=None)
+
+
+class Settings(AppSettings, PostgresSettings):
+    """FastAPI app settings."""
+
+    pass
+
+
+settings = Settings()

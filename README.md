@@ -10,21 +10,103 @@
 6. [Contributing](/CONTRIBUTING.md)
 7. [License](/LICENSE)
 
-## Developer Quickstart
+## Quickstart
 
-1) Create virtual environment ([Python Download Link](https://www.python.org/downloads/))
+Welcome to the project! Follow these steps to get up and running quickly.
+
+### 1. Setup Configuration
+
+Create a `.env` file in the project root. This file configures both FastAPI and Docker.
+
+<details>
+<summary><strong>Sample <code>.env</code> File</strong></summary>
+
+```env
+# PostgreSQL Configuration
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_SERVER=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=openlabsx
+
+# Docker Compose Configuration
+POSTGRES_DEBUG_PORT=5432  # Expose PostgreSQL on host port for debugging
+```
+</details>
+
+---
+
+### 2. Choose Your Run Method
+
+- **[Run with Docker](#run-with-docker)** *(Recommended for most users)*
+- **[Run Locally (Without Docker)](#run-locally-without-docker)** *(For local development setups)*
+
+## Run with Docker
+
+**Prerequisites**
+- Install [Docker](https://docs.docker.com/engine/install/) and `docker-compose`.
+
+**Steps**
+
+1) Build and Run Containers:
+
+    ```bash
+    docker-compose up
+    ```
+    > **Note:** If you get a `KeyError: 'ContainerConfig'` error, run `docker container prune -f` to remove stopped containers.
+
+2) Congrats! It's working! 🎉
+
+    **API:**
+    - API Documentation: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)  
+    - Health Check Endpoint: [http://127.0.0.1:8000/api/v1/health/ping](http://127.0.0.1:8000/api/v1/health/ping)
+
+    **Database:**
+    - PostgreSQL is available locally on port `5432` (configured via `POSTGRES_DEBUG_PORT`).
+    - Connect using:
+
+      ```bash
+      psql -h localhost -p 5432 -U postgres -d openlabsx
+      ```
+
+## Run Locally (Without Docker)
+
+**Prerequisites**
+- Install and configure [PostgreSQL](https://coding-boot-camp.github.io/full-stack/postgresql/postgresql-installation-guide#install-postgresql-server).
+
+**Steps**
+
+1. Start the API Server:
+
+    ```bash
+    fastapi dev src/app/main.py
+    ```
+
+2. Congrats! It's working! 🎉
+
+    - API Documentation: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+    - Health Check Endpoint: [http://127.0.0.1:8000/api/v1/health/ping](http://127.0.0.1:8000/api/v1/health/ping)
+
+## Developer Setup
+
+**Prerequisites**
+- Install [Python 3.12+](https://www.python.org/downloads/).
+
+**Steps**
+
+1. Create Virtual Environment:
 
     ```bash
     python3.12 -m venv venv
     ```
 
-2) Activate virtual environment
+2. Activate Virtual Environment:
 
     ```bash
     source venv/bin/activate
     ```
 
-3) Install dependencies
+3. Install Dependencies:
 
     ```bash
     pip install --upgrade pip
@@ -32,23 +114,11 @@
     pip install -r dev-requirements.txt
     ```
 
-4) Run the pre-commit hook to verify everything is working
+4. Run Pre-Commit Hook (Verify Setup):
 
     ```bash
     pre-commit run --all-files
     ```
-
-5) Start the server
-
-    ```bash
-    fastapi dev src/app/main.py
-    ```
-
-6) Congrats! It's working! 🎉
-
-    - **Documentation:** http://127.0.0.1:8000/docs
-    - Health Check: http://127.0.0.1:8000/api/v1/health/ping
-    - Root API URL: http://127.0.0.1:8000/api/v1
 
 ## Tests
 
@@ -82,11 +152,15 @@ src/
     |
     ├── core                    # Core Application Logic
     |   |                       # ---------------------- #
-    │   ├── cdktf/              # CDKTF libraries
-    │   └── logger.py           # Shared logger utility
+    │   ├── cdktf/              # CDKTF Libraries
+    │   ├── config.py           # Application settings
+    │   ├── db                  # Database configuration
+    │   │   └── database.py
+    │   ├── logger.py           # Shared logger utility
+    │   └── setup.py            # Application setup logic
     | 
     ├── enums                   # Enums (Constants)
-    |   |                       # ------ #
+    |   |                       # ---------------- #
     │   ├── providers.py        # Defined cloud providers
     │   └── specs.py            # Preset VM hardware configurations
     |
