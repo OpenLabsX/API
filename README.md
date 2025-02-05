@@ -10,9 +10,9 @@
 6. [Contributing](/CONTRIBUTING.md)
 7. [License](/LICENSE)
 
-## Quickstart
+## Developer Quickstart
 
-Welcome to the project! Follow these steps to get up and running quickly.
+Welcome to the project! Follow these steps to get the service up and running for development.
 
 ### 1. Setup Configuration
 
@@ -69,6 +69,8 @@ POSTGRES_DEBUG_PORT=5432  # Expose PostgreSQL on host port for debugging
       psql -h localhost -p 5432 -U postgres -d openlabsx
       ```
 
+*See [Python Environment Setup](#python-environment-setup) to configure your virtual environment.*
+
 ## Run Locally (Without Docker)
 
 **Prerequisites**
@@ -76,18 +78,20 @@ POSTGRES_DEBUG_PORT=5432  # Expose PostgreSQL on host port for debugging
 
 **Steps**
 
-1. Start the API Server:
+1. [Setup your Python Environment](#python-environment-setup)
+
+2. Start the API Server:
 
     ```bash
     fastapi dev src/app/main.py
     ```
 
-2. Congrats! It's working! 🎉
+3. Congrats! It's working! 🎉
 
     - API Documentation: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
     - Health Check Endpoint: [http://127.0.0.1:8000/api/v1/health/ping](http://127.0.0.1:8000/api/v1/health/ping)
 
-## Developer Setup
+## Python Environment Setup
 
 **Prerequisites**
 - Install [Python 3.12+](https://www.python.org/downloads/).
