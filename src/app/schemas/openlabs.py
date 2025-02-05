@@ -2,14 +2,15 @@ from ipaddress import IPv4Network
 
 from pydantic import BaseModel, Field, field_validator
 
+from ..enums.operating_systems import OpenLabsOS
 from ..enums.providers import OpenLabsProvider
 from ..enums.specs import OpenLabsSpec
-from ..enums.operating_systems import OpenLabsOS
 from ..validators.network import is_valid_hostname
 
 
 class OpenLabsHost(BaseModel):
     """Host object for OpenLabs."""
+
     hostname: str = Field(
         ...,
         description="Hostname of machine",
