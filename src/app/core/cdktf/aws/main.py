@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 from constructs import Construct
 from cdktf import App, TerraformStack, TerraformOutput
-from imports.aws.vpc import Vpc 
-from imports.aws.provider import AwsProvider
-from imports.aws.subnet import Subnet
-from imports.aws.internet_gateway import InternetGateway
-from imports.aws.route_table import RouteTable
-from imports.aws.route import Route
-from imports.aws.route_table_association import RouteTableAssociation
-from imports.aws.instance import Instance
-from imports.aws.security_group import SecurityGroup
-from imports.aws.security_group_rule import SecurityGroupRule
-from imports.aws.nat_gateway import NatGateway
-from imports.aws.eip import Eip
-from imports.aws.key_pair import KeyPair
+from cdktf_cdktf_provider_aws.vpc import Vpc 
+from cdktf_cdktf_provider_aws.provider import AwsProvider
+from cdktf_cdktf_provider_aws.subnet import Subnet
+from cdktf_cdktf_provider_aws.internet_gateway import InternetGateway
+from cdktf_cdktf_provider_aws.route_table import RouteTable
+from cdktf_cdktf_provider_aws.route import Route
+from cdktf_cdktf_provider_aws.route_table_association import RouteTableAssociation
+from cdktf_cdktf_provider_aws.instance import Instance
+from cdktf_cdktf_provider_aws.security_group import SecurityGroup
+from cdktf_cdktf_provider_aws.security_group_rule import SecurityGroupRule
+from cdktf_cdktf_provider_aws.nat_gateway import NatGateway
+from cdktf_cdktf_provider_aws.eip import Eip
+from cdktf_cdktf_provider_aws.key_pair import KeyPair
 
 
 class MyStack(TerraformStack):
@@ -25,9 +25,9 @@ class MyStack(TerraformStack):
 
         ### TEST: Define internal subnet configurations statically to test deployment of multiple subnets
         internal_subnets = [
-            {"name": "PrivateSubnet1", "cidr": "10.21.2.0/24", "az": "us-east-1a"},
-            {"name": "PrivateSubnet2", "cidr": "10.21.3.0/24", "az": "us-east-1a"},
-            {"name": "PrivateSubnet3", "cidr": "10.21.4.0/24", "az": "us-east-1a"},
+            {"name": "PrivateSubnet1", "cidr": "10.21.2.0/24", "az": "us-east-1a", "instances": [{"name": "PrivateInstance1"}, {"name": "PrivateInstance2"}, {"name": "PrivateInstance3"},]},
+            {"name": "PrivateSubnet2", "cidr": "10.21.3.0/24", "az": "us-east-1a", "instances": [{"name": "PrivateInstance1"}, {"name": "PrivateInstance2"}, {"name": "PrivateInstance3"},]},
+            {"name": "PrivateSubnet3", "cidr": "10.21.4.0/24", "az": "us-east-1a", "instances": [{"name": "PrivateInstance1"}, {"name": "PrivateInstance2"}, {"name": "PrivateInstance3"},]},
         ]
 
         # Step 1: Create a VPC
@@ -48,22 +48,13 @@ class MyStack(TerraformStack):
             tags={"Name": "TestPublicSubnet"} 
         )
 
-        # # Step 3: Create a Private Subnet for the EC2 instanes
-        # private_subnet = Subnet(self, "PrivateSubnet",
-        #     vpc_id=vpc.id,
-        #     cidr_block="10.21.2.0/24",
-        #     map_public_ip_on_launch=False,  # No public IP for instances
-        #     availability_zone="us-east-1a",
-        #     tags={"Name": "PrivateSubnet"} 
-        # )
-
-        # Step 4: Create an Internet Gateway for Public Subnet
+        # Step 3: Create an Internet Gateway for Public Subnet
         igw = InternetGateway(self, "TestInternetGateway",
             vpc_id=vpc.id,
             tags={"Name": "TestInternetGateway"}
         )
 
-        # Step 5: Create a NAT Gateway for Private Subnet with EIP
+        # Step 4: Create a NAT Gateway for Private Subnet with EIP
         eip = Eip(self, "TestNatEIP", tags={"Name": "TestNatEIP"})  # Elastic IP for NAT Gateway
         nat_gateway = NatGateway(self, "TestNatGateway",
             subnet_id=public_subnet.id,  # NAT must be in a public subnet
@@ -71,7 +62,14 @@ class MyStack(TerraformStack):
             tags={"Name": "TestNatGateway"}
         )
 
-        # Step 6: Create a Route Table for Public Subnet 
+        # Step 5: Create the key access to all instances provisioned on AWS
+        key_pair = KeyPair(self, "JumpBoxKeyPair",
+            key_name="cdktf-key",
+            public_key="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH8URIMqVKb6EAK4O+E+9g8df1uvcOfpvPFl7sQrX7KM email@example.com", # NOTE: Hardcoded key, will need a way to dynamically add a key to user instances
+            tags={"Name": "cdktf-public-key"}
+        )
+
+        # Step 6: Create a Route Table for Public Subnet with association
         public_route_table = RouteTable(self, "TestPublicRouteTable", vpc_id=vpc.id, tags={"Name": "TestPublicRouteTable"})
         Route(self, "TestPublicInternetRoute",
             route_table_id=public_route_table.id,
@@ -91,37 +89,7 @@ class MyStack(TerraformStack):
             nat_gateway_id=nat_gateway.id  # Route through NAT Gateway
         )
 
-        # Step 8. Dynamically Create Internal Private Subnets from provided list (NOTE: Will eventually create from passed in CyberRange object)
-        private_subnets = []
-        private_cidrs = []
-        for subnet in internal_subnets:
-            new_subnet = Subnet(self, subnet["name"],
-                vpc_id=vpc.id,
-                cidr_block=subnet["cidr"],
-                availability_zone=subnet["az"],
-                tags={"Name": subnet["name"]}
-            )
-            private_subnets.append(new_subnet)
-            private_cidrs.append(subnet["cidr"])
-            RouteTableAssociation(self, subnet["name"] + "RouteAssociation",
-                subnet_id=new_subnet.id,
-                route_table_id=private_route_table.id
-            )
-
-        # RouteTableAssociation(self, "PrivateRouteAssoc",
-        #     subnet_id=private_subnet.id,
-        #     route_table_id=private_route_table.id
-        # )
-
-        # Step 9: Associate Each Private Subnet with the Private Route Table
-        # for private_subnet in private_subnets:
-        #     route_association_name = str(private_subnet.id) + "RouteAssociation"
-        #     RouteTableAssociation(self, route_association_name,
-        #         subnet_id=private_subnet.id,
-        #         route_table_id=private_route_table.id
-        #     )
-
-        # Step 10: Create Security Group for Jump Box
+        # Step 8: Create Security Group and Rules for Jump Box (only allow SSH directly into jump box, for now)
         jumpbox_sg = SecurityGroup(self, "TestJumpBoxSecurityGroup",
             vpc_id=vpc.id,
             tags={"Name": "TestJumpBoxSecurityGroup"}
@@ -143,7 +111,12 @@ class MyStack(TerraformStack):
             security_group_id=jumpbox_sg.id
         )
 
-        # Step 11: Create Security Group for Private EC2 Instances
+        # Step 9. Dynamically Create Internal Private Subnets from provided list (NOTE: Will eventually create from passed in CyberRange object). First grab all passed in subnet CIDRs to use for making the relevan security group rules
+        private_cidrs = []
+        for subnet in internal_subnets:
+            private_cidrs.append(subnet["cidr"])
+
+        # Step 10: Create Security Group for Private EC2 Instances
         private_sg = SecurityGroup(self, "TestPrivateInternalEC2SecurityGroup",
             vpc_id=vpc.id,
             tags={"Name": "TestPrivateInternalEc2SecurityGroup"}
@@ -154,10 +127,10 @@ class MyStack(TerraformStack):
             to_port=0,
             protocol="-1",
             security_group_id=private_sg.id,
-            source_security_group_id=jumpbox_sg.id  # Allow SSH only from Jump Box
+            source_security_group_id=jumpbox_sg.id  # Allow all traffic from Jump Box
         )
-        # Allow all internal subnets to communicate ONLY with each other
-        SecurityGroupRule(self, "AllowInternalTraffic",
+        
+        SecurityGroupRule(self, "AllowInternalTraffic", # Allow all internal subnets to communicate ONLY with each other
             type="ingress",
             from_port=0,  
             to_port=0,    
@@ -174,13 +147,7 @@ class MyStack(TerraformStack):
             security_group_id=private_sg.id
         )
 
-        # Step 12: Create the Jump Box (Bastion Host) and key access to the jump box
-        key_pair = KeyPair(self, "JumpBoxKeyPair",
-            key_name="cdktf-key",
-            public_key="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH8URIMqVKb6EAK4O+E+9g8df1uvcOfpvPFl7sQrX7KM email@example.com", # NOTE: Hardcoded key, will need a way to dynamically add a key to user instances
-            tags={"Name": "cdktf-public-key"}
-        )
-
+        # Step 11: Create Jump Box
         jumpbox = Instance(self, "JumpBoxInstance",
             ami="ami-014f7ab33242ea43c",  # Amazon Ubuntu 20.04 AMI
             instance_type="t2.micro",
@@ -191,25 +158,27 @@ class MyStack(TerraformStack):
             tags={"Name": "JumpBox"}
         )
 
-        # # Step 13: Create Private EC2 Instance using same key access for intial deployment
-        # private_ec2 = Instance(self, "PrivateEC2Instance",
-        #     ami="ami-014f7ab33242ea43c",  # Amazon Ubuntu 20.04 AMI
-        #     instance_type="t2.micro",
-        #     subnet_id=private_subnet.id,
-        #     vpc_security_group_ids=[private_sg.id],
-        #     key_name=key_pair.key_name, # Use the generated key pair
-        #     tags={"Name": "PrivateEC2"}
-        # )
-
-        # Step 14: Create Internal EC2 Instances in Private Subnets
-        for i, private_subnet in enumerate(private_subnets):
-            Instance(self, f"PrivateInstance{i+1}",
+        # Step 12: Create private subnets with their respecitve EC2 instances
+        for subnet in internal_subnets:
+            new_subnet = Subnet(self, subnet["name"],
+                vpc_id=vpc.id,
+                cidr_block=subnet["cidr"],
+                availability_zone=subnet["az"],
+                tags={"Name": subnet["name"]}
+            )
+            private_cidrs.append(subnet["cidr"])
+            RouteTableAssociation(self, subnet["name"] + "RouteAssociation",
+                subnet_id=new_subnet.id,
+                route_table_id=private_route_table.id
+            )
+            for instance in subnet["instances"]: # Create specified instances in the given subnet
+                Instance(self, subnet["name"] + instance["name"],
                 ami="ami-014f7ab33242ea43c",
                 instance_type="t2.micro",
-                subnet_id=private_subnet.id,
+                subnet_id=new_subnet.id,
                 vpc_security_group_ids=[private_sg.id],
                 key_name=key_pair.key_name, # Use the generated key pair
-                tags={"Name": f"PrivateInstance{i+1}"}
+                tags={"Name": subnet["name"] + instance["name"]}
             )
 
 app = App()
