@@ -26,6 +26,7 @@ valid_range_payload: dict[str, Any] = {
                     {
                         "hostname": "example-host-1",
                         "spec": "tiny",
+                        "os": "debian_11",
                         "size": 1,
                         "tags": ["web", "linux"],
                     }
