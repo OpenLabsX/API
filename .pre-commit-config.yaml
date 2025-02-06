@@ -25,6 +25,8 @@ repos:
           - validators>=0.34
           - urllib3>=2.2.3
           - pydantic>=2.10.6
+          - SQLAlchemy>=2.0.37
+          - pydantic-settings>=2.7.1
           
   - repo: local
     hooks:
