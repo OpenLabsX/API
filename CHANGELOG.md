@@ -1,3 +1,20 @@
+# v0.3.0 (Thu Feb 06 2025)
+
+#### 🚀 Enhancement
+
+- add some operating system AMIs and URNs [#11](https://github.com/OpenLabsX/API/pull/11) ([@Adamkadaban](https://github.com/Adamkadaban))
+
+#### 📝 Documentation
+
+- Clarify Docker Documentation [#19](https://github.com/OpenLabsX/API/pull/19) ([@alexchristy](https://github.com/alexchristy))
+
+#### Authors: 2
+
+- Adam Hassan ([@Adamkadaban](https://github.com/Adamkadaban))
+- Alex Christy ([@alexchristy](https://github.com/alexchristy))
+
+---
+
 # v0.2.0 (Tue Feb 04 2025)
 
 #### 🚀 Enhancement
