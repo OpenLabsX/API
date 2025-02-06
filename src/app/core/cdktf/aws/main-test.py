@@ -1,6 +1,3 @@
-import pytest
-from cdktf import Testing
-
 # The tests below are example tests, you can find more information at
 # https://cdk.tf/testing
 
@@ -10,9 +7,9 @@ class TestMain:
     def test_my_app(self):
         assert True
 
-    #stack = TerraformStack(Testing.app(), "stack")
-    #app_abstraction = MyApplicationsAbstraction(stack, "app-abstraction")
-    #synthesized = Testing.synth(stack)
+    # stack = TerraformStack(Testing.app(), "stack")
+    # app_abstraction = MyApplicationsAbstraction(stack, "app-abstraction")
+    # synthesized = Testing.synth(stack)
 
     # def test_should_contain_container(self):
     #    assert Testing.to_have_resource(self.synthesized, Container.TF_RESOURCE_TYPE)
