@@ -2,6 +2,7 @@ import uuid
 
 from fastapi import APIRouter, HTTPException, status
 
+from ...core.cdktf.aws.main import create_aws_stack
 from ...schemas.openlabs import OpenLabsRange
 from ...schemas.templates import TemplateResponse
 
@@ -32,5 +33,9 @@ async def upload_template(cyber_range: OpenLabsRange) -> TemplateResponse:
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"The following subnets are not contained in the VPC subnet {cyber_range.vpc.cidr}: {', '.join(invalid_subnets)}",
         )
+
+    create_aws_stack(
+        cyber_range
+    )  # Function that takes in cyber range object, creates the aws stack, and deploys it. Will need to decide what wants to be returned
 
     return TemplateResponse(id=uuid.uuid4())
