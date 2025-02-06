@@ -2,10 +2,10 @@
 import os
 import subprocess
 
-from aws_stack import AWSStack
 from cdktf import App
 
 from ....schemas.openlabs import OpenLabsRange
+from .aws_stack import AWSStack
 
 
 def deploy_infrastructure() -> None:
