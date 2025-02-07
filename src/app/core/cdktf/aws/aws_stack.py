@@ -1,4 +1,4 @@
-from cdktf import TerraformStack
+from cdktf import TerraformStack, LocalBackend
 from cdktf_cdktf_provider_aws.eip import Eip
 from cdktf_cdktf_provider_aws.instance import Instance
 from cdktf_cdktf_provider_aws.internet_gateway import InternetGateway
@@ -13,6 +13,7 @@ from cdktf_cdktf_provider_aws.security_group_rule import SecurityGroupRule
 from cdktf_cdktf_provider_aws.subnet import Subnet
 from cdktf_cdktf_provider_aws.vpc import Vpc
 from constructs import Construct
+from pathlib import Path
 
 from ....enums.specs import AWS_SPEC_MAP
 from ....schemas.openlabs import OpenLabsRange
@@ -22,7 +23,7 @@ class AWSStack(TerraformStack):
     """Stack for generating terraform for AWS."""
 
     def __init__(
-        self, scope: Construct, cdktfid: str, cyber_range: OpenLabsRange
+        self, scope: Construct, cdktfid: str, cyber_range: OpenLabsRange, tmp_dir: str
     ) -> None:
         """Initialize AWS terraform stack.
 
@@ -38,6 +39,11 @@ class AWSStack(TerraformStack):
 
         """
         super().__init__(scope, cdktfid)
+
+        LocalBackend(
+            self, 
+            path = str(Path(f"{tmp_dir}/stacks/{cdktfid}/terraform.{cdktfid}.tfstate"))
+        )
 
         # AWS Provider
         AwsProvider(self, "AWS", region="us-east-1")

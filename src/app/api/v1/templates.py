@@ -35,6 +35,6 @@ async def upload_template(cyber_range: OpenLabsRange) -> TemplateResponse:
         )
 
     stack_dir = create_aws_stack(cyber_range)  # Function that takes in cyber range object, creates the aws stack, and deploys it. WIll need to then send it to the database to store
-    deploy_infrastructure(stack_dir, cyber_range.name)
+    content = deploy_infrastructure(stack_dir, cyber_range.name)
 
     return TemplateResponse(id=uuid.uuid4())

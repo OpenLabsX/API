@@ -26,12 +26,10 @@ def deploy_infrastructure(dir: str, stack_name: str) -> str:
 
     """
     inital_dir = os.getcwd()
-    print(inital_dir)
     
     # Change to directory with `cdk.tf.json`
     synth_output_dir = Path(f"{dir}/stacks/{stack_name}")
     os.chdir(synth_output_dir)
-    print(os.getcwd())
     state_file = synth_output_dir / Path(f"terraform.{stack_name}.tfstate")
 
     # Run Terraform commands
@@ -39,7 +37,7 @@ def deploy_infrastructure(dir: str, stack_name: str) -> str:
     subprocess.run(["terraform", "init"], check=True)
 
     print("Running terraform apply...")
-    subprocess.run(["terraform", "apply", "--auto-approve", f"-state={str(state_file)}"], check=True)
+    subprocess.run(["terraform", "apply", "--auto-approve"], check=True)
     print("Terraform apply complete!")
 
     # Read state file into string
@@ -50,7 +48,6 @@ def deploy_infrastructure(dir: str, stack_name: str) -> str:
     # Remove terraform build files
     os.chdir(inital_dir)
     shutil.rmtree(dir)
-    
     return content
 
 # def destroy_infrastructure(cyber_range: OpenLabsRange, state: str) -> bool: # TODO: 
@@ -84,7 +81,7 @@ def create_aws_stack(cyber_range: OpenLabsRange) -> str:
     tmp_dir = tempfile.mkdtemp(prefix=".openlabs-")
 
     app = App(outdir=tmp_dir)
-    AWSStack(app, cyber_range.name, cyber_range)
+    AWSStack(app, cyber_range.name, cyber_range, tmp_dir)
 
     app.synth()
 
