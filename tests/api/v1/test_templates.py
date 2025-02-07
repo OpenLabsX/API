@@ -34,6 +34,7 @@ valid_range_payload: dict[str, Any] = {
         ],
     },
     "provider": "aws",
+    "name": "test-range-1",
     "vnc": False,
     "vpn": False,
 }

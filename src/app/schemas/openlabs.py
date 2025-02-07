@@ -102,5 +102,6 @@ class OpenLabsRange(BaseModel):
         description="Cloud provider",
         examples=[OpenLabsProvider.AWS, OpenLabsProvider.AZURE],
     )
+    name: str = Field(..., description="Name of range.", min_length=1, examples=["example-range-1"])
     vnc: bool = Field(default=False, description="Enable automatic VNC configuration")
     vpn: bool = Field(default=False, description="Enable automatic VPN configuration")
