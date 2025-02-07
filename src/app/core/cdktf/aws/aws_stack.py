@@ -1,4 +1,4 @@
-from cdktf import TerraformStack, PgBackend
+from cdktf import TerraformStack
 from cdktf_cdktf_provider_aws.eip import Eip
 from cdktf_cdktf_provider_aws.instance import Instance
 from cdktf_cdktf_provider_aws.internet_gateway import InternetGateway
@@ -38,10 +38,6 @@ class AWSStack(TerraformStack):
 
         """
         super().__init__(scope, cdktfid)
-
-        PgBackend(self,
-            conn_str = "postgresql://postgres:postgres@localhost:5432/postgres_db_openlabsx?sslmode=disable"
-        )
 
         # AWS Provider
         AwsProvider(self, "AWS", region="us-east-1")
