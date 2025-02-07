@@ -1,3 +1,16 @@
+# v0.3.2 (Fri Feb 07 2025)
+
+#### 🐛 Bug Fix
+
+- Ignore enums directory when running black so we can have nice spacing [#23](https://github.com/OpenLabsX/API/pull/23) ([@Adamkadaban](https://github.com/Adamkadaban))
+- add .swp to gitignore to make my life easier [#21](https://github.com/OpenLabsX/API/pull/21) ([@Adamkadaban](https://github.com/Adamkadaban))
+
+#### Authors: 1
+
+- Adam Hassan ([@Adamkadaban](https://github.com/Adamkadaban))
+
+---
+
 # v0.3.1 (Fri Feb 07 2025)
 
 #### 🐛 Bug Fix
