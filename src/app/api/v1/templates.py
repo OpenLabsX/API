@@ -34,8 +34,6 @@ async def upload_template(cyber_range: OpenLabsRange) -> TemplateResponse:
             detail=f"The following subnets are not contained in the VPC subnet {cyber_range.vpc.cidr}: {', '.join(invalid_subnets)}",
         )
 
-    create_aws_stack(
-        cyber_range
-    )  # Function that takes in cyber range object, creates the aws stack, and deploys it. Will need to decide what wants to be returned
+    stack_dir = create_aws_stack(cyber_range)  # Function that takes in cyber range object, creates the aws stack, and deploys it. WIll need to then send it to the database to store
 
     return TemplateResponse(id=uuid.uuid4())
