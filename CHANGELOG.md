@@ -1,3 +1,15 @@
+# v0.3.1 (Fri Feb 07 2025)
+
+#### 🐛 Bug Fix
+
+- Update Mypy Precommit Dependencies [#25](https://github.com/OpenLabsX/API/pull/25) ([@alexchristy](https://github.com/alexchristy))
+
+#### Authors: 1
+
+- Alex Christy ([@alexchristy](https://github.com/alexchristy))
+
+---
+
 # v0.3.0 (Thu Feb 06 2025)
 
 #### 🚀 Enhancement
