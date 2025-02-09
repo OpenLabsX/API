@@ -74,7 +74,7 @@ def test_template_range_valid_payload_json() -> None:
 def test_template_range_valid_payload_yaml() -> None:
     """Test that we get a 200 and a valid uuid.UUID4 in response."""
     response = client.post(
-        f"{BASE_ROUTE}/templates/range?yaml=true",
+        f"{BASE_ROUTE}/templates/range",
         content=valid_range_payload_yaml,
         headers={"content-type": "application/yaml"},
     )
