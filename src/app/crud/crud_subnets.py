@@ -1,4 +1,5 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from ..models.openlabs_subnet_model import OpenLabsSubnetModel
 from ..schemas.openlabs_subnet_schema import (
@@ -8,7 +9,7 @@ from ..schemas.openlabs_subnet_schema import (
 from .crud_hosts import create_host
 
 
-def get_subnet(db: Session, subnet_id: str) -> OpenLabsSubnetModel | None:
+async def get_subnet(db: AsyncSession, subnet_id: str) -> OpenLabsSubnetModel | None:
     """Get OpenLabsSubnet by id (uuid).
 
     Args:
@@ -21,15 +22,16 @@ def get_subnet(db: Session, subnet_id: str) -> OpenLabsSubnetModel | None:
         Optional[OpenLabsSubnet]: OpenLabsSubnetModel if it exists in database.
 
     """
-    return (
-        db.query(OpenLabsSubnetModel)
-        .filter(OpenLabsSubnetModel.id == subnet_id)
-        .first()
+    result = await db.execute(
+        select(OpenLabsSubnetModel).filter(OpenLabsSubnetModel.id == subnet_id)
     )
+    return result.scalar_one_or_none()
 
 
-def create_subnet(
-    db: Session, openlabs_subnet: OpenLabsSubnetBaseSchema, vpc_id: str | None = None
+async def create_subnet(
+    db: AsyncSession,
+    openlabs_subnet: OpenLabsSubnetBaseSchema,
+    vpc_id: str | None = None,
 ) -> OpenLabsSubnetModel:
     """Create and add a new OpenLabsSubnet to the database.
 
@@ -53,16 +55,16 @@ def create_subnet(
     db.add(subnet_obj)
 
     # Add subnets
-    subnet_objects = [
-        create_host(db, subnet_data, str(subnet_obj.id))
-        for subnet_data in openlabs_subnet.hosts
+    host_objects = [
+        await create_host(db, host_data, str(subnet_obj.id))
+        for host_data in openlabs_subnet.hosts
     ]
 
     # Commit if we are parent object
     if vpc_id:
-        db.add_all(subnet_objects)
+        db.add_all(host_objects)
     else:
-        db.commit()
-        db.refresh(subnet_obj)
+        await db.commit()
+        await db.refresh(subnet_obj)
 
     return subnet_obj

@@ -1,10 +1,11 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from ..models.openlabs_host_model import OpenLabsHostModel
-from ..schemas.openlabs_host_schema import OpenLabsHostBaseSchema
+from ..schemas.openlabs_host_schema import OpenLabsHostBaseSchema, OpenLabsHostSchema
 
 
-def get_host(db: Session, host_id: str) -> OpenLabsHostModel | None:
+async def get_host(db: AsyncSession, host_id: str) -> OpenLabsHostModel | None:
     """Get OpenLabs host by ID.
 
     Args:
@@ -17,11 +18,16 @@ def get_host(db: Session, host_id: str) -> OpenLabsHostModel | None:
         Optional[OpenLabsHostModel]: OpenLabsHostModel if it exists.
 
     """
-    return db.query(OpenLabsHostModel).filter(OpenLabsHostModel.id == host_id).first()
+    result = await db.execute(
+        select(OpenLabsHostModel).filter(OpenLabsHostModel.id == host_id)
+    )
+    return result.scalar_one_or_none()
 
 
-def create_host(
-    db: Session, openlabs_host: OpenLabsHostBaseSchema, subnet_id: str | None = None
+async def create_host(
+    db: AsyncSession,
+    openlabs_host: OpenLabsHostBaseSchema,
+    subnet_id: str | None = None,
 ) -> OpenLabsHostModel:
     """Create and add a new OpenLabsHost to the database.
 
@@ -36,6 +42,7 @@ def create_host(
         OpenLabsVPC: The newly created range.
 
     """
+    openlabs_host = OpenLabsHostSchema(**openlabs_host.model_dump())
     host_dict = openlabs_host.model_dump()
     if subnet_id:
         host_dict["subnet_id"] = subnet_id
@@ -44,7 +51,7 @@ def create_host(
     db.add(host_obj)
 
     if not subnet_id:
-        db.commit()
-        db.refresh(host_obj)
+        await db.commit()
+        await db.refresh(host_obj)
 
     return host_obj

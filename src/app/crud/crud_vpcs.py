@@ -1,11 +1,12 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from ..models.openlabs_vpc_model import OpenLabsVPCModel
 from ..schemas.openlabs_vpc_schema import OpenLabsVPCBaseSchema, OpenLabsVPCSchema
 from .crud_subnets import create_subnet
 
 
-def get_vpc(db: Session, vpc_id: str) -> OpenLabsVPCModel | None:
+async def get_vpc(db: AsyncSession, vpc_id: str) -> OpenLabsVPCModel | None:
     """Get OpenLabsVPC by id (uuid).
 
     Args:
@@ -18,11 +19,14 @@ def get_vpc(db: Session, vpc_id: str) -> OpenLabsVPCModel | None:
         Optional[OpenLabsVPC]: OpenLabsVPCModel if it exists in database.
 
     """
-    return db.query(OpenLabsVPCModel).filter(OpenLabsVPCModel.id == vpc_id).first()
+    result = await db.execute(
+        select(OpenLabsVPCModel).filter(OpenLabsVPCModel.id == vpc_id)
+    )
+    return result.scalar_one_or_none()
 
 
-def create_vpc(
-    db: Session, openlabs_vpc: OpenLabsVPCBaseSchema, range_id: str | None = None
+async def create_vpc(
+    db: AsyncSession, openlabs_vpc: OpenLabsVPCBaseSchema, range_id: str | None = None
 ) -> OpenLabsVPCModel:
     """Create and add a new OpenLabsVPC to the database.
 
@@ -47,7 +51,7 @@ def create_vpc(
 
     # Add subnets
     subnet_objects = [
-        create_subnet(db, subnet_data, str(vpc_obj.id))
+        await create_subnet(db, subnet_data, str(vpc_obj.id))
         for subnet_data in openlabs_vpc.subnets
     ]
 
@@ -55,7 +59,7 @@ def create_vpc(
     if range_id:
         db.add_all(subnet_objects)
     else:
-        db.commit()
-        db.refresh(vpc_obj)
+        await db.commit()
+        await db.refresh(vpc_obj)
 
     return vpc_obj

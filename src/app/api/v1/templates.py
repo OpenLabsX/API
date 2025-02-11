@@ -14,20 +14,22 @@ router = APIRouter(prefix="/templates", tags=["templates"])
 
 
 @router.get("/ranges/{range_id}")
-async def get_range_template(range_id: uuid.UUID) -> OpenLabsRangeModel:
+async def get_range_template(
+    range_id: uuid.UUID, db: AsyncSession = Depends(async_get_db)  # noqa: B008
+) -> OpenLabsRangeModel:
     """Get a range template.
 
     Args:
     ----
         range_id (uuid.UUID): ID of the range.
+        db (AsyncSession): Async database connection.
 
     Returns:
     -------
         OpenLabsRangeSchema: Range data from database.
 
     """
-    db = Depends(async_get_db)
-    openlabs_range = get_range(db, str(range_id))
+    openlabs_range = await get_range(db, str(range_id))
 
     if not openlabs_range:
         raise HTTPException(
@@ -67,4 +69,4 @@ async def upload_range_template(
     #         detail=f"The following subnets are not contained in the VPC subnet {cyber_range.vpc.cidr}: {', '.join(invalid_subnets)}",
     #     )
 
-    return create_range(db, openlabs_range)
+    return await create_range(db, openlabs_range)
