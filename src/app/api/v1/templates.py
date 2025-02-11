@@ -1,19 +1,20 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from ...core.db.database import async_get_db
 from ...crud.crud_ranges import create_range, get_range
+from ...models.openlabs_range_model import OpenLabsRangeModel
 from ...schemas.openlabs_range_schema import (
     OpenLabsRangeBaseSchema,
-    OpenLabsRangeSchema,
 )
 
-router = APIRouter(prefix="/templates")
+router = APIRouter(prefix="/templates", tags=["templates"])
 
 
 @router.get("/ranges/{range_id}")
-async def get_range_template(range_id: uuid.UUID) -> OpenLabsRangeSchema:
+async def get_range_template(range_id: uuid.UUID) -> OpenLabsRangeModel:
     """Get a range template.
 
     Args:
@@ -26,7 +27,7 @@ async def get_range_template(range_id: uuid.UUID) -> OpenLabsRangeSchema:
 
     """
     db = Depends(async_get_db)
-    openlabs_range = get_range(db, range_id)
+    openlabs_range = get_range(db, str(range_id))
 
     if not openlabs_range:
         raise HTTPException(
@@ -37,23 +38,23 @@ async def get_range_template(range_id: uuid.UUID) -> OpenLabsRangeSchema:
     return openlabs_range
 
 
-@router.post("/ranges", tags=["templates"])
+@router.post("/ranges")
 async def upload_range_template(
     openlabs_range: OpenLabsRangeBaseSchema,
-) -> OpenLabsRangeSchema:
+    db: AsyncSession = Depends(async_get_db),  # noqa: B008
+) -> OpenLabsRangeModel:
     """Upload a range template.
 
     Args:
     ----
         openlabs_range (OpenLabsRange): OpenLabs compliant range object.
+        db (AsynSession): Async database connection.
 
     Returns:
     -------
         TemplateResponse: UUID of the range template.
 
     """
-    db = Depends(async_get_db)
-
     # # Validate inputted subnets
     # invalid_subnets: list[str] = []
     # for subnet in openlabs_range.vpc.subnets:

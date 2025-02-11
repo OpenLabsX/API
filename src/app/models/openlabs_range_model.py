@@ -8,7 +8,7 @@ from .openlabs_base_model import OpenLabsTemplateMixin
 class OpenLabsRangeModel(Base, OpenLabsTemplateMixin):
     """SQLAlchemy ORM model for OpenLabsRange."""
 
-    ___tablename__ = "ranges"
+    __tablename__ = "ranges"
 
     provider: Mapped[str] = mapped_column(String, nullable=False)
     vnc: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

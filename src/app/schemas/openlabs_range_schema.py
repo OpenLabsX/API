@@ -3,13 +3,13 @@ import uuid
 from pydantic import BaseModel, Field, field_validator
 
 from ..enums.providers import OpenLabsProvider
-from .openlabs_vpc_schema import OpenLabsVPC
+from .openlabs_vpc_schema import OpenLabsVPCBaseSchema
 
 
 class OpenLabsRangeBaseSchema(BaseModel):
     """Base range object for OpenLabs."""
 
-    vpcs: list[OpenLabsVPC] = Field(..., description="Contained VPCs")
+    vpcs: list[OpenLabsVPCBaseSchema] = Field(..., description="Contained VPCs")
     provider: OpenLabsProvider = Field(
         ...,
         description="Cloud provider",
@@ -24,7 +24,9 @@ class OpenLabsRangeBaseSchema(BaseModel):
 
     @field_validator("vpcs")
     @classmethod
-    def validate_unique_vpc_names(cls, vpcs: list[OpenLabsVPC]) -> list[OpenLabsVPC]:
+    def validate_unique_vpc_names(
+        cls, vpcs: list[OpenLabsVPCBaseSchema]
+    ) -> list[OpenLabsVPCBaseSchema]:
         """Check VPC names are unique.
 
         Args:
@@ -52,4 +54,4 @@ class OpenLabsRangeSchema(OpenLabsRangeBaseSchema):
     class Config:
         """Config options for OpenLabsRange object."""
 
-        orm_mode = True
+        from_attributes = True

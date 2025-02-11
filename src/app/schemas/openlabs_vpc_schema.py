@@ -51,4 +51,4 @@ class OpenLabsVPCSchema(OpenLabsVPCBaseSchema):
     class Config:
         """Config options for OpenLabsVPC object."""
 
-        orm_mode = True
+        from_attributes = True

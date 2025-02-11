@@ -91,4 +91,4 @@ class OpenLabsHostSchema(OpenLabsHostBaseSchema):
     class Config:
         """Config options for OpenLabsHost."""
 
-        orm_mode = True
+        from_attributes = True

@@ -17,7 +17,7 @@ class OpenLabsHostModel(Base, OpenLabsTemplateMixin):
     os: Mapped[str] = mapped_column(String, nullable=False)
     spec: Mapped[str] = mapped_column(String, nullable=False)
     size: Mapped[int] = mapped_column(Integer, nullable=False)
-    tags: Mapped[list[str]] = mapped_column(ARRAY(String), default=[], init=False)
+    tags: Mapped[list[str]] = mapped_column(ARRAY(String), default_factory=list)
 
     # ForeignKey to ensure each Host belongs to exactly one Subnet
     subnet_id: Mapped[uuid.UUID] = mapped_column(
