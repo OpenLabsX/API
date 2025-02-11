@@ -1,15 +1,15 @@
-from ipaddress import IPv4Network
+import uuid
+from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from ..enums.operating_systems import OpenLabsOS
-from ..enums.providers import OpenLabsProvider
 from ..enums.specs import OpenLabsSpec
 from ..validators.network import is_valid_hostname
 
 
-class OpenLabsHost(BaseModel):
-    """Host object for OpenLabs."""
+class OpenLabsHostBaseSchema(BaseModel):
+    """Base host object for OpenLabs."""
 
     hostname: str = Field(
         ...,
@@ -33,6 +33,13 @@ class OpenLabsHost(BaseModel):
         description="Optional list of tags",
         examples=[["web", "linux"]],
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def set_name(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """Ensure hostname is also used as the name field."""
+        values["name"] = values["hostname"]
+        return values
 
     @field_validator("tags")
     @classmethod
@@ -75,38 +82,13 @@ class OpenLabsHost(BaseModel):
         return hostname
 
 
-class OpenLabsSubnet(BaseModel):
-    """Subnet object for OpenLabs."""
+class OpenLabsHostSchema(OpenLabsHostBaseSchema):
+    """Host object for OpenLabs."""
 
-    cidr: IPv4Network = Field(
-        ..., description="CIDR range", examples=["192.168.1.0/24"]
-    )
-    name: str = Field(
-        ..., description="Subnet name", min_length=1, examples=["example-subnet-1"]
-    )
-    hosts: list[OpenLabsHost] = Field(..., description="All hosts in subnet")
+    id: uuid.UUID = uuid.uuid4()
+    name: str  # Here for compatability with SQLAlchemy; Always equal to hostname
 
+    class Config:
+        """Config options for OpenLabsHost."""
 
-class OpenLabsVPC(BaseModel):
-    """VPC object for OpenLabs."""
-
-    cidr: IPv4Network = Field(
-        ..., description="CIDR range", examples=["192.168.0.0/16"]
-    )
-    name: str = Field(
-        ..., description="VPC name", min_length=1, examples=["example-vpc-1"]
-    )
-    subnets: list[OpenLabsSubnet] = Field(..., description="Contained subnets")
-
-
-class OpenLabsRange(BaseModel):
-    """Range object for OpenLabs."""
-
-    vpc: OpenLabsVPC = Field(..., description="OpenLabsVPC object")
-    provider: OpenLabsProvider = Field(
-        ...,
-        description="Cloud provider",
-        examples=[OpenLabsProvider.AWS, OpenLabsProvider.AZURE],
-    )
-    vnc: bool = Field(default=False, description="Enable automatic VNC configuration")
-    vpn: bool = Field(default=False, description="Enable automatic VPN configuration")
+        orm_mode = True
