@@ -1,10 +1,12 @@
 import uuid
 
-from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy import Enum, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..core.db.database import Base
+from ..enums.operating_systems import OpenLabsOS
+from ..enums.specs import OpenLabsSpec
 from .openlabs_base_model import OpenLabsTemplateMixin
 
 
@@ -14,8 +16,8 @@ class OpenLabsHostModel(Base, OpenLabsTemplateMixin):
     __tablename__ = "hosts"
 
     hostname: Mapped[str] = mapped_column(String, nullable=False)
-    os: Mapped[str] = mapped_column(String, nullable=False)
-    spec: Mapped[str] = mapped_column(String, nullable=False)
+    os: Mapped[OpenLabsOS] = mapped_column(Enum(OpenLabsOS), nullable=False)
+    spec: Mapped[OpenLabsSpec] = mapped_column(Enum(OpenLabsSpec), nullable=False)
     size: Mapped[int] = mapped_column(Integer, nullable=False)
     # Relationship with Subnet
     subnet = relationship("OpenLabsSubnetModel", back_populates="hosts")

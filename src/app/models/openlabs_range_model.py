@@ -1,7 +1,8 @@
-from sqlalchemy import Boolean, String
+from sqlalchemy import Boolean, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..core.db.database import Base
+from ..enums.providers import OpenLabsProvider
 from .openlabs_base_model import OpenLabsTemplateMixin
 
 
@@ -10,7 +11,9 @@ class OpenLabsRangeModel(Base, OpenLabsTemplateMixin):
 
     __tablename__ = "ranges"
 
-    provider: Mapped[str] = mapped_column(String, nullable=False)
+    provider: Mapped[OpenLabsProvider] = mapped_column(
+        Enum(OpenLabsProvider), nullable=False
+    )
     vnc: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     vpn: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
