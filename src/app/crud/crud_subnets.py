@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 
 from ..models.openlabs_subnet_model import OpenLabsSubnetModel
 from ..schemas.openlabs_subnet_schema import (
@@ -22,9 +23,12 @@ async def get_subnet(db: AsyncSession, subnet_id: str) -> OpenLabsSubnetModel | 
         Optional[OpenLabsSubnet]: OpenLabsSubnetModel if it exists in database.
 
     """
-    result = await db.execute(
-        select(OpenLabsSubnetModel).filter(OpenLabsSubnetModel.id == subnet_id)
+    stmt = (
+        select(OpenLabsSubnetModel)
+        .options(selectinload(OpenLabsSubnetModel.hosts))
+        .filter(OpenLabsSubnetModel.id == subnet_id)
     )
+    result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
 

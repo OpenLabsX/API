@@ -18,9 +18,8 @@ async def get_host(db: AsyncSession, host_id: str) -> OpenLabsHostModel | None:
         Optional[OpenLabsHostModel]: OpenLabsHostModel if it exists.
 
     """
-    result = await db.execute(
-        select(OpenLabsHostModel).filter(OpenLabsHostModel.id == host_id)
-    )
+    stmt = select(OpenLabsHostModel).filter(OpenLabsHostModel.id == host_id)
+    result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
 

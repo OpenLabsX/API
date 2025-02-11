@@ -5,10 +5,11 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from ...core.db.database import async_get_db
 from ...crud.crud_ranges import create_range, get_range
-from ...models.openlabs_range_model import OpenLabsRangeModel
 from ...schemas.openlabs_range_schema import (
     OpenLabsRangeBaseSchema,
+    OpenLabsRangeSchema,
 )
+from ...utils.sqlalchemy_utils import sqlalchemy_to_pydantic
 
 router = APIRouter(prefix="/templates", tags=["templates"])
 
@@ -16,7 +17,7 @@ router = APIRouter(prefix="/templates", tags=["templates"])
 @router.get("/ranges/{range_id}")
 async def get_range_template(
     range_id: uuid.UUID, db: AsyncSession = Depends(async_get_db)  # noqa: B008
-) -> OpenLabsRangeModel:
+) -> OpenLabsRangeSchema:
     """Get a range template.
 
     Args:
@@ -37,14 +38,14 @@ async def get_range_template(
             detail=f"Range with id: {range_id} not found!",
         )
 
-    return openlabs_range
+    return OpenLabsRangeSchema.model_validate(sqlalchemy_to_pydantic(openlabs_range))
 
 
 @router.post("/ranges")
 async def upload_range_template(
     openlabs_range: OpenLabsRangeBaseSchema,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-) -> OpenLabsRangeModel:
+) -> OpenLabsRangeSchema:
     """Upload a range template.
 
     Args:
@@ -69,4 +70,5 @@ async def upload_range_template(
     #         detail=f"The following subnets are not contained in the VPC subnet {cyber_range.vpc.cidr}: {', '.join(invalid_subnets)}",
     #     )
 
-    return await create_range(db, openlabs_range)
+    created_range = await create_range(db, openlabs_range)
+    return OpenLabsRangeSchema.model_validate(sqlalchemy_to_pydantic(created_range))

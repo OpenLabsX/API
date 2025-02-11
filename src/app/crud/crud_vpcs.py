@@ -1,6 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 
+from ..models.openlabs_subnet_model import OpenLabsSubnetModel
 from ..models.openlabs_vpc_model import OpenLabsVPCModel
 from ..schemas.openlabs_vpc_schema import OpenLabsVPCBaseSchema, OpenLabsVPCSchema
 from .crud_subnets import create_subnet
@@ -19,9 +21,16 @@ async def get_vpc(db: AsyncSession, vpc_id: str) -> OpenLabsVPCModel | None:
         Optional[OpenLabsVPC]: OpenLabsVPCModel if it exists in database.
 
     """
-    result = await db.execute(
-        select(OpenLabsVPCModel).filter(OpenLabsVPCModel.id == vpc_id)
+    stmt = (
+        select(OpenLabsVPCModel)
+        .options(
+            selectinload(OpenLabsVPCModel.subnets).selectinload(
+                OpenLabsSubnetModel.hosts
+            )
+        )
+        .filter(OpenLabsVPCModel.id == vpc_id)
     )
+    result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
 
