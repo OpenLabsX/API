@@ -1,6 +1,7 @@
-from models.openlabs_range_model import OpenLabsRangeModel
-from schemas.openlabs_range_schema import OpenLabsRangeBaseSchema
 from sqlalchemy.orm import Session
+
+from ..models.openlabs_range_model import OpenLabsRangeModel
+from ..schemas.openlabs_range_schema import OpenLabsRangeBaseSchema
 
 
 def get_range(db: Session, range_id: str) -> OpenLabsRangeModel | None:

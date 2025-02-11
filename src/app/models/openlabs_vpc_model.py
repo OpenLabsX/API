@@ -1,6 +1,5 @@
 import uuid
 from ipaddress import IPv4Network
-from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.dialects.postgresql import CIDR, UUID
@@ -8,10 +7,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..core.db.database import Base
 from .openlabs_base_model import OpenLabsTemplateMixin
-
-if TYPE_CHECKING:
-    from src.app.models.openlabs_range_model import OpenLabsRangeModel
-    from src.app.models.openlabs_subnet_model import OpenLabsSubnetModel
 
 
 class OpenLabsVPCModel(Base, OpenLabsTemplateMixin):
@@ -27,11 +22,9 @@ class OpenLabsVPCModel(Base, OpenLabsTemplateMixin):
     )
 
     # Relationship with Range
-    range: Mapped[OpenLabsRangeModel] = relationship(
-        "OpenLabsRangeModel", back_populates="vpcs"
-    )
+    range = relationship("OpenLabsRangeModel", back_populates="vpcs")
 
     # One-to-many relationship with Subnets
-    subnets: Mapped[list[OpenLabsSubnetModel]] = relationship(
+    subnets = relationship(
         "OpenLabsSubnetModel", back_populates="vpc", cascade="all, delete-orphan"
     )
