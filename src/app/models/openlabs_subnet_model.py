@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.dialects.postgresql import CIDR, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -13,6 +13,7 @@ class OpenLabsSubnetModel(Base, OpenLabsTemplateMixin):
 
     __tablename__ = "subnets"
 
+    name: Mapped[str] = mapped_column(String, nullable=False)
     cidr: Mapped[uuid.UUID] = mapped_column(CIDR, nullable=False)
 
     # ForeignKey to ensure each Subnet belongs to exactly one VPC

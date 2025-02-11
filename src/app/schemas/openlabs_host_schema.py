@@ -1,7 +1,6 @@
 import uuid
-from typing import Any
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator
 
 from ..enums.operating_systems import OpenLabsOS
 from ..enums.specs import OpenLabsSpec
@@ -33,13 +32,6 @@ class OpenLabsHostBaseSchema(BaseModel):
         description="Optional list of tags",
         examples=[["web", "linux"]],
     )
-
-    @model_validator(mode="before")
-    @classmethod
-    def set_name(cls, values: dict[str, Any]) -> dict[str, Any]:
-        """Ensure hostname is also used as the name field."""
-        values["name"] = values["hostname"]
-        return values
 
     @field_validator("tags")
     @classmethod
@@ -85,8 +77,9 @@ class OpenLabsHostBaseSchema(BaseModel):
 class OpenLabsHostSchema(OpenLabsHostBaseSchema):
     """Host object for OpenLabs."""
 
-    id: uuid.UUID = uuid.uuid4()
-    name: str  # Here for compatability with SQLAlchemy; Always equal to hostname
+    id: uuid.UUID = Field(
+        default_factory=uuid.uuid4, description="Unique object identifier."
+    )
 
     class Config:
         """Config options for OpenLabsHost."""

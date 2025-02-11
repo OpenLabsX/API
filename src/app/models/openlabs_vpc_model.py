@@ -1,7 +1,7 @@
 import uuid
 from ipaddress import IPv4Network
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.dialects.postgresql import CIDR, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -14,11 +14,15 @@ class OpenLabsVPCModel(Base, OpenLabsTemplateMixin):
 
     __tablename__ = "vpcs"
 
+    name: Mapped[str] = mapped_column(String, nullable=False)
     cidr: Mapped[IPv4Network] = mapped_column(CIDR, nullable=False)
 
     # ForeignKey to ensure each VPC belongs to exactly one Range
-    range_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("ranges.id", ondelete="CASCADE"), nullable=False
+    range_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("ranges.id", ondelete="CASCADE"),
+        nullable=True,
+        default=None,
     )
 
     # Relationship with Range

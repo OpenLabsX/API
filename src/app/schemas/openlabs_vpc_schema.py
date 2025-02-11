@@ -43,10 +43,21 @@ class OpenLabsVPCBaseSchema(BaseModel):
         return subnets
 
 
-class OpenLabsVPCSchema(OpenLabsVPCBaseSchema):
-    """VPC object for OpenLabs."""
+class OpenLabsVPCID(BaseModel):
+    """Identity class for OpenLabsVPC."""
 
-    id: uuid.UUID = uuid.uuid4()
+    id: uuid.UUID = Field(
+        default_factory=uuid.uuid4, description="Unique VPC identifier."
+    )
+
+    class Config:
+        """Config options for OpenLabsVPCID object."""
+
+        from_attributes = True
+
+
+class OpenLabsVPCSchema(OpenLabsVPCBaseSchema, OpenLabsVPCID):
+    """VPC object for OpenLabs."""
 
     class Config:
         """Config options for OpenLabsVPC object."""

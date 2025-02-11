@@ -44,7 +44,9 @@ class OpenLabsSubnetBaseSchema(BaseModel):
 class OpenLabsSubnetSchema(OpenLabsSubnetBaseSchema):
     """Subnet object for OpenLabs."""
 
-    id: uuid.UUID = uuid.uuid4()
+    id: uuid.UUID = Field(
+        default_factory=uuid.uuid4, description="Unique object identifier."
+    )
 
     class Config:
         """Config options for OpenLabsSubnet object."""

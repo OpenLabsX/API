@@ -4,17 +4,22 @@ from sqlalchemy.orm import selectinload
 
 from ..models.openlabs_subnet_model import OpenLabsSubnetModel
 from ..models.openlabs_vpc_model import OpenLabsVPCModel
-from ..schemas.openlabs_vpc_schema import OpenLabsVPCBaseSchema, OpenLabsVPCSchema
+from ..schemas.openlabs_range_schema import OpenLabsRangeID
+from ..schemas.openlabs_vpc_schema import (
+    OpenLabsVPCBaseSchema,
+    OpenLabsVPCID,
+    OpenLabsVPCSchema,
+)
 from .crud_subnets import create_subnet
 
 
-async def get_vpc(db: AsyncSession, vpc_id: str) -> OpenLabsVPCModel | None:
+async def get_vpc(db: AsyncSession, vpc_id: OpenLabsVPCID) -> OpenLabsVPCModel | None:
     """Get OpenLabsVPC by id (uuid).
 
     Args:
     ----
         db (Session): Database connection.
-        vpc_id (str): UUID of the range.
+        vpc_id (OpenLabsVPCID): ID of the range.
 
     Returns:
     -------
@@ -28,14 +33,16 @@ async def get_vpc(db: AsyncSession, vpc_id: str) -> OpenLabsVPCModel | None:
                 OpenLabsSubnetModel.hosts
             )
         )
-        .filter(OpenLabsVPCModel.id == vpc_id)
+        .filter(OpenLabsVPCModel.id == vpc_id.id)
     )
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
 
 async def create_vpc(
-    db: AsyncSession, openlabs_vpc: OpenLabsVPCBaseSchema, range_id: str | None = None
+    db: AsyncSession,
+    openlabs_vpc: OpenLabsVPCBaseSchema,
+    range_id: OpenLabsRangeID | None = None,
 ) -> OpenLabsVPCModel:
     """Create and add a new OpenLabsVPC to the database.
 
@@ -53,7 +60,7 @@ async def create_vpc(
     openlabs_vpc = OpenLabsVPCSchema(**openlabs_vpc.model_dump())
     vpc_dict = openlabs_vpc.model_dump(exclude={"subnets"})
     if range_id:
-        vpc_dict["range_id"] = range_id
+        vpc_dict["range_id"] = range_id.id
 
     vpc_obj = OpenLabsVPCModel(**vpc_dict)
     db.add(vpc_obj)

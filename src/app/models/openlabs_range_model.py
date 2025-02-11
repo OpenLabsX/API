@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Enum
+from sqlalchemy import Boolean, Enum, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..core.db.database import Base
@@ -11,6 +11,7 @@ class OpenLabsRangeModel(Base, OpenLabsTemplateMixin):
 
     __tablename__ = "ranges"
 
+    name: Mapped[str] = mapped_column(String, nullable=False)
     provider: Mapped[OpenLabsProvider] = mapped_column(
         Enum(OpenLabsProvider), nullable=False
     )

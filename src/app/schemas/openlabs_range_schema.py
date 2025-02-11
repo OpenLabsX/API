@@ -46,10 +46,21 @@ class OpenLabsRangeBaseSchema(BaseModel):
         return vpcs
 
 
-class OpenLabsRangeSchema(OpenLabsRangeBaseSchema):
-    """Range object for OpenLabs."""
+class OpenLabsRangeID(BaseModel):
+    """Identity class for OpenLabsRange."""
 
-    id: uuid.UUID = uuid.uuid4()
+    id: uuid.UUID = Field(
+        default_factory=uuid.uuid4, description="Unique range identifier."
+    )
+
+    class Config:
+        """Config options for OpenLabsRangeID object."""
+
+        from_attributes = True
+
+
+class OpenLabsRangeSchema(OpenLabsRangeBaseSchema, OpenLabsRangeID):
+    """Range object for OpenLabs."""
 
     class Config:
         """Config options for OpenLabsRange object."""

@@ -1,6 +1,5 @@
 import uuid
 
-from sqlalchemy import String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -12,4 +11,3 @@ class OpenLabsTemplateMixin:
         UUID(as_uuid=True),
         primary_key=True,
     )
-    name: Mapped[str] = mapped_column(String, nullable=False)
