@@ -1,3 +1,19 @@
+# v0.4.0 (Wed Feb 12 2025)
+
+#### 🚀 Enhancement
+
+- Specify minimum disk size for each OS [#35](https://github.com/OpenLabsX/API/pull/35) ([@Adamkadaban](https://github.com/Adamkadaban))
+
+#### 📝 Documentation
+
+- ignore .vscode folder to make my life easier [#30](https://github.com/OpenLabsX/API/pull/30) ([@Adamkadaban](https://github.com/Adamkadaban))
+
+#### Authors: 1
+
+- Adam Hassan ([@Adamkadaban](https://github.com/Adamkadaban))
+
+---
+
 # v0.3.2 (Fri Feb 07 2025)
 
 #### 🐛 Bug Fix
