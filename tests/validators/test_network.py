@@ -1,5 +1,5 @@
-from src.app.validators.network import is_valid_hostname
-
+from src.app.validators.network import is_valid_hostname, is_valid_disk_size
+from src.app.enums.operating_systems import OpenLabsOS
 
 def test_valid_hostnames() -> None:
     """Test valid hostnames."""
@@ -62,3 +62,9 @@ def test_numeric_tld() -> None:
     """Test hostnames with numeric TLDs."""
     assert is_valid_hostname("example.123") is False
     assert is_valid_hostname("123.example") is True
+
+def test_valid_host_size() -> None:
+    """Test host disk size minimums."""
+    assert is_valid_disk_size(OpenLabsOS.DEBIAN_11, 10)
+    assert is_valid_disk_size(OpenLabsOS.WINDOWS_2016, 32)
+    assert not is_valid_disk_size(OpenLabsOS.WINDOWS_2016, 10)
