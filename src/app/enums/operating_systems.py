@@ -76,3 +76,17 @@ AZURE_OS_MAP = {
     OpenLabsOS.WINDOWS_2022 : "MicrosoftWindowsServer:WindowsServer:2022-datacenter-g2:latest",
 }
 
+
+
+OS_SIZE_THRESHOLD = {
+    OpenLabsOS.DEBIAN_11    : 8,
+    OpenLabsOS.DEBIAN_12    : 8,
+    OpenLabsOS.UBUNTU_20    : 8,
+    OpenLabsOS.UBUNTU_22    : 8,
+    OpenLabsOS.SUSE_12      : 8,
+    OpenLabsOS.SUSE_15      : 8,
+    OpenLabsOS.KALI         : 32,
+    OpenLabsOS.WINDOWS_2016 : 32,
+    OpenLabsOS.WINDOWS_2019 : 32,
+    OpenLabsOS.WINDOWS_2022 : 32,
+}
