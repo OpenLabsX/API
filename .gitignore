@@ -172,4 +172,5 @@ cython_debug/
 
 # Editor swap file
 *.swp
-.vscode
+.vscode/*
+!.vscode/launch.json
