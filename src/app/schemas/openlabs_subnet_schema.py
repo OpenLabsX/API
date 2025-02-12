@@ -41,12 +41,21 @@ class OpenLabsSubnetBaseSchema(BaseModel):
         return hosts
 
 
-class OpenLabsSubnetSchema(OpenLabsSubnetBaseSchema):
-    """Subnet object for OpenLabs."""
+class OpenLabsSubnetID(BaseModel):
+    """Identiy class for OpenLabsSubnet."""
 
     id: uuid.UUID = Field(
-        default_factory=uuid.uuid4, description="Unique object identifier."
+        default_factory=uuid.uuid4, description="Unique subnet identifier."
     )
+
+    class Config:
+        """Config options for OpenLabsSubnetID object."""
+
+        from_attributes = True
+
+
+class OpenLabsSubnetSchema(OpenLabsSubnetBaseSchema, OpenLabsSubnetID):
+    """Subnet object for OpenLabs."""
 
     class Config:
         """Config options for OpenLabsSubnet object."""

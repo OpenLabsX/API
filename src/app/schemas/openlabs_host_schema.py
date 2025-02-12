@@ -74,12 +74,21 @@ class OpenLabsHostBaseSchema(BaseModel):
         return hostname
 
 
-class OpenLabsHostSchema(OpenLabsHostBaseSchema):
-    """Host object for OpenLabs."""
+class OpenLabsHostID(BaseModel):
+    """Identity class for OpenLabsHost."""
 
     id: uuid.UUID = Field(
         default_factory=uuid.uuid4, description="Unique object identifier."
     )
+
+    class Config:
+        """Config options for OpenLabsHost."""
+
+        from_attributes = True
+
+
+class OpenLabsHostSchema(OpenLabsHostBaseSchema, OpenLabsHostID):
+    """Host object for OpenLabs."""
 
     class Config:
         """Config options for OpenLabsHost."""

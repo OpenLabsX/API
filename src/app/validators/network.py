@@ -1,4 +1,5 @@
 import re
+from ipaddress import IPv4Network
 
 
 def is_valid_hostname(hostname: str) -> bool:
@@ -32,3 +33,26 @@ def is_valid_hostname(hostname: str) -> bool:
 
     allowed = re.compile(r"(?!-)[a-z0-9-]{1,63}(?<!-)$", re.IGNORECASE)
     return all(allowed.match(label) for label in labels)
+
+
+def max_num_hosts_in_subnet(subnet: IPv4Network) -> int:
+    """Get the max number of usable hosts in a subnet.
+
+    Args:
+    ----
+        subnet (IPv4Network): IPv4 subnet network.
+
+    Returns:
+    -------
+        int: Max number of usable hosts.
+
+    """
+    total_addresses = subnet.num_addresses
+    multi_host_subnet_prefix_max = 31
+
+    # If we can fit more than one host on the subnet
+    # then subtract router and broadcast addresses
+    if subnet.prefixlen < multi_host_subnet_prefix_max:
+        return total_addresses - 2
+
+    return total_addresses

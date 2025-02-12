@@ -21,11 +21,13 @@ class OpenLabsHostModel(Base, OpenLabsTemplateMixin):
     size: Mapped[int] = mapped_column(Integer, nullable=False)
     # Relationship with Subnet
     subnet = relationship("OpenLabsSubnetModel", back_populates="hosts")
+
     # ForeignKey to ensure each Host belongs to exactly one Subnet
     subnet_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("subnets.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
+        default=None,
     )
 
     tags: Mapped[list[str]] = mapped_column(ARRAY(String), default_factory=list)

@@ -67,7 +67,7 @@ async def create_vpc(
 
     # Add subnets
     subnet_objects = [
-        await create_subnet(db, subnet_data, str(vpc_obj.id))
+        await create_subnet(db, subnet_data, OpenLabsVPCID(id=vpc_obj.id))
         for subnet_data in openlabs_vpc.subnets
     ]
 

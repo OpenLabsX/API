@@ -5,18 +5,22 @@ from sqlalchemy.orm import selectinload
 from ..models.openlabs_subnet_model import OpenLabsSubnetModel
 from ..schemas.openlabs_subnet_schema import (
     OpenLabsSubnetBaseSchema,
+    OpenLabsSubnetID,
     OpenLabsSubnetSchema,
 )
+from ..schemas.openlabs_vpc_schema import OpenLabsVPCID
 from .crud_hosts import create_host
 
 
-async def get_subnet(db: AsyncSession, subnet_id: str) -> OpenLabsSubnetModel | None:
+async def get_subnet(
+    db: AsyncSession, subnet_id: OpenLabsSubnetID
+) -> OpenLabsSubnetModel | None:
     """Get OpenLabsSubnet by id (uuid).
 
     Args:
     ----
         db (Session): Database connection.
-        subnet_id (str): UUID of the VPC.
+        subnet_id (OpenLabsSubnetID): UUID of the VPC.
 
     Returns:
     -------
@@ -26,7 +30,7 @@ async def get_subnet(db: AsyncSession, subnet_id: str) -> OpenLabsSubnetModel | 
     stmt = (
         select(OpenLabsSubnetModel)
         .options(selectinload(OpenLabsSubnetModel.hosts))
-        .filter(OpenLabsSubnetModel.id == subnet_id)
+        .filter(OpenLabsSubnetModel.id == subnet_id.id)
     )
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
@@ -35,7 +39,7 @@ async def get_subnet(db: AsyncSession, subnet_id: str) -> OpenLabsSubnetModel | 
 async def create_subnet(
     db: AsyncSession,
     openlabs_subnet: OpenLabsSubnetBaseSchema,
-    vpc_id: str | None = None,
+    vpc_id: OpenLabsVPCID | None = None,
 ) -> OpenLabsSubnetModel:
     """Create and add a new OpenLabsSubnet to the database.
 
@@ -43,7 +47,7 @@ async def create_subnet(
     ----
         db (Session): Database connection.
         openlabs_subnet (OpenLabsSubnetBaseSchema): Dictionary containing OpenLabsSubnet data.
-        vpc_id (Optional[str]): VPC ID to link Subnet back too.
+        vpc_id (Optional[OpenLabsVPCID]): VPC ID to link subnet back too.
 
     Returns:
     -------
@@ -53,14 +57,14 @@ async def create_subnet(
     openlabs_subnet = OpenLabsSubnetSchema(**openlabs_subnet.model_dump())
     subnet_dict = openlabs_subnet.model_dump(exclude={"hosts"})
     if vpc_id:
-        subnet_dict["vpc_id"] = vpc_id
+        subnet_dict["vpc_id"] = vpc_id.id
 
     subnet_obj = OpenLabsSubnetModel(**subnet_dict)
     db.add(subnet_obj)
 
     # Add subnets
     host_objects = [
-        await create_host(db, host_data, str(subnet_obj.id))
+        await create_host(db, host_data, OpenLabsSubnetID(id=subnet_obj.id))
         for host_data in openlabs_subnet.hosts
     ]
 
