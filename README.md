@@ -6,9 +6,10 @@
 2. [Tests](#tests)
 3. [Project Structure](#project-structure)
 4. [VScode Extensions](#vscode-extensions)
-5. [Workflows](#workflows)
-6. [Contributing](/CONTRIBUTING.md)
-7. [License](/LICENSE)
+5. [Debugging](#debugging)
+6. [Workflows](#workflows)
+7. [Contributing](/CONTRIBUTING.md)
+8. [License](/LICENSE)
 
 ## Developer Quickstart
 
@@ -25,7 +26,7 @@ Create a `.env` file in the project root. This file configures both FastAPI and 
 # PostgreSQL Configuration
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
-POSTGRES_SERVER=postgres
+POSTGRES_SERVER=postgres # localhost if launching without Docker
 POSTGRES_PORT=5432
 POSTGRES_DB=openlabsx
 
@@ -44,14 +45,14 @@ POSTGRES_DEBUG_PORT=5432  # Expose PostgreSQL on host port for debugging
 ## Run with Docker
 
 **Prerequisites**
-- Install [Docker](https://docs.docker.com/engine/install/) and `docker-compose`.
+- Install [Docker](https://docs.docker.com/engine/install/) and `docker compose`.
 
 **Steps**
 
 1) Build and Run Containers:
 
     ```bash
-    docker-compose up
+    docker compose up
     ```
     > **Note:** If you get a `KeyError: 'ContainerConfig'` error, run `docker container prune -f` to remove stopped containers.
 
@@ -201,6 +202,18 @@ You can configure Black to format on save (`Ctrl`+`S`) with the following config
     "editor.formatOnSave": true
   }
 ```
+
+## Debugging
+
+To debug with the python debugger extension, use the `docker-compose.dev.yaml` file.
+
+```bash
+docker compose -f docker-compose.dev.yml up
+```
+
+The app will only be started once you run the debugger in VScode.
+
+All changes made to code in your local directory will be applied to the container app and should reload automatically.
 
 ## Workflows
 

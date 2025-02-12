@@ -1,6 +1,8 @@
 import re
 from ipaddress import IPv4Network
 
+from ..enums.operating_systems import OS_SIZE_THRESHOLD, OpenLabsOS
+
 
 def is_valid_hostname(hostname: str) -> bool:
     """Check if string is a valid hostname based on RRFC 1035.
@@ -56,3 +58,19 @@ def max_num_hosts_in_subnet(subnet: IPv4Network) -> int:
         return total_addresses - 2
 
     return total_addresses
+
+
+def is_valid_disk_size(os: OpenLabsOS, size: int) -> bool:
+    """Check if size for given OS is possible.
+
+    Args:
+    ----
+        os (OpenLabsOS): Operating system of host to check.
+        size (int): Size of disk requested.
+
+    Returns:
+    -------
+        bool: True if possible host size. False otherwise
+
+    """
+    return size >= OS_SIZE_THRESHOLD[os]

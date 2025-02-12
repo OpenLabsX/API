@@ -1,3 +1,44 @@
+# v0.4.0 (Wed Feb 12 2025)
+
+#### 🚀 Enhancement
+
+- Specify minimum disk size for each OS [#35](https://github.com/OpenLabsX/API/pull/35) ([@Adamkadaban](https://github.com/Adamkadaban))
+
+#### 📝 Documentation
+
+- ignore .vscode folder to make my life easier [#30](https://github.com/OpenLabsX/API/pull/30) ([@Adamkadaban](https://github.com/Adamkadaban))
+
+#### Authors: 1
+
+- Adam Hassan ([@Adamkadaban](https://github.com/Adamkadaban))
+
+---
+
+# v0.3.2 (Fri Feb 07 2025)
+
+#### 🐛 Bug Fix
+
+- Ignore enums directory when running black so we can have nice spacing [#23](https://github.com/OpenLabsX/API/pull/23) ([@Adamkadaban](https://github.com/Adamkadaban))
+- add .swp to gitignore to make my life easier [#21](https://github.com/OpenLabsX/API/pull/21) ([@Adamkadaban](https://github.com/Adamkadaban))
+
+#### Authors: 1
+
+- Adam Hassan ([@Adamkadaban](https://github.com/Adamkadaban))
+
+---
+
+# v0.3.1 (Fri Feb 07 2025)
+
+#### 🐛 Bug Fix
+
+- Update Mypy Precommit Dependencies [#25](https://github.com/OpenLabsX/API/pull/25) ([@alexchristy](https://github.com/alexchristy))
+
+#### Authors: 1
+
+- Alex Christy ([@alexchristy](https://github.com/alexchristy))
+
+---
+
 # v0.3.0 (Thu Feb 06 2025)
 
 #### 🚀 Enhancement
