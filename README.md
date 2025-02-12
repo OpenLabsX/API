@@ -45,14 +45,14 @@ POSTGRES_DEBUG_PORT=5432  # Expose PostgreSQL on host port for debugging
 ## Run with Docker
 
 **Prerequisites**
-- Install [Docker](https://docs.docker.com/engine/install/) and `docker-compose`.
+- Install [Docker](https://docs.docker.com/engine/install/) and `docker compose`.
 
 **Steps**
 
 1) Build and Run Containers:
 
     ```bash
-    docker-compose up
+    docker compose up
     ```
     > **Note:** If you get a `KeyError: 'ContainerConfig'` error, run `docker container prune -f` to remove stopped containers.
 
@@ -208,7 +208,7 @@ You can configure Black to format on save (`Ctrl`+`S`) with the following config
 To debug with the python debugger extension, use the `docker-compose.dev.yaml` file.
 
 ```bash
-docker-compose -f docker-compose.dev.yml up
+docker compose -f docker-compose.dev.yml up
 ```
 
 The app will only be started once you run the debugger in VScode.
