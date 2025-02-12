@@ -16,11 +16,11 @@ services:
       timeout: 5s
       retries: 5
 
-  fastapi:
+  fastapi_dev:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: fastapi_app
+    container_name: fastapi_app_dev
     env_file:
       - .env
     volumes:
