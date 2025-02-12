@@ -3,13 +3,13 @@
 ## Table of Contents
 
 1. [Developer Quickstart](#developer-quickstart)
-1. [Tests](#tests)
-1. [Project Structure](#project-structure)
-1. [VScode Extensions](#vscode-extensions)
-1. [Debugging](#debugging)
-1. [Workflows](#workflows)
-1. [Contributing](/CONTRIBUTING.md)
-1. [License](/LICENSE)
+2. [Tests](#tests)
+3. [Project Structure](#project-structure)
+4. [VScode Extensions](#vscode-extensions)
+5. [Debugging](#debugging)
+6. [Workflows](#workflows)
+7. [Contributing](/CONTRIBUTING.md)
+8. [License](/LICENSE)
 
 ## Developer Quickstart
 
