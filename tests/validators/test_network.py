@@ -17,7 +17,7 @@ def test_valid_hostnames() -> None:
     ]
 
     for hostname in valid_hostnames:
-        assert is_valid_hostname(hostname) is True
+        assert is_valid_hostname(hostname)
 
 
 def test_invalid_hostnames() -> None:
@@ -36,13 +36,13 @@ def test_invalid_hostnames() -> None:
     ]
 
     for hostname in invalid_hostnames:
-        assert is_valid_hostname(hostname) is False
+        assert is_valid_hostname(hostname)
 
 
 def test_hostname_with_trailing_dot() -> None:
     """Test hostname with a trailing dot."""
-    assert is_valid_hostname("example.com.") is True
-    assert is_valid_hostname("example..com.") is False
+    assert is_valid_hostname("example.com.")
+    assert is_valid_hostname("example..com.")
 
 
 def test_hostname_length_limits() -> None:
@@ -52,16 +52,14 @@ def test_hostname_length_limits() -> None:
     )  # Total length = 63*4 + 3 dots = 255 (valid without trailing dot)
     invalid_hostname = valid_hostname + "a"
 
-    assert (
-        is_valid_hostname(valid_hostname[:-2]) is True
-    )  # Adjust to fit within 253 limit
-    assert is_valid_hostname(invalid_hostname) is False
+    assert is_valid_hostname(valid_hostname[:-2])
+    assert is_valid_hostname(invalid_hostname)
 
 
 def test_numeric_tld() -> None:
     """Test hostnames with numeric TLDs."""
-    assert is_valid_hostname("example.123") is False
-    assert is_valid_hostname("123.example") is True
+    assert is_valid_hostname("example.123")
+    assert is_valid_hostname("123.example")
 
 def test_valid_host_size() -> None:
     """Test host disk size minimums."""
