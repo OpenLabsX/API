@@ -1,5 +1,6 @@
 import re
 
+from ..enums.operating_systems import OpenLabsOS, OS_SIZE_THRESHOLD
 
 def is_valid_hostname(hostname: str) -> bool:
     """Check if string is a valid hostname based on RRFC 1035.
@@ -32,3 +33,19 @@ def is_valid_hostname(hostname: str) -> bool:
 
     allowed = re.compile(r"(?!-)[a-z0-9-]{1,63}(?<!-)$", re.IGNORECASE)
     return all(allowed.match(label) for label in labels)
+
+def is_valid_disk_size(os: OpenLabsOS, size: int) -> bool:
+    """Check if size for given OS is possible.
+
+    Args:
+    ----
+        os (OpenLabsOS): Operating system of host to check.
+        size (int): Size of disk requested.
+
+    Returns:
+    -------
+        bool: True if possible host size. False otherwise
+
+    """
+
+    return size >= OS_SIZE_THRESHOLD[os]
