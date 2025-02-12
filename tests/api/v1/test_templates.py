@@ -39,10 +39,45 @@ valid_range_payload: dict[str, Any] = {
     "vpn": False,
 }
 
+valid_range_payload_yaml: str = """provider: aws
+vnc: false
+vpc:
+  cidr: 192.168.0.0/16
+  name: example-vpc-1
+  subnets:
+  - cidr: 192.168.1.0/24
+    hosts:
+    - hostname: example-host-1
+      os: debian_11
+      size: 1
+      spec: tiny
+      tags:
+      - web
+      - linux
+    name: example-subnet-1
+vpn: false
+"""
 
-def test_template_range_valid_payload() -> None:
+
+def test_template_range_valid_payload_json() -> None:
     """Test that we get a 200 and a valid uuid.UUID4 in response."""
     response = client.post(f"{BASE_ROUTE}/templates/range", json=valid_range_payload)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["id"]
+
+    # Validate UUID returned
+    uuid_response = response.json()["id"]
+    uuid_obj = uuid.UUID(uuid_response, version=4)
+    assert str(uuid_obj) == uuid_response
+
+
+def test_template_range_valid_payload_yaml() -> None:
+    """Test that we get a 200 and a valid uuid.UUID4 in response."""
+    response = client.post(
+        f"{BASE_ROUTE}/templates/range",
+        content=valid_range_payload_yaml,
+        headers={"content-type": "application/yaml"},
+    )
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["id"]
 
