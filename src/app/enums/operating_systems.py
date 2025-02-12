@@ -14,8 +14,6 @@ class OpenLabsOS(Enum):
     # CENTOS_9       = "centos_9"     # CentOS Stream 9
     # CENTOS_10      = "centos_10"    # CentOS Stream 10
     KALI           = "kali"         # Kali Linux
-    WINDOWS_10     = "windows_10"   # Windows 10
-    WINDOWS_11     = "windows_11"   # Windows 11
     WINDOWS_2016   = "windows_2016" # Windows Server 2016
     WINDOWS_2019   = "windows_2019" # Windows Server 2019
     WINDOWS_2022   = "windows_2022" # Windows Server 2022
