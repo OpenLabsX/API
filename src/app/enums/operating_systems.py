@@ -76,8 +76,7 @@ AZURE_OS_MAP = {
     OpenLabsOS.WINDOWS_2022 : "MicrosoftWindowsServer:WindowsServer:2022-datacenter-g2:latest",
 }
 
-
-
+# Minimum size allowed for host given an OS
 OS_SIZE_THRESHOLD = {
     OpenLabsOS.DEBIAN_11    : 8,
     OpenLabsOS.DEBIAN_12    : 8,
