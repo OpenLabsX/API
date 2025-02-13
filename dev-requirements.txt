@@ -11,3 +11,7 @@ ruff>=0.9.4
 black>=25.1.0
 mypy>=1.14.1
 pytest-mock>=3.14.0
+
+# CDKTF
+cdktf~=0.20
+cdktf-cdktf-provider-aws~=19.52
