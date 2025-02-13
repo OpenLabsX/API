@@ -1,6 +1,6 @@
 import uuid
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..enums.operating_systems import OpenLabsOS
 from ..enums.specs import OpenLabsSpec
@@ -81,16 +81,10 @@ class OpenLabsHostID(BaseModel):
         default_factory=uuid.uuid4, description="Unique object identifier."
     )
 
-    class Config:
-        """Config options for OpenLabsHost."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OpenLabsHostSchema(OpenLabsHostBaseSchema, OpenLabsHostID):
     """Host object for OpenLabs."""
 
-    class Config:
-        """Config options for OpenLabsHost."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

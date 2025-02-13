@@ -1,7 +1,7 @@
 import uuid
 from ipaddress import IPv4Network
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .openlabs_host_schema import OpenLabsHostBaseSchema
 
@@ -48,16 +48,10 @@ class OpenLabsSubnetID(BaseModel):
         default_factory=uuid.uuid4, description="Unique subnet identifier."
     )
 
-    class Config:
-        """Config options for OpenLabsSubnetID object."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OpenLabsSubnetSchema(OpenLabsSubnetBaseSchema, OpenLabsSubnetID):
     """Subnet object for OpenLabs."""
 
-    class Config:
-        """Config options for OpenLabsSubnet object."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

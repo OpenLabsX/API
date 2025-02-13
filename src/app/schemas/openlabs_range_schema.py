@@ -1,6 +1,6 @@
 import uuid
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..enums.providers import OpenLabsProvider
 from .openlabs_vpc_schema import OpenLabsVPCBaseSchema
@@ -52,17 +52,10 @@ class OpenLabsRangeID(BaseModel):
     id: uuid.UUID = Field(
         default_factory=uuid.uuid4, description="Unique range identifier."
     )
-
-    class Config:
-        """Config options for OpenLabsRangeID object."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OpenLabsRangeSchema(OpenLabsRangeBaseSchema, OpenLabsRangeID):
     """Range object for OpenLabs."""
 
-    class Config:
-        """Config options for OpenLabsRange object."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

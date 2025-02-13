@@ -1,7 +1,7 @@
 import uuid
 from ipaddress import IPv4Network
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .openlabs_subnet_schema import OpenLabsSubnetBaseSchema
 
@@ -50,16 +50,10 @@ class OpenLabsVPCID(BaseModel):
         default_factory=uuid.uuid4, description="Unique VPC identifier."
     )
 
-    class Config:
-        """Config options for OpenLabsVPCID object."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OpenLabsVPCSchema(OpenLabsVPCBaseSchema, OpenLabsVPCID):
     """VPC object for OpenLabs."""
 
-    class Config:
-        """Config options for OpenLabsVPC object."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
