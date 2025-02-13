@@ -15,34 +15,37 @@ client = TestClient(app)
 
 # Valid payload for comparison
 valid_range_payload: dict[str, Any] = {
-    "vpc": {
-        "cidr": "192.168.0.0/16",
-        "name": "example-vpc-1",
-        "subnets": [
-            {
-                "cidr": "192.168.1.0/24",
-                "name": "example-subnet-1",
-                "hosts": [
-                    {
-                        "hostname": "example-host-1",
-                        "spec": "tiny",
-                        "os": "debian_11",
-                        "size": 1,
-                        "tags": ["web", "linux"],
-                    }
-                ],
-            }
-        ],
-    },
+    "vpcs": [
+        {
+            "cidr": "192.168.0.0/16",
+            "name": "example-vpc-1",
+            "subnets": [
+                {
+                    "cidr": "192.168.1.0/24",
+                    "name": "example-subnet-1",
+                    "hosts": [
+                        {
+                            "hostname": "example-host-1",
+                            "os": "debian_11",
+                            "spec": "tiny",
+                            "size": 1,
+                            "tags": ["web", "linux"],
+                        }
+                    ],
+                }
+            ],
+        }
+    ],
     "provider": "aws",
+    "name": "example-range-1",
     "vnc": False,
     "vpn": False,
 }
 
 
-def test_template_range_valid_payload() -> None:
+def test_template_range_valid_payload(client: TestClient) -> None:
     """Test that we get a 200 and a valid uuid.UUID4 in response."""
-    response = client.post(f"{BASE_ROUTE}/templates/range", json=valid_range_payload)
+    response = client.post(f"{BASE_ROUTE}/templates/ranges", json=valid_range_payload)
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["id"]
 
