@@ -5,15 +5,29 @@ WORKDIR /code
 RUN apt-get update && apt-get install -y git curl \
     && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get install -y nodejs \
+    && apt-get install -y gnupg software-properties-common \
+    && apt-get install -y wget \
+    && apt-get install -y gnupg2 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
     
+RUN wget -O- https://apt.releases.hashicorp.com/gpg | \
+    gpg --dearmor | \
+    tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+
+RUN echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
+    https://apt.releases.hashicorp.com bookworm main" | \
+    tee /etc/apt/sources.list.d/hashicorp.list
+RUN apt-get update && apt-get install -y terraform
+
 # Install python dependencies
 COPY ./requirements.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY src /code/src
 COPY .env /code/.env
+
+
 
 # For dynamic versioning
 COPY .git /code/.git

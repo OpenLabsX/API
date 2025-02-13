@@ -19,7 +19,7 @@ async def deploy_range_template(
     """Deploy range templates."""
     ranges: list[OpenLabsRangeSchema] = []
     for range_id in range_ids:
-        range_model = await get_range(db, OpenLabsRangeID(id=range_id))
+        range_model = await get_range(db, range_id)
         ranges.append(
             OpenLabsRangeSchema.model_validate(range_model, from_attributes=True)
         )
