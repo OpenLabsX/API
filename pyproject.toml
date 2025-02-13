@@ -69,6 +69,7 @@ addopts = [
     "--cov-report=html",
     "--cov-fail-under=85",   # Fail if coverage is below 85%
 ]
+asyncio_mode = "auto"
 
 [tool.coverage.run]
 source = ["."]

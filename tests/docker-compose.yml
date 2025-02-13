@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: api_pytest_db_openlabsx
+    restart: always
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: testdb
+    ports:
+      - "5449:5432" # Avoid conflicts with other postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser"]
+      interval: 5s
+      retries: 5
