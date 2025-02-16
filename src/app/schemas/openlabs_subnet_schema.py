@@ -1,8 +1,9 @@
 import uuid
 from ipaddress import IPv4Network
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
+from ..validators.network import max_num_hosts_in_subnet
 from .openlabs_host_schema import OpenLabsHostBaseSchema
 
 
@@ -38,6 +39,39 @@ class OpenLabsSubnetBaseSchema(BaseModel):
         if len(hostnames) != len(set(hostnames)):
             msg = "All hostnames must be unique."
             raise ValueError(msg)
+        return hosts
+
+    @field_validator("hosts")
+    @classmethod
+    def validate_max_number_hosts(
+        cls, hosts: list[OpenLabsHostBaseSchema], info: ValidationInfo
+    ) -> list[OpenLabsHostBaseSchema]:
+        """Check that the number of hosts does not exceed subnet CIDR.
+
+        Args:
+        ----
+            cls: OpenLabsSubnetBaseSchema object.
+            hosts (list[OpenLabsHostBaseSchema]): List of host objects.
+            info (ValidationInfo): Info of object currently being validated.
+
+        Returns:
+        -------
+            list[OpenLabsHostBaseSchema]: List of host objects.
+
+        """
+        subnet_cidr = info.data.get("cidr")
+
+        if not subnet_cidr:
+            msg = "Subnet missing CIDR."
+            raise ValueError(msg)
+
+        max_num_hosts = max_num_hosts_in_subnet(subnet_cidr)
+        num_requested_hosts = len(hosts)
+
+        if num_requested_hosts > max_num_hosts:
+            msg = f"Too many hosts in subnet! Max: {max_num_hosts}, Requested: {num_requested_hosts}"
+            raise ValueError(msg)
+
         return hosts
 
 
