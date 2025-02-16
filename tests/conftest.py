@@ -1,42 +1,46 @@
-# conftest.py
-
 import logging
+from typing import AsyncGenerator, Generator
+
 import pytest
-
-from testcontainers.postgres import PostgresContainer
-from sqlalchemy import create_engine  # <-- Sync engine
-from sqlalchemy.ext.asyncio import (
-    create_async_engine,
-    AsyncEngine,
-    async_sessionmaker,
-    AsyncSession,
-)
-from sqlalchemy.exc import SQLAlchemyError
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+from testcontainers.postgres import PostgresContainer
 
-from src.app.main import app
 from src.app.core.db.database import Base, async_get_db
+from src.app.main import app
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
 @pytest.fixture(scope="session")
-def postgres_container() -> str:
-    """
-    1) Spin up a Postgres container once per session.
-       Return an *async* connection URL (postgresql+asyncpg://...) for our app.
+def postgres_container() -> Generator[str, None, None]:
+    """Get connection string to Postgres container.
+
+    Returns
+    -------
+        str: Conenction string to Postgres container.
+
     """
     logger.info("Starting Postgres test container...")
     with PostgresContainer("postgres:17") as container:
         container.start()
 
-        # E.g. "postgresql+psycopg2://postgres:postgres@localhost:5432/db"
         raw_url = container.get_connection_url()
+
         # Convert to async driver for the app
         async_url = raw_url.replace("psycopg2", "asyncpg")
 
-        logger.info(f"Test container up => {async_url}")
+        msg = f"Test container up => {async_url}"
+        logger.info(msg)
+
         yield async_url
 
     logger.info("Postgres test container stopped.")
@@ -44,15 +48,17 @@ def postgres_container() -> str:
 
 @pytest.fixture(scope="session", autouse=True)
 def create_db_schema(postgres_container: str) -> None:
-    """
-    2) Use a *synchronous* engine to create all tables once at session start.
-       This avoids bridging an async loop for table creation.
+    """Create database schema synchronously.
 
-       We do *not* drop tables (the container is ephemeral anyway).
+    Returns
+    -------
+        None
+
     """
     # Replace 'asyncpg' -> 'psycopg2' for the sync engine
     sync_url = postgres_container.replace("asyncpg", "psycopg2")
-    logger.info(f"Creating schema with sync engine => {sync_url}")
+    schema_msg = f"Creating schema with sync engine => {sync_url}"
+    logger.info(schema_msg)
 
     sync_engine = create_engine(sync_url, echo=False, future=True)
 
@@ -68,13 +74,17 @@ def create_db_schema(postgres_container: str) -> None:
 
 
 @pytest.fixture(scope="session")
-def async_engine(postgres_container: str) -> AsyncEngine:
-    """
-    3) Provide a session-scoped *async* engine for the app code.
-       We do *not* create or drop tables here. It's only used at runtime.
+def async_engine(postgres_container: str) -> Generator[AsyncEngine, None, None]:
+    """Create async database engine.
+
+    Returns
+    -------
+        AsyncEngine: Async database engine.
+
     """
     engine = create_async_engine(postgres_container, echo=False, future=True)
     yield engine
+
     # Container is ephemeral; no table drops needed
     logger.info("Disposing async engine at session end.")
     import asyncio
@@ -84,14 +94,16 @@ def async_engine(postgres_container: str) -> AsyncEngine:
 
 
 @pytest.fixture(scope="function")
-def client(async_engine: AsyncEngine) -> TestClient:
-    """
-    4) Override async_get_db so that each *request* uses a fresh async session
-       in the exact event loop used by TestClient. This prevents
-       "attached to a different loop" errors.
+def client(async_engine: AsyncEngine) -> Generator[TestClient, None, None]:
+    """Create test client with connection to test database.
+
+    Returns
+    -------
+        TestClient: Database connected TestClient.
+
     """
 
-    async def _override_async_get_db():
+    async def _override_async_get_db() -> AsyncGenerator[AsyncSession, None]:
         async_session = async_sessionmaker(
             bind=async_engine, expire_on_commit=False, class_=AsyncSession
         )
