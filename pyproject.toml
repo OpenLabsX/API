@@ -83,6 +83,7 @@ omit = [
     "venv/*",       # omit anything in a .venv directory anywhere
     "*logger*"
 ]
+concurrency = ["gevent"]
 
 [tool.coverage.report]
 fail_under = 85
