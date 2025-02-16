@@ -1,7 +1,7 @@
 import uuid
 from ipaddress import IPv4Network
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 from .openlabs_subnet_schema import OpenLabsSubnetBaseSchema
 
@@ -39,7 +39,38 @@ class OpenLabsVPCBaseSchema(BaseModel):
         subnet_names = [subnet.name for subnet in subnets]
         if len(subnet_names) != len(set(subnet_names)):
             msg = "All subnet names must be unique."
-            raise (ValueError(msg))
+            raise ValueError(msg)
+        return subnets
+
+    @field_validator("subnets")
+    @classmethod
+    def validate_subnets_contained(
+        cls, subnets: list[OpenLabsSubnetBaseSchema], info: ValidationInfo
+    ) -> list[OpenLabsSubnetBaseSchema]:
+        """Check that the VPC CIDR contains all subnet CIDRs.
+
+        Args:
+        ----
+            cls: OpenLabsVPCBaseSchema object.
+            subnets (list[OpenLabsSubnetBaseSchema]): Subnet objects.
+            info (ValidationInfo): Info of object currently being validated.
+
+        Returns:
+        -------
+            list[OpenLabsSubnetBaseSchema]: List of subnet objects.
+
+        """
+        vpc_cidr = info.data.get("cidr")
+
+        if not vpc_cidr:
+            msg = "VPC missing CIDR."
+            raise ValueError(msg)
+
+        for subnet in subnets:
+            if not subnet.cidr.subnet_of(vpc_cidr):
+                msg = f"The following subnet is not contained in the VPC subnet {vpc_cidr}: {subnet.cidr}"
+                raise ValueError(msg)
+
         return subnets
 
 
