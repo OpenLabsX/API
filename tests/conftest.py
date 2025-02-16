@@ -1,114 +1,107 @@
-import asyncio
+# conftest.py
+
 import logging
-from typing import AsyncGenerator, Generator
-
-import asyncpg
 import pytest
+
+from testcontainers.postgres import PostgresContainer
+from sqlalchemy import create_engine  # <-- Sync engine
+from sqlalchemy.ext.asyncio import (
+    create_async_engine,
+    AsyncEngine,
+    async_sessionmaker,
+    AsyncSession,
+)
+from sqlalchemy.exc import SQLAlchemyError
 from fastapi.testclient import TestClient
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from src.app.core.db.database import Base, async_get_db
 from src.app.main import app
+from src.app.core.db.database import Base, async_get_db
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 @pytest.fixture(scope="session")
-def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
-    """Ensure pytest-asyncio runs with a proper event loop."""
-    policy = asyncio.get_event_loop_policy()
-    loop = policy.new_event_loop()
-    asyncio.set_event_loop(loop)
-    yield loop
-    loop.close()
+def postgres_container() -> str:
+    """
+    1) Spin up a Postgres container once per session.
+       Return an *async* connection URL (postgresql+asyncpg://...) for our app.
+    """
+    logger.info("Starting Postgres test container...")
+    with PostgresContainer("postgres:17") as container:
+        container.start()
+
+        # E.g. "postgresql+psycopg2://postgres:postgres@localhost:5432/db"
+        raw_url = container.get_connection_url()
+        # Convert to async driver for the app
+        async_url = raw_url.replace("psycopg2", "asyncpg")
+
+        logger.info(f"Test container up => {async_url}")
+        yield async_url
+
+    logger.info("Postgres test container stopped.")
 
 
-@pytest.fixture(scope="session")
-def docker_postgres(docker_services) -> str:
-    """Starts a PostgreSQL container for testing using pytest-docker."""
-    port = docker_services.port_for("postgres", 5432)
+@pytest.fixture(scope="session", autouse=True)
+def create_db_schema(postgres_container: str) -> None:
+    """
+    2) Use a *synchronous* engine to create all tables once at session start.
+       This avoids bridging an async loop for table creation.
 
-    # ✅ Change DSN to `postgres://` instead of `postgresql+asyncpg://`
-    db_url = f"postgres://testuser:testpassword@localhost:{port}/testdb"
+       We do *not* drop tables (the container is ephemeral anyway).
+    """
+    # Replace 'asyncpg' -> 'psycopg2' for the sync engine
+    sync_url = postgres_container.replace("asyncpg", "psycopg2")
+    logger.info(f"Creating schema with sync engine => {sync_url}")
 
-    # Wait until the database is responsive
-    docker_services.wait_until_responsive(
-        timeout=30.0,  # Wait up to 30 seconds for PostgreSQL to start
-        pause=2.0,  # Wait 2 seconds between retries
-        check=lambda: asyncio.run(check_postgres_ready(db_url)),
-    )
-
-    return db_url
-
-
-async def check_postgres_ready(db_url: str) -> bool:
-    """Check if PostgreSQL is ready by attempting a connection."""
-
-    # ✅ Ensure DSN uses `postgresql://`
-    if db_url.startswith("postgresql+asyncpg://"):
-        db_url = db_url.replace("postgresql+asyncpg://", "postgresql://")
+    sync_engine = create_engine(sync_url, echo=False, future=True)
 
     try:
-        conn = await asyncpg.connect(db_url, timeout=2)  # 2s timeout per attempt
-        await conn.close()
-        logging.info("✅ PostgreSQL is ready!")
-        return True
-    except Exception as e:
-        logging.warning(f"⏳ PostgreSQL is not ready yet: {e}")
-        return False
-
-
-async def wait_for_db_ready(db_url: str, retries: int = 10, delay: float = 2.0) -> None:
-    """Wait until the test database is ready before running tests."""
-    for attempt in range(retries):
-        if await check_postgres_ready(db_url):
-            logging.info(f"✅ Database is ready after {attempt + 1} attempts")
-            return
-        logging.warning(f"⏳ Waiting for database... Attempt {attempt + 1}/{retries}")
-        await asyncio.sleep(delay)
-
-    raise RuntimeError("❌ Test database did not become available in time.")
+        Base.metadata.create_all(sync_engine)
+        logger.info("All tables created (sync).")
+    except SQLAlchemyError as err:
+        logger.exception("Error creating tables.")
+        raise err
+    finally:
+        sync_engine.dispose()
+        logger.info("Sync engine disposed after schema creation.")
 
 
 @pytest.fixture(scope="session")
-async def test_db(
-    docker_postgres: str,
-) -> AsyncGenerator[async_sessionmaker[AsyncSession], None]:
-    """Creates a new test database with SQLAlchemy, applying schema migrations."""
+def async_engine(postgres_container: str) -> AsyncEngine:
+    """
+    3) Provide a session-scoped *async* engine for the app code.
+       We do *not* create or drop tables here. It's only used at runtime.
+    """
+    engine = create_async_engine(postgres_container, echo=False, future=True)
+    yield engine
+    # Container is ephemeral; no table drops needed
+    logger.info("Disposing async engine at session end.")
+    import asyncio
 
-    # ✅ Replace `postgresql+asyncpg://` with `postgresql://`
-    sqlalchemy_db_url = docker_postgres.replace("postgres://", "postgresql+asyncpg://")
-
-    await wait_for_db_ready(docker_postgres)  # Ensure DB is up
-
-    test_engine = create_async_engine(sqlalchemy_db_url, echo=False, future=True)
-    testing_session_local = async_sessionmaker(
-        bind=test_engine, class_=AsyncSession, expire_on_commit=False
-    )
-
-    async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    yield testing_session_local
-
-    async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(engine.dispose())
 
 
 @pytest.fixture(scope="function")
-async def override_get_db(
-    test_db: async_sessionmaker[AsyncSession],
-) -> AsyncGenerator[AsyncSession, None]:
-    """Override the FastAPI database dependency to use the test database session."""
-    async with test_db() as session:
-        yield session
+def client(async_engine: AsyncEngine) -> TestClient:
+    """
+    4) Override async_get_db so that each *request* uses a fresh async session
+       in the exact event loop used by TestClient. This prevents
+       "attached to a different loop" errors.
+    """
 
+    async def _override_async_get_db():
+        async_session = async_sessionmaker(
+            bind=async_engine, expire_on_commit=False, class_=AsyncSession
+        )
+        async with async_session() as session:
+            yield session
 
-@pytest.fixture(scope="function")
-def client(override_get_db) -> TestClient:
-    """Create a FastAPI TestClient instance with an overridden database dependency."""
+    # Override the normal async_get_db
+    app.dependency_overrides[async_get_db] = _override_async_get_db
 
-    async def _override_get_db() -> AsyncGenerator[AsyncSession, None]:
-        async with override_get_db as session:
-            yield session  # ✅ Correctly yielding session as async generator
+    test_client = TestClient(app)
+    yield test_client
 
-    app.dependency_overrides[async_get_db] = _override_get_db
-    return TestClient(app)
+    app.dependency_overrides.clear()
