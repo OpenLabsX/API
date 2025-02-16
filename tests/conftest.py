@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import AsyncGenerator, Generator
 
@@ -87,10 +88,8 @@ def async_engine(postgres_container: str) -> Generator[AsyncEngine, None, None]:
 
     # Container is ephemeral; no table drops needed
     logger.info("Disposing async engine at session end.")
-    import asyncio
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(engine.dispose())
+    asyncio.run(engine.dispose())
 
 
 @pytest.fixture(scope="function")
