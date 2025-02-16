@@ -26,7 +26,6 @@ from ...schemas.openlabs_vpc_schema import (
     OpenLabsVPCID,
     OpenLabsVPCSchema,
 )
-from ...validators.network import max_num_hosts_in_subnet
 
 router = APIRouter(prefix="/templates", tags=["templates"])
 
@@ -75,14 +74,6 @@ async def upload_range_template(
         OpenLabsRangeID: Identity of the range template.
 
     """
-    for vpc in openlabs_range.vpcs:
-        for subnet in vpc.subnets:
-            if not subnet.cidr.subnet_of(vpc.cidr):
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail=f"The following subnet is not contained in the VPC subnet {vpc.cidr}: {subnet.cidr}",
-                )
-
     created_range = await create_range(db, openlabs_range)
     return OpenLabsRangeID.model_validate(created_range, from_attributes=True)
 
@@ -131,13 +122,6 @@ async def upload_vpc_template(
         OpenLabsVPCID: Identity of the VPC template.
 
     """
-    for subnet in openlabs_vpc.subnets:
-        if not subnet.cidr.subnet_of(openlabs_vpc.cidr):
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"The following subnet is not contained in the VPC subnet {openlabs_vpc.cidr}: {subnet.cidr}",
-            )
-
     created_vpc = await create_vpc(db, openlabs_vpc)
     return OpenLabsVPCID.model_validate(created_vpc, from_attributes=True)
 
@@ -187,15 +171,6 @@ async def upload_subnet_template(
 
     """
     created_subnet = await create_subnet(db, openlabs_subnet)
-
-    max_hosts = max_num_hosts_in_subnet(openlabs_subnet.cidr)
-    num_requested_hosts = len(openlabs_subnet.hosts)
-    if num_requested_hosts > max_hosts:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Too many hosts in subnet! Max: {max_hosts}, Requested: {num_requested_hosts}",
-        )
-
     return OpenLabsSubnetID.model_validate(created_subnet, from_attributes=True)
 
 
