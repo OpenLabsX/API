@@ -3,7 +3,7 @@ import uuid
 from typing import Any
 
 from fastapi import status
-from fastapi.testclient import TestClient
+from httpx import AsyncClient
 
 from .config import BASE_ROUTE
 
@@ -38,10 +38,54 @@ valid_range_payload: dict[str, Any] = {
     "vpn": False,
 }
 
+valid_vpc_payload: dict[str, Any] = {
+    "cidr": "192.168.0.0/16",
+    "name": "example-vpc-1",
+    "subnets": [
+        {
+            "cidr": "192.168.1.0/24",
+            "name": "example-subnet-1",
+            "hosts": [
+                {
+                    "hostname": "example-host-1",
+                    "os": "debian_11",
+                    "spec": "tiny",
+                    "size": 1,
+                    "tags": ["web", "linux"],
+                }
+            ],
+        }
+    ],
+}
 
-def test_template_range_valid_payload(client: TestClient) -> None:
+valid_subnet_payload: dict[str, Any] = {
+    "cidr": "192.168.1.0/24",
+    "name": "example-subnet-1",
+    "hosts": [
+        {
+            "hostname": "example-host-1",
+            "os": "debian_11",
+            "spec": "tiny",
+            "size": 1,
+            "tags": ["web", "linux"],
+        }
+    ],
+}
+
+valid_host_payload: dict[str, Any] = {
+    "hostname": "example-host-1",
+    "os": "debian_11",
+    "spec": "tiny",
+    "size": 1,
+    "tags": ["web", "linux"],
+}
+
+
+async def test_template_range_valid_payload(client: AsyncClient) -> None:
     """Test that we get a 200 and a valid uuid.UUID4 in response."""
-    response = client.post(f"{BASE_ROUTE}/templates/ranges", json=valid_range_payload)
+    response = await client.post(
+        f"{BASE_ROUTE}/templates/ranges", json=valid_range_payload
+    )
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["id"]
 
@@ -51,29 +95,31 @@ def test_template_range_valid_payload(client: TestClient) -> None:
     assert str(uuid_obj) == uuid_response
 
 
-def test_template_range_invalid_vpc_cidr(client: TestClient) -> None:
+async def test_template_range_invalid_vpc_cidr(client: AsyncClient) -> None:
     """Test for 422 response when VPC CIDR is invalid."""
     # Use deepcopy to ensure all nested dicts are copied
     invalid_payload = copy.deepcopy(valid_range_payload)
     invalid_payload["vpcs"][0][
         "cidr"
     ] = "192.168.300.0/24"  # Assign the invalid CIDR block
-    response = client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
+    response = await client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
-def test_template_range_invalid_subnet_cidr(client: TestClient) -> None:
+async def test_template_range_invalid_subnet_cidr(client: AsyncClient) -> None:
     """Test for 422 response when subnet CIDR is invalid."""
     # Use deepcopy to ensure all nested dicts are copied
     invalid_payload = copy.deepcopy(valid_range_payload)
     invalid_payload["vpcs"][0]["subnets"][0][
         "cidr"
     ] = "192.168.300.0/24"  # Assign the invalid CIDR block
-    response = client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
+    response = await client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
-def test_template_range_invalid_vpc_subnet_cidr_contain(client: TestClient) -> None:
+async def test_template_range_invalid_vpc_subnet_cidr_contain(
+    client: AsyncClient,
+) -> None:
     """Test for 422 response when subnet CIDR is not contained in the VPC CIDR."""
     invalid_payload = copy.deepcopy(valid_range_payload)
 
@@ -85,29 +131,279 @@ def test_template_range_invalid_vpc_subnet_cidr_contain(client: TestClient) -> N
         "cidr"
     ] = "172.16.1.0/24"  # Assign the invalid CIDR block
 
-    response = client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
+    response = await client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
-def test_template_range_empty_tag(client: TestClient) -> None:
+async def test_template_range_empty_tag(client: AsyncClient) -> None:
     """Test for a 422 response when a tag is empty."""
     invalid_payload = copy.deepcopy(valid_range_payload)
     invalid_payload["vpcs"][0]["subnets"][0]["hosts"][0]["tags"].append("")
-    response = client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
+    response = await client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
-def test_template_range_invalid_provider(client: TestClient) -> None:
+async def test_template_range_invalid_provider(client: AsyncClient) -> None:
     """Test for a 422 response when the provider is invalid."""
     invalid_payload = copy.deepcopy(valid_range_payload)
     invalid_payload["provider"] = "invalid_provider"  # Not a valid enum value
-    response = client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
+    response = await client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
-def test_template_range_invalid_hostname(client: TestClient) -> None:
+async def test_template_range_invalid_hostname(client: AsyncClient) -> None:
     """Test for a 422 response when a hostname is invalid."""
     invalid_payload = copy.deepcopy(valid_range_payload)
     invalid_payload["vpcs"][0]["subnets"][0]["hosts"][0]["hostname"] = "-i-am-invalid"
-    response = client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
+    response = await client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+async def test_template_range_duplicate_vpc_names(client: AsyncClient) -> None:
+    """Test for a 422 response when multiple VPCs share the same name."""
+    invalid_payload = copy.deepcopy(valid_range_payload)
+    invalid_payload["vpcs"].append(
+        copy.deepcopy(invalid_payload["vpcs"][0])
+    )  # Duplicate the first VPC
+    response = await client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+async def test_template_range_duplicate_subnet_names(client: AsyncClient) -> None:
+    """Test for a 422 response when multiple subnets share the same name."""
+    invalid_payload = copy.deepcopy(valid_range_payload)
+    invalid_payload["vpcs"][0]["subnets"].append(
+        copy.deepcopy(invalid_payload["vpcs"][0]["subnets"][0])
+    )
+    response = await client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+async def test_template_range_duplicate_host_hostnames(client: AsyncClient) -> None:
+    """Test for a 422 response when multiple hosts share the same hostname."""
+    invalid_payload = copy.deepcopy(valid_range_payload)
+    invalid_payload["vpcs"][0]["subnets"][0]["hosts"].append(
+        copy.deepcopy(invalid_payload["vpcs"][0]["subnets"][0]["hosts"][0])
+    )
+    response = await client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+async def test_template_range_get_range(client: AsyncClient) -> None:
+    """Test that we can retrieve the correct range after saving it in the database."""
+    response = await client.post(
+        f"{BASE_ROUTE}/templates/ranges", json=valid_range_payload
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    range_id = response.json()["id"]
+
+    response = await client.get(f"{BASE_ROUTE}/templates/ranges/{range_id}")
+    assert response.status_code == status.HTTP_200_OK
+
+    # Add id to JSON to mimic GET response
+    expected_response = {"id": range_id, **valid_range_payload}
+    assert response.json() == expected_response
+
+
+async def test_template_range_get_nonexistent_range(client: AsyncClient) -> None:
+    """Test that we get a 404 error when requesting an nonexistent range in the database."""
+    nonexistent_range_id = uuid.uuid4()
+    response = await client.get(f"{BASE_ROUTE}/templates/ranges/{nonexistent_range_id}")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+async def test_template_range_subnet_too_many_hosts(client: AsyncClient) -> None:
+    """Test that we get a 422 error when more hosts in subnet that CIDR allows."""
+    invalid_payload = copy.deepcopy(valid_range_payload)
+    invalid_payload["vpcs"][0]["subnets"][0][
+        "cidr"
+    ] = "192.168.1.0/31"  # Maximum 2 hosts
+
+    # Add extra hosts
+    for i in range(3):
+        copy_host = copy.deepcopy(invalid_payload["vpcs"][0]["subnets"][0]["hosts"][0])
+        copy_host["hostname"] = copy_host["hostname"] + str(i)
+        invalid_payload["vpcs"][0]["subnets"][0]["hosts"].append(copy_host)
+
+    max_hosts_allowed = 2
+    assert len(invalid_payload["vpcs"][0]["subnets"][0]["hosts"]) > max_hosts_allowed
+
+    # Request
+    response = await client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+async def test_template_vpc_valid_payload(client: AsyncClient) -> None:
+    """Test that we get a 200 response and a valid uuid.UUID4 in response."""
+    response = await client.post(f"{BASE_ROUTE}/templates/vpcs", json=valid_vpc_payload)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["id"]
+
+    # Validate UUID returned
+    uuid_response = response.json()["id"]
+    uuid_obj = uuid.UUID(uuid_response, version=4)
+    assert str(uuid_obj) == uuid_response
+
+
+async def test_template_vpc_invalid_cidr(client: AsyncClient) -> None:
+    """Test that we get a 422 response when the VPC CIDR is invalid."""
+    invalid_payload = copy.deepcopy(valid_vpc_payload)
+    invalid_payload["cidr"] = "192.168.300.0/24"
+    response = await client.post(f"{BASE_ROUTE}/templates/vpcs", json=invalid_payload)
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+async def test_template_vpc_invalid_subnet_cidr(client: AsyncClient) -> None:
+    """Test that we get a 422 response when the VPC subnet CIDR is invalid."""
+    invalid_payload = copy.deepcopy(valid_vpc_payload)
+    invalid_payload["subnets"][0]["cidr"] = "192.168.300.0/24"
+    response = await client.post(f"{BASE_ROUTE}/templates/vpcs", json=invalid_payload)
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+async def test_template_vpc_invalid_vpc_subnet_cidr_contain(
+    client: AsyncClient,
+) -> None:
+    """Test that we get a 422 response when the subnet CIDR is not contained in the VPC CIDR."""
+    invalid_payload = copy.deepcopy(valid_vpc_payload)
+
+    # VPC CIDR
+    invalid_payload["cidr"] = "192.168.0.0/16"
+
+    # Subnet CIDR
+    invalid_payload["subnets"][0]["cidr"] = "172.16.1.0/24"
+
+    response = await client.post(f"{BASE_ROUTE}/templates/vpcs", json=invalid_payload)
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+async def test_template_vpc_get_vpc(client: AsyncClient) -> None:
+    """Test that we can retrieve the correct VPC after saving it in the database."""
+    response = await client.post(f"{BASE_ROUTE}/templates/vpcs", json=valid_vpc_payload)
+    assert response.status_code == status.HTTP_200_OK
+
+    vpc_id = response.json()["id"]
+
+    response = await client.get(f"{BASE_ROUTE}/templates/vpcs/{vpc_id}")
+    assert response.status_code == status.HTTP_200_OK
+
+    # Add id to JSON to mimic GET response
+    expected_response = {"id": vpc_id, **valid_vpc_payload}
+    assert response.json() == expected_response
+
+
+async def test_template_vpc_get_nonexistent_vpc(client: AsyncClient) -> None:
+    """Test that we get a 404 error when requesting a nonexistent vpc in the database."""
+    nonexistent_vpc_id = uuid.uuid4()
+    response = await client.get(f"{BASE_ROUTE}/templates/vpcs/{nonexistent_vpc_id}")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+async def test_template_subnet_valid_payload(client: AsyncClient) -> None:
+    """Test that we get a 200 reponse and a valid uuid.UUID4 in response."""
+    response = await client.post(
+        f"{BASE_ROUTE}/templates/subnets", json=valid_subnet_payload
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["id"]
+
+    # Validate UUID returned
+    uuid_response = response.json()["id"]
+    uuid_obj = uuid.UUID(uuid_response, version=4)
+    assert str(uuid_obj) == uuid_response
+
+
+async def test_template_subnet_invalid_subnet_cidr(client: AsyncClient) -> None:
+    """Test that we get a 422 response when the subnet CIDR is invalid."""
+    invalid_payload = copy.deepcopy(valid_subnet_payload)
+    invalid_payload["cidr"] = "192.168.300.0/24"
+    response = await client.post(
+        f"{BASE_ROUTE}/templates/subnets", json=invalid_payload
+    )
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+async def test_template_subnet_too_many_hosts(client: AsyncClient) -> None:
+    """Test that we get a 422 response when more hosts in subnet than CIDR allows."""
+    invalid_payload = copy.deepcopy(valid_subnet_payload)
+    invalid_payload["cidr"] = "192.168.1.0/31"  # Maximum 2 hosts
+
+    # Add extra hosts
+    for i in range(3):
+        copy_host = copy.deepcopy(invalid_payload["hosts"][0])
+        copy_host["hostname"] = copy_host["hostname"] + str(i)
+        invalid_payload["hosts"].append(copy_host)
+
+    max_hosts_allowed = 2
+    assert len(invalid_payload["hosts"]) > max_hosts_allowed
+
+    # Request
+    response = await client.post(
+        f"{BASE_ROUTE}/templates/subnets", json=invalid_payload
+    )
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+async def test_template_subnet_get_subnet(client: AsyncClient) -> None:
+    """Test that we can retrieve the correct subnet after saving it in the database."""
+    response = await client.post(
+        f"{BASE_ROUTE}/templates/subnets", json=valid_subnet_payload
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    subnet_id = response.json()["id"]
+
+    response = await client.get(f"{BASE_ROUTE}/templates/subnets/{subnet_id}")
+    assert response.status_code == status.HTTP_200_OK
+
+    # Add id to JSON to mimic GET response
+    expected_response = {"id": subnet_id, **valid_subnet_payload}
+    assert response.json() == expected_response
+
+
+async def test_template_subnet_get_nonexistent_subnet(client: AsyncClient) -> None:
+    """Test that we get a 404 error when requesting a nonexistent subnet in the database."""
+    nonexistent_subnet_id = uuid.uuid4()
+    response = await client.get(
+        f"{BASE_ROUTE}/templates/subnets/{nonexistent_subnet_id}"
+    )
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+async def test_template_host_valid_payload(client: AsyncClient) -> None:
+    """Test that we get a 200 reponse and a valid uuid.UUID4 in response."""
+    response = await client.post(
+        f"{BASE_ROUTE}/templates/hosts", json=valid_host_payload
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["id"]
+
+    # Validate UUID returned
+    uuid_response = response.json()["id"]
+    uuid_obj = uuid.UUID(uuid_response, version=4)
+    assert str(uuid_obj) == uuid_response
+
+
+async def test_template_host_get_host(client: AsyncClient) -> None:
+    """Test that we can retrieve the correct host after saving it in the database."""
+    response = await client.post(
+        f"{BASE_ROUTE}/templates/hosts", json=valid_host_payload
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    host_id = response.json()["id"]
+
+    response = await client.get(f"{BASE_ROUTE}/templates/hosts/{host_id}")
+    assert response.status_code == status.HTTP_200_OK
+
+    # Add id to JSON to mimic GET response
+    expected_response = {"id": host_id, **valid_host_payload}
+    assert response.json() == expected_response
+
+
+async def test_template_host_get_nonexistent_host(client: AsyncClient) -> None:
+    """Test that we get a 404 error when requesting a nonexistent host in the database."""
+    nonexistent_host_id = uuid.uuid4()
+    response = await client.get(f"{BASE_ROUTE}/templates/hosts/{nonexistent_host_id}")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
