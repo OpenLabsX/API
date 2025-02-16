@@ -1,9 +1,9 @@
-import asyncio
 import logging
 from typing import AsyncGenerator, Generator
 
+import httpx
 import pytest
-from fastapi.testclient import TestClient
+import pytest_asyncio
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import (
@@ -27,7 +27,7 @@ def postgres_container() -> Generator[str, None, None]:
 
     Returns
     -------
-        str: Conenction string to Postgres container.
+        Generator[str, None, None]: Async connection string to postgres database.
 
     """
     logger.info("Starting Postgres test container...")
@@ -35,12 +35,10 @@ def postgres_container() -> Generator[str, None, None]:
         container.start()
 
         raw_url = container.get_connection_url()
-
-        # Convert to async driver for the app
         async_url = raw_url.replace("psycopg2", "asyncpg")
 
-        msg = f"Test container up => {async_url}"
-        logger.info(msg)
+        container_up_msg = f"Test container up => {async_url}"
+        logger.info(container_up_msg)
 
         yield async_url
 
@@ -49,17 +47,21 @@ def postgres_container() -> Generator[str, None, None]:
 
 @pytest.fixture(scope="session", autouse=True)
 def create_db_schema(postgres_container: str) -> None:
-    """Create database schema synchronously.
+    """Create database schema synchronously (using psycopg2 driver).
 
-    Returns
+    Args:
+    ----
+        postgres_container (str): Postgres container connection string.
+
+    Returns:
     -------
         None
 
     """
-    # Replace 'asyncpg' -> 'psycopg2' for the sync engine
     sync_url = postgres_container.replace("asyncpg", "psycopg2")
-    schema_msg = f"Creating schema with sync engine => {sync_url}"
-    logger.info(schema_msg)
+
+    create_schema_msg = f"Creating schema with sync engine => {sync_url}"
+    logger.info(create_schema_msg)
 
     sync_engine = create_engine(sync_url, echo=False, future=True)
 
@@ -74,45 +76,54 @@ def create_db_schema(postgres_container: str) -> None:
         logger.info("Sync engine disposed after schema creation.")
 
 
-@pytest.fixture(scope="session")
-def async_engine(postgres_container: str) -> Generator[AsyncEngine, None, None]:
-    """Create async database engine.
+@pytest_asyncio.fixture(scope="function")
+async def async_engine(postgres_container: str) -> AsyncGenerator[AsyncEngine, None]:
+    """Create async database engine for the entire test session.
 
-    Returns
+    Args:
+    ----
+        postgres_container (str): Postgres container connection string.
+
+    Returns:
     -------
-        AsyncEngine: Async database engine.
+        AsyncGenerator[AsyncEngine, None]: Async database engine.
 
     """
     engine = create_async_engine(postgres_container, echo=False, future=True)
     yield engine
-
-    # Container is ephemeral; no table drops needed
-    logger.info("Disposing async engine at session end.")
-
-    asyncio.run(engine.dispose())
+    await engine.dispose()
 
 
-@pytest.fixture(scope="function")
-def client(async_engine: AsyncEngine) -> Generator[TestClient, None, None]:
-    """Create test client with connection to test database.
+@pytest_asyncio.fixture
+async def client(async_engine: AsyncEngine) -> AsyncGenerator[httpx.AsyncClient, None]:
+    """Async client fixture that overrides the DB dependency with async sessions.
 
-    Returns
+    Args:
+    ----
+        async_engine (AsyncEngine): Async database engine object.
+
+    Returns:
     -------
-        TestClient: Database connected TestClient.
+        AsyncGenerator[AsyncClient, None]: Async client for interacting with FastAPI.
 
     """
+    # Create the async session factory
+    async_session = async_sessionmaker(
+        bind=async_engine, expire_on_commit=False, class_=AsyncSession
+    )
 
+    # Override the FastAPI dependency to use this session factory
     async def _override_async_get_db() -> AsyncGenerator[AsyncSession, None]:
-        async_session = async_sessionmaker(
-            bind=async_engine, expire_on_commit=False, class_=AsyncSession
-        )
         async with async_session() as session:
             yield session
 
-    # Override the normal async_get_db
     app.dependency_overrides[async_get_db] = _override_async_get_db
 
-    test_client = TestClient(app)
-    yield test_client
+    # Use httpx's ASGITransport to run requests against the FastAPI app in-memory
+    transport = httpx.ASGITransport(app=app)
 
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
+        yield c
+
+    # Clean up overrides after the test finishes
     app.dependency_overrides.clear()
