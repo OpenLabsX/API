@@ -1,6 +1,7 @@
+from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import load_only, selectinload
 
 from ..models.openlabs_subnet_model import OpenLabsSubnetModel
 from ..models.openlabs_vpc_model import OpenLabsVPCModel
@@ -13,21 +14,41 @@ from ..schemas.openlabs_vpc_schema import (
 from .crud_subnets import create_subnet
 
 
-async def get_vpcs(db: AsyncSession) -> list[OpenLabsVPCID]:
-    """Get list of OpenLabsVPC uuids.
+async def get_vpc_headers(
+    db: AsyncSession, standalone_only: bool = True
+) -> list[OpenLabsVPCModel]:
+    """Get list of OpenLabsVPC headers.
 
     Args:
     ----
-        db (Session): Database connection.
+        db (AsyncSession): Database connection.
+        standalone_only (bool): Include only VPCs that are standalone templates
+            (i.e. those with a null range_id). Defaults to True.
 
     Returns:
     -------
-        list[OpenLabsVPCID]: List of all OpenLabsVPCID for each OpenLabsVPC.
+        list[OpenLabsVPCModel]: List of OpenLabsVPC models.
 
     """
-    stmt = select(OpenLabsVPCModel.id)
+    # Dynamically select non-nested columns/attributes
+    mapped_vpc_model = inspect(OpenLabsVPCModel)
+    main_columns = [
+        getattr(OpenLabsVPCModel, attr.key) for attr in mapped_vpc_model.column_attrs
+    ]
+
+    # Build the query: filter for rows where range_id is null if template_only is True
+    if standalone_only:
+        stmt = (
+            select(OpenLabsVPCModel)
+            .where(OpenLabsVPCModel.range_id.is_(None))
+            .options(load_only(*main_columns))
+        )
+    else:
+        stmt = select(OpenLabsVPCModel).options(load_only(*main_columns))
+
+    # Execute query and return results
     result = await db.execute(stmt)
-    return [OpenLabsVPCID(id=vpc_id) for vpc_id in result.scalars().all()]
+    return list(result.scalars().all())
 
 
 async def get_vpc(db: AsyncSession, vpc_id: OpenLabsVPCID) -> OpenLabsVPCModel | None:

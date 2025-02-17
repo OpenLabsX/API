@@ -88,3 +88,14 @@ class OpenLabsVPCSchema(OpenLabsVPCBaseSchema, OpenLabsVPCID):
     """VPC object for OpenLabs."""
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class OpenLabsVPCHeaderSchema(OpenLabsVPCID):
+    """Header (non-nested object) information for the OpenLabsVPCSchema."""
+
+    cidr: IPv4Network = Field(
+        ..., description="CIDR range", examples=["192.168.0.0/16"]
+    )
+    name: str = Field(
+        ..., description="VPC name", min_length=1, examples=["example-vpc-1"]
+    )
