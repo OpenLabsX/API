@@ -24,7 +24,7 @@ valid_range_payload: dict[str, Any] = {
                             "hostname": "example-host-1",
                             "os": "debian_11",
                             "spec": "tiny",
-                            "size": 1,
+                            "size": 8,
                             "tags": ["web", "linux"],
                         }
                     ],
@@ -50,7 +50,7 @@ valid_vpc_payload: dict[str, Any] = {
                     "hostname": "example-host-1",
                     "os": "debian_11",
                     "spec": "tiny",
-                    "size": 1,
+                    "size": 8,
                     "tags": ["web", "linux"],
                 }
             ],
@@ -66,7 +66,7 @@ valid_subnet_payload: dict[str, Any] = {
             "hostname": "example-host-1",
             "os": "debian_11",
             "spec": "tiny",
-            "size": 1,
+            "size": 8,
             "tags": ["web", "linux"],
         }
     ],
@@ -76,7 +76,7 @@ valid_host_payload: dict[str, Any] = {
     "hostname": "example-host-1",
     "os": "debian_11",
     "spec": "tiny",
-    "size": 1,
+    "size": 8,
     "tags": ["web", "linux"],
 }
 
@@ -228,6 +228,16 @@ async def test_template_range_subnet_too_many_hosts(client: AsyncClient) -> None
 
     max_hosts_allowed = 2
     assert len(invalid_payload["vpcs"][0]["subnets"][0]["hosts"]) > max_hosts_allowed
+
+    # Request
+    response = await client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+async def test_template_range_host_size_too_small(client: AsyncClient) -> None:
+    """Test that we get a 422 error when the disk size of a host is too small."""
+    invalid_payload = copy.deepcopy(valid_range_payload)
+    invalid_payload["vpcs"][0]["subnets"][0]["hosts"][0]["size"] = 2
 
     # Request
     response = await client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
