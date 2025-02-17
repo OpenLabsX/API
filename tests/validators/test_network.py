@@ -1,5 +1,12 @@
-from src.app.validators.network import is_valid_hostname, is_valid_disk_size
+from ipaddress import IPv4Network
+
 from src.app.enums.operating_systems import OpenLabsOS
+from src.app.validators.network import (
+    is_valid_disk_size,
+    is_valid_hostname,
+    max_num_hosts_in_subnet,
+)
+
 
 def test_valid_hostnames() -> None:
     """Test valid hostnames."""
@@ -61,8 +68,25 @@ def test_numeric_tld() -> None:
     assert not is_valid_hostname("example.123")
     assert is_valid_hostname("123.example")
 
+
 def test_valid_host_size() -> None:
     """Test host disk size minimums."""
     assert is_valid_disk_size(OpenLabsOS.DEBIAN_11, 10)
     assert is_valid_disk_size(OpenLabsOS.WINDOWS_2016, 32)
     assert not is_valid_disk_size(OpenLabsOS.WINDOWS_2016, 10)
+
+
+def test_max_number_of_hosts_in_subnet() -> None:
+    """Test max number of hosts in subnet."""
+    standard_24_subnet = IPv4Network("192.168.1.0/24")
+    max_hosts_in_24_subnet = 256
+    max_usable_hosts_in_24_subnet = max_hosts_in_24_subnet - 5
+    assert max_num_hosts_in_subnet(standard_24_subnet) == max_usable_hosts_in_24_subnet
+
+    standard_25_subnet = IPv4Network("192.168.1.0/25")
+    max_usable_hosts_in_25_subnet = (max_hosts_in_24_subnet / 2) - 5
+    assert max_num_hosts_in_subnet(standard_25_subnet) == max_usable_hosts_in_25_subnet
+
+    standard_31_subnet = IPv4Network("192.168.1.0/31")
+    max_hosts_31_subnet = 0
+    assert max_num_hosts_in_subnet(standard_31_subnet) == max_hosts_31_subnet

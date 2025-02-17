@@ -1,15 +1,20 @@
-from ipaddress import IPv4Network
+import uuid
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationInfo,
+    field_validator,
+)
 
 from ..enums.operating_systems import OpenLabsOS
-from ..enums.providers import OpenLabsProvider
 from ..enums.specs import OpenLabsSpec
-from ..validators.network import is_valid_hostname
+from ..validators.network import is_valid_disk_size, is_valid_hostname
 
 
-class OpenLabsHost(BaseModel):
-    """Host object for OpenLabs."""
+class OpenLabsHostBaseSchema(BaseModel):
+    """Base host object for OpenLabs."""
 
     hostname: str = Field(
         ...,
@@ -27,7 +32,9 @@ class OpenLabsHost(BaseModel):
         description="Ram and CPU size",
         examples=[OpenLabsSpec.TINY, OpenLabsSpec.SMALL],
     )
-    size: int = Field(..., description="Size in GB of disk", gt=0)
+    size: int = Field(
+        ..., description="Size in GB of disk", gt=0, examples=[8, 32, 40, 65]
+    )
     tags: list[str] = Field(
         default_factory=list,
         description="Optional list of tags",
@@ -74,39 +81,45 @@ class OpenLabsHost(BaseModel):
             raise ValueError(msg)
         return hostname
 
+    @field_validator("size")
+    @classmethod
+    def validate_size(cls, size: int, info: ValidationInfo) -> int:
+        """Check VM disk size is sufficient.
 
-class OpenLabsSubnet(BaseModel):
-    """Subnet object for OpenLabs."""
+        Args:
+        ----
+            cls: Host object.
+            size (int): Disk size of VM.
+            info (ValidationInfo): Validator context
 
-    cidr: IPv4Network = Field(
-        ..., description="CIDR range", examples=["192.168.1.0/24"]
+        Returns:
+        -------
+            int: Valid disk size for VM.
+
+        """
+        os: OpenLabsOS | None = info.data.get("os")
+
+        if os is None:
+            msg = "OS field not set to OpenLabsOS type."
+            raise ValueError(msg)
+
+        if not is_valid_disk_size(os, size):
+            msg = f"Invalid disk size for {os.value}: {size}GB"
+            raise ValueError(msg)
+        return size
+
+
+class OpenLabsHostID(BaseModel):
+    """Identity class for OpenLabsHost."""
+
+    id: uuid.UUID = Field(
+        default_factory=uuid.uuid4, description="Unique object identifier."
     )
-    name: str = Field(
-        ..., description="Subnet name", min_length=1, examples=["example-subnet-1"]
-    )
-    hosts: list[OpenLabsHost] = Field(..., description="All hosts in subnet")
+
+    model_config = ConfigDict(from_attributes=True)
 
 
-class OpenLabsVPC(BaseModel):
-    """VPC object for OpenLabs."""
+class OpenLabsHostSchema(OpenLabsHostBaseSchema, OpenLabsHostID):
+    """Host object for OpenLabs."""
 
-    cidr: IPv4Network = Field(
-        ..., description="CIDR range", examples=["192.168.0.0/16"]
-    )
-    name: str = Field(
-        ..., description="VPC name", min_length=1, examples=["example-vpc-1"]
-    )
-    subnets: list[OpenLabsSubnet] = Field(..., description="Contained subnets")
-
-
-class OpenLabsRange(BaseModel):
-    """Range object for OpenLabs."""
-
-    vpc: OpenLabsVPC = Field(..., description="OpenLabsVPC object")
-    provider: OpenLabsProvider = Field(
-        ...,
-        description="Cloud provider",
-        examples=[OpenLabsProvider.AWS, OpenLabsProvider.AZURE],
-    )
-    vnc: bool = Field(default=False, description="Enable automatic VNC configuration")
-    vpn: bool = Field(default=False, description="Enable automatic VPN configuration")
+    model_config = ConfigDict(from_attributes=True)

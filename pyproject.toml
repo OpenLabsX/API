@@ -69,6 +69,8 @@ addopts = [
     "--cov-report=html",
     "--cov-fail-under=85",   # Fail if coverage is below 85%
 ]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
 
 [tool.coverage.run]
 source = ["."]
@@ -81,6 +83,7 @@ omit = [
     "venv/*",       # omit anything in a .venv directory anywhere
     "*logger*"
 ]
+concurrency = ["gevent"]
 
 [tool.coverage.report]
 fail_under = 85
