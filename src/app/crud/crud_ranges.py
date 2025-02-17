@@ -1,6 +1,7 @@
+from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import load_only, selectinload
 
 from ..models.openlabs_range_model import OpenLabsRangeModel
 from ..models.openlabs_subnet_model import OpenLabsSubnetModel
@@ -13,8 +14,8 @@ from ..schemas.openlabs_range_schema import (
 from .crud_vpcs import create_vpc
 
 
-async def get_ranges(db: AsyncSession) -> list[OpenLabsRangeID]:
-    """Get list of OpenLabsRange uuids.
+async def get_range_headers(db: AsyncSession) -> list[OpenLabsRangeModel]:
+    """Get list of OpenLabsRange headers.
 
     Args:
     ----
@@ -22,12 +23,19 @@ async def get_ranges(db: AsyncSession) -> list[OpenLabsRangeID]:
 
     Returns:
     -------
-        list[OpenLabsRangeID]: List of all OpenLabsRangeID for each OpenLabsRange.
+        list[OpenLabsRangeID]: List of all OpenLabsRangeHeader for each OpenLabsRange.
 
     """
-    stmt = select(OpenLabsRangeModel.id)
+    # Dynamically select non-nested columns/attributes
+    mapped_range_model = inspect(OpenLabsRangeModel)
+    main_columns = [
+        getattr(OpenLabsRangeModel, attr.key)
+        for attr in mapped_range_model.column_attrs
+    ]
+
+    stmt = select(OpenLabsRangeModel).options(load_only(*main_columns))
     result = await db.execute(stmt)
-    return [OpenLabsRangeID(id=range_id) for range_id in result.scalars().all()]
+    return list(result.scalars().all())
 
 
 async def get_range(

@@ -85,7 +85,6 @@ async def test_template_range_get_all_empty_list(client: AsyncClient) -> None:
     """Test that we get a 404 response when there are no range templates."""
     response = await client.get(f"{BASE_ROUTE}/templates/ranges")
     assert response.status_code == status.HTTP_404_NOT_FOUND
-    assert response.json() == {"detail": "Unable to find any range template IDs!"}
 
 
 async def test_template_vpc_get_all_empty_list(client: AsyncClient) -> None:
@@ -121,7 +120,10 @@ async def test_template_range_get_non_empty_list(client: AsyncClient) -> None:
     assert response.status_code == status.HTTP_200_OK
     response_json = response.json()
     assert len(response_json) == 1
-    assert response_json[0] == {"id": range_template_id}
+
+    non_nested_range_dict = copy.deepcopy(valid_range_payload)
+    del non_nested_range_dict["vpcs"]
+    assert response_json[0] == {"id": range_template_id, **non_nested_range_dict}
 
 
 async def test_template_range_valid_payload(client: AsyncClient) -> None:

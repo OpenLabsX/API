@@ -59,3 +59,19 @@ class OpenLabsRangeSchema(OpenLabsRangeBaseSchema, OpenLabsRangeID):
     """Range object for OpenLabs."""
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class OpenLabsRangeHeaderSchema(OpenLabsRangeID):
+    """Header (non-nested object) information for the OpenLabsRangeSchema."""
+
+    provider: OpenLabsProvider = Field(
+        ...,
+        description="Cloud provider",
+        examples=[OpenLabsProvider.AWS, OpenLabsProvider.AZURE],
+    )
+
+    name: str = Field(
+        ..., description="Range name", min_length=1, examples=["example-range-1"]
+    )
+    vnc: bool = Field(default=False, description="Enable automatic VNC configuration")
+    vpn: bool = Field(default=False, description="Enable automatic VPN configuration")
