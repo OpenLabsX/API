@@ -23,7 +23,7 @@ async def get_range_headers(db: AsyncSession) -> list[OpenLabsRangeModel]:
 
     Returns:
     -------
-        list[OpenLabsRangeID]: List of all OpenLabsRangeHeader for each OpenLabsRange.
+        list[OpenLabsRangeModel]: List of OpenLabsRangeModel objects.
 
     """
     # Dynamically select non-nested columns/attributes
