@@ -1,3 +1,20 @@
+# v0.5.0 (Mon Feb 17 2025)
+
+#### 🚀 Enhancement
+
+- SQLAlchemy  ORM Models ✅ [#46](https://github.com/OpenLabsX/API/pull/46) ([@alexchristy](https://github.com/alexchristy) [@Adamkadaban](https://github.com/Adamkadaban))
+
+#### 📝 Documentation
+
+- Add debug docker config to work with vscode debugging extension [#32](https://github.com/OpenLabsX/API/pull/32) ([@Adamkadaban](https://github.com/Adamkadaban))
+
+#### Authors: 2
+
+- Adam Hassan ([@Adamkadaban](https://github.com/Adamkadaban))
+- Alex Christy ([@alexchristy](https://github.com/alexchristy))
+
+---
+
 # v0.4.0 (Wed Feb 12 2025)
 
 #### 🚀 Enhancement
