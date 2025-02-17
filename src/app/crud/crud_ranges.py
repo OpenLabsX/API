@@ -13,6 +13,23 @@ from ..schemas.openlabs_range_schema import (
 from .crud_vpcs import create_vpc
 
 
+async def get_ranges(db: AsyncSession) -> list[OpenLabsRangeID]:
+    """Get list of OpenLabsRange uuids.
+
+    Args:
+    ----
+        db (Session): Database connection.
+
+    Returns:
+    -------
+        list[OpenLabsRangeID]: List of all OpenLabsRangeID for each OpenLabsRange.
+
+    """
+    stmt = select(OpenLabsRangeModel.id)
+    result = await db.execute(stmt)
+    return [OpenLabsRangeID(id=range_id) for range_id in result.scalars().all()]
+
+
 async def get_range(
     db: AsyncSession, range_id: OpenLabsRangeID
 ) -> OpenLabsRangeModel | None:

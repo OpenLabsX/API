@@ -13,6 +13,23 @@ from ..schemas.openlabs_vpc_schema import (
 from .crud_subnets import create_subnet
 
 
+async def get_vpcs(db: AsyncSession) -> list[OpenLabsVPCID]:
+    """Get list of OpenLabsVPC uuids.
+
+    Args:
+    ----
+        db (Session): Database connection.
+
+    Returns:
+    -------
+        list[OpenLabsVPCID]: List of all OpenLabsVPCID for each OpenLabsVPC.
+
+    """
+    stmt = select(OpenLabsVPCModel.id)
+    result = await db.execute(stmt)
+    return [OpenLabsVPCID(id=vpc_id) for vpc_id in result.scalars().all()]
+
+
 async def get_vpc(db: AsyncSession, vpc_id: OpenLabsVPCID) -> OpenLabsVPCModel | None:
     """Get OpenLabsVPC by id (uuid).
 

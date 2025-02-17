@@ -12,6 +12,23 @@ from ..schemas.openlabs_vpc_schema import OpenLabsVPCID
 from .crud_hosts import create_host
 
 
+async def get_subnets(db: AsyncSession) -> list[OpenLabsSubnetID]:
+    """Get list of OpenLabsSubnet uuids.
+
+    Args:
+    ----
+        db (Session): Database connection.
+
+    Returns:
+    -------
+        list[OpenLabsSubnetID]: List of all OpenLabsSubnetID for each OpenSubnetVPC.
+
+    """
+    stmt = select(OpenLabsSubnetModel.id)
+    result = await db.execute(stmt)
+    return [OpenLabsSubnetID(id=subnet_id) for subnet_id in result.scalars().all()]
+
+
 async def get_subnet(
     db: AsyncSession, subnet_id: OpenLabsSubnetID
 ) -> OpenLabsSubnetModel | None:

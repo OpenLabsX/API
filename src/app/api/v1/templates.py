@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from ...core.db.database import async_get_db
-from ...crud.crud_hosts import create_host, get_host
-from ...crud.crud_ranges import create_range, get_range
-from ...crud.crud_subnets import create_subnet, get_subnet
-from ...crud.crud_vpcs import create_vpc, get_vpc
+from ...crud.crud_hosts import create_host, get_host, get_hosts
+from ...crud.crud_ranges import create_range, get_range, get_ranges
+from ...crud.crud_subnets import create_subnet, get_subnet, get_subnets
+from ...crud.crud_vpcs import create_vpc, get_vpc, get_vpcs
 from ...schemas.openlabs_host_schema import (
     OpenLabsHostBaseSchema,
     OpenLabsHostID,
@@ -28,6 +28,35 @@ from ...schemas.openlabs_vpc_schema import (
 )
 
 router = APIRouter(prefix="/templates", tags=["templates"])
+
+
+@router.get("/ranges")
+async def get_range_templates(
+    db: AsyncSession = Depends(async_get_db),  # noqa: B008
+) -> list[OpenLabsRangeID]:
+    """Get a list of range template UUIDs.
+
+    Args:
+    ----
+        db (AsyncSession): Async database connection.
+
+    Returns:
+    -------
+        list[OpenLabsRangeID]: List of range template UUIDs.
+
+    """
+    range_ids = await get_ranges(db)
+
+    if not range_ids:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Unable to find any range template IDs!",
+        )
+
+    return [
+        OpenLabsRangeID.model_validate(range_id, from_attributes=True)
+        for range_id in range_ids
+    ]
 
 
 @router.get("/ranges/{range_id}")
@@ -78,6 +107,34 @@ async def upload_range_template(
     return OpenLabsRangeID.model_validate(created_range, from_attributes=True)
 
 
+@router.get("/vpcs")
+async def get_vpc_templates(
+    db: AsyncSession = Depends(async_get_db),  # noqa: B008
+) -> list[OpenLabsVPCID]:
+    """Get a list of vpc template UUIDs.
+
+    Args:
+    ----
+        db (AsyncSession): Async database connection.
+
+    Returns:
+    -------
+        list[OpenLabsVPCID]: List of vpc template UUIDs.
+
+    """
+    vpc_ids = await get_vpcs(db)
+
+    if not vpc_ids:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Unable to find any vpc template IDs!",
+        )
+
+    return [
+        OpenLabsVPCID.model_validate(vpc_id, from_attributes=True) for vpc_id in vpc_ids
+    ]
+
+
 @router.get("/vpcs/{vpc_id}")
 async def get_vpc_template(
     vpc_id: str, db: AsyncSession = Depends(async_get_db)  # noqa: B008
@@ -126,6 +183,35 @@ async def upload_vpc_template(
     return OpenLabsVPCID.model_validate(created_vpc, from_attributes=True)
 
 
+@router.get("/subnets")
+async def get_subnet_templates(
+    db: AsyncSession = Depends(async_get_db),  # noqa: B008
+) -> list[OpenLabsSubnetID]:
+    """Get a list of subnet template UUIDs.
+
+    Args:
+    ----
+        db (AsyncSession): Async database connection.
+
+    Returns:
+    -------
+        list[OpenLabsSubnetID]: List of subnet template UUIDs.
+
+    """
+    subnet_ids = await get_subnets(db)
+
+    if not subnet_ids:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Unable to find any subnet template IDs!",
+        )
+
+    return [
+        OpenLabsSubnetID.model_validate(subnet_id, from_attributes=True)
+        for subnet_id in subnet_ids
+    ]
+
+
 @router.get("/subnets/{subnet_id}")
 async def get_subnet_template(
     subnet_id: str, db: AsyncSession = Depends(async_get_db)  # noqa: B008
@@ -172,6 +258,35 @@ async def upload_subnet_template(
     """
     created_subnet = await create_subnet(db, openlabs_subnet)
     return OpenLabsSubnetID.model_validate(created_subnet, from_attributes=True)
+
+
+@router.get("/hosts")
+async def get_host_templates(
+    db: AsyncSession = Depends(async_get_db),  # noqa: B008
+) -> list[OpenLabsHostID]:
+    """Get a list of host template UUIDs.
+
+    Args:
+    ----
+        db (AsyncSession): Async database connection.
+
+    Returns:
+    -------
+        list[OpenLabsHostID]: List of host template UUIDs.
+
+    """
+    host_ids = await get_hosts(db)
+
+    if not host_ids:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Unable to find any host template IDs!",
+        )
+
+    return [
+        OpenLabsHostID.model_validate(host_id, from_attributes=True)
+        for host_id in host_ids
+    ]
 
 
 @router.get("/hosts/{host_id}")

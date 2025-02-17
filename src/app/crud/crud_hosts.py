@@ -10,6 +10,23 @@ from ..schemas.openlabs_host_schema import (
 from ..schemas.openlabs_subnet_schema import OpenLabsSubnetID
 
 
+async def get_hosts(db: AsyncSession) -> list[OpenLabsHostID]:
+    """Get list of OpenLabsHost uuids.
+
+    Args:
+    ----
+        db (Session): Database connection.
+
+    Returns:
+    -------
+        list[OpenLabsHostID]: List of all OpenLabsHostID for each OpenHostVPC.
+
+    """
+    stmt = select(OpenLabsHostModel.id)
+    result = await db.execute(stmt)
+    return [OpenLabsHostID(id=host_id) for host_id in result.scalars().all()]
+
+
 async def get_host(
     db: AsyncSession, host_id: OpenLabsHostID
 ) -> OpenLabsHostModel | None:
