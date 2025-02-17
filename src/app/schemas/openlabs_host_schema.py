@@ -1,6 +1,12 @@
 import uuid
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationInfo,
+    field_validator,
+)
 
 from ..enums.operating_systems import OpenLabsOS
 from ..enums.specs import OpenLabsSpec
@@ -73,25 +79,32 @@ class OpenLabsHostBaseSchema(BaseModel):
             raise ValueError(msg)
         return hostname
 
-    @model_validator(mode="after")
+    @field_validator("size")
     @classmethod
-    def validate_size(cls, model: BaseModel) -> BaseModel:
+    def validate_size(cls, size: int, info: ValidationInfo) -> int:
         """Check VM disk size is sufficient.
 
         Args:
         ----
             cls: Host object.
-            model (BaseModel): Host model
+            size (int): Disk size of VM.
+            info (ValidationInfo): Validator context
 
         Returns:
         -------
-            BaseModel: Valid model for VM.
+            int: Valid disk size for VM.
 
         """
-        if not is_valid_disk_size(model.os, model.size):
-            msg = f"Invalid disk size for {model.os.value}: {model.size}GB"
+        os: OpenLabsOS | None = info.data.get("os")
+
+        if os is None:
+            msg = "OS field not set to OpenLabsOS type."
             raise ValueError(msg)
-        return model
+
+        if not is_valid_disk_size(os, size):
+            msg = f"Invalid disk size for {os.value}: {size}GB"
+            raise ValueError(msg)
+        return size
 
 
 class OpenLabsHostID(BaseModel):
