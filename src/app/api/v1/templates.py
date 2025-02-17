@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from ...core.db.database import async_get_db
 from ...crud.crud_hosts import create_host, get_host, get_hosts
 from ...crud.crud_ranges import create_range, get_range, get_range_headers
-from ...crud.crud_subnets import create_subnet, get_subnet, get_subnets
+from ...crud.crud_subnets import create_subnet, get_subnet, get_subnet_headers
 from ...crud.crud_vpcs import create_vpc, get_vpc, get_vpc_headers
 from ...schemas.openlabs_host_schema import (
     OpenLabsHostBaseSchema,
@@ -19,6 +19,7 @@ from ...schemas.openlabs_range_schema import (
 )
 from ...schemas.openlabs_subnet_schema import (
     OpenLabsSubnetBaseSchema,
+    OpenLabsSubnetHeaderSchema,
     OpenLabsSubnetID,
     OpenLabsSubnetSchema,
 )
@@ -189,31 +190,33 @@ async def upload_vpc_template(
 
 
 @router.get("/subnets")
-async def get_subnet_template_ids(
+async def get_subnet_template_headers(
+    standalone_only: bool = True,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-) -> list[OpenLabsSubnetID]:
-    """Get a list of subnet template UUIDs.
+) -> list[OpenLabsSubnetHeaderSchema]:
+    """Get a list of subnet template headers.
 
     Args:
     ----
+        standalone_only (bool): Return only standalone subnet templates (not part of a range/vpc template). Defaults to True.
         db (AsyncSession): Async database connection.
 
     Returns:
     -------
-        list[OpenLabsSubnetID]: List of subnet template UUIDs.
+        list[OpenLabsSubnetHeaderSchema]: List of subnet template headers.
 
     """
-    subnet_ids = await get_subnets(db)
+    subnet_headers = await get_subnet_headers(db, standalone_only=standalone_only)
 
-    if not subnet_ids:
+    if not subnet_headers:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Unable to find any subnet template IDs!",
+            detail="Unable to find any subnet templates!",
         )
 
     return [
-        OpenLabsSubnetID.model_validate(subnet_id, from_attributes=True)
-        for subnet_id in subnet_ids
+        OpenLabsSubnetHeaderSchema.model_validate(header, from_attributes=True)
+        for header in subnet_headers
     ]
 
 
