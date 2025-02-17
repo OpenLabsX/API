@@ -42,47 +42,9 @@ valid_range_payload: dict[str, Any] = {
     "vpn": False,
 }
 
-valid_vpc_payload: dict[str, Any] = {
-    "cidr": "192.168.0.0/16",
-    "name": "example-vpc-1",
-    "subnets": [
-        {
-            "cidr": "192.168.1.0/24",
-            "name": "example-subnet-1",
-            "hosts": [
-                {
-                    "hostname": "example-host-1",
-                    "os": "debian_11",
-                    "spec": "tiny",
-                    "size": 8,
-                    "tags": ["web", "linux"],
-                }
-            ],
-        }
-    ],
-}
-
-valid_subnet_payload: dict[str, Any] = {
-    "cidr": "192.168.1.0/24",
-    "name": "example-subnet-1",
-    "hosts": [
-        {
-            "hostname": "example-host-1",
-            "os": "debian_11",
-            "spec": "tiny",
-            "size": 8,
-            "tags": ["web", "linux"],
-        }
-    ],
-}
-
-valid_host_payload: dict[str, Any] = {
-    "hostname": "example-host-1",
-    "os": "debian_11",
-    "spec": "tiny",
-    "size": 8,
-    "tags": ["web", "linux"],
-}
+valid_vpc_payload = copy.deepcopy(valid_range_payload["vpcs"][0])
+valid_subnet_payload = copy.deepcopy(valid_vpc_payload["subnets"][0])
+valid_host_payload = copy.deepcopy(valid_subnet_payload["hosts"][0])
 
 
 async def test_template_range_get_all_empty_list(client: AsyncClient) -> None:
