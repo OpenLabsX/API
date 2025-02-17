@@ -1,10 +1,10 @@
 import uuid
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from ..enums.operating_systems import OpenLabsOS
 from ..enums.specs import OpenLabsSpec
-from ..validators.network import is_valid_hostname
+from ..validators.network import is_valid_disk_size, is_valid_hostname
 
 
 class OpenLabsHostBaseSchema(BaseModel):
@@ -72,6 +72,26 @@ class OpenLabsHostBaseSchema(BaseModel):
             msg = f"Invalid hostname: {hostname}"
             raise ValueError(msg)
         return hostname
+
+    @model_validator(mode="after")
+    @classmethod
+    def validate_size(cls, model: BaseModel) -> BaseModel:
+        """Check VM disk size is sufficient.
+
+        Args:
+        ----
+            cls: Host object.
+            model (BaseModel): Host model
+
+        Returns:
+        -------
+            BaseModel: Valid model for VM.
+
+        """
+        if not is_valid_disk_size(model.os, model.size):
+            msg = f"Invalid disk size for {model.os.value}: {model.size}GB"
+            raise ValueError(msg)
+        return model
 
 
 class OpenLabsHostID(BaseModel):
