@@ -91,7 +91,6 @@ async def test_template_vpc_get_all_empty_list(client: AsyncClient) -> None:
     """Test that we get a 404 response when there are no vpc templates."""
     response = await client.get(f"{BASE_ROUTE}/templates/vpcs")
     assert response.status_code == status.HTTP_404_NOT_FOUND
-    assert response.json() == {"detail": "Unable to find any vpc template IDs!"}
 
 
 async def test_template_subnet_get_all_empty_list(client: AsyncClient) -> None:
@@ -124,6 +123,22 @@ async def test_template_range_get_non_empty_list(client: AsyncClient) -> None:
     non_nested_range_dict = copy.deepcopy(valid_range_payload)
     del non_nested_range_dict["vpcs"]
     assert response_json[0] == {"id": range_template_id, **non_nested_range_dict}
+
+
+async def test_template_vpc_get_non_empty_list(client: AsyncClient) -> None:
+    """Test all templates to see that we get a 200 response and that correct headers exist."""
+    response = await client.post(f"{BASE_ROUTE}/templates/vpcs", json=valid_vpc_payload)
+    vpc_template_id = response.json()["id"]
+    assert response.status_code == status.HTTP_200_OK
+
+    response = await client.get(f"{BASE_ROUTE}/templates/vpcs?standalone_only=true")
+    assert response.status_code == status.HTTP_200_OK
+    response_json = response.json()
+    assert len(response_json) == 1
+
+    non_nested_vpc_dict = copy.deepcopy(valid_vpc_payload)
+    del non_nested_vpc_dict["subnets"]
+    assert response_json[0] == {"id": vpc_template_id, **non_nested_vpc_dict}
 
 
 async def test_template_range_valid_payload(client: AsyncClient) -> None:

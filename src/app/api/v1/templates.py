@@ -5,7 +5,7 @@ from ...core.db.database import async_get_db
 from ...crud.crud_hosts import create_host, get_host, get_hosts
 from ...crud.crud_ranges import create_range, get_range, get_range_headers
 from ...crud.crud_subnets import create_subnet, get_subnet, get_subnets
-from ...crud.crud_vpcs import create_vpc, get_vpc, get_vpcs
+from ...crud.crud_vpcs import create_vpc, get_vpc, get_vpc_headers
 from ...schemas.openlabs_host_schema import (
     OpenLabsHostBaseSchema,
     OpenLabsHostID,
@@ -24,6 +24,7 @@ from ...schemas.openlabs_subnet_schema import (
 )
 from ...schemas.openlabs_vpc_schema import (
     OpenLabsVPCBaseSchema,
+    OpenLabsVPCHeaderSchema,
     OpenLabsVPCID,
     OpenLabsVPCSchema,
 )
@@ -109,30 +110,33 @@ async def upload_range_template(
 
 
 @router.get("/vpcs")
-async def get_vpc_template_ids(
+async def get_vpc_template_headers(
+    standalone_only: bool = True,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-) -> list[OpenLabsVPCID]:
-    """Get a list of vpc template UUIDs.
+) -> list[OpenLabsVPCHeaderSchema]:
+    """Get a list of vpc template headers.
 
     Args:
     ----
+        standalone_only (bool): Return only standalone VPC templates (not part of a range template). Defaults to True.
         db (AsyncSession): Async database connection.
 
     Returns:
     -------
-        list[OpenLabsVPCID]: List of vpc template UUIDs.
+        list[OpenLabsVPCID]: List of vpc template headers.
 
     """
-    vpc_ids = await get_vpcs(db)
+    vpc_headers = await get_vpc_headers(db, standalone_only=standalone_only)
 
-    if not vpc_ids:
+    if not vpc_headers:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Unable to find any vpc template IDs!",
+            detail="Unable to find any vpc templates!",
         )
 
     return [
-        OpenLabsVPCID.model_validate(vpc_id, from_attributes=True) for vpc_id in vpc_ids
+        OpenLabsVPCHeaderSchema.model_validate(header, from_attributes=True)
+        for header in vpc_headers
     ]
 
 
