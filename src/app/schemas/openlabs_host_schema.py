@@ -32,7 +32,9 @@ class OpenLabsHostBaseSchema(BaseModel):
         description="Ram and CPU size",
         examples=[OpenLabsSpec.TINY, OpenLabsSpec.SMALL],
     )
-    size: int = Field(..., description="Size in GB of disk", gt=0)
+    size: int = Field(
+        ..., description="Size in GB of disk", gt=0, examples=[8, 32, 40, 65]
+    )
     tags: list[str] = Field(
         default_factory=list,
         description="Optional list of tags",
