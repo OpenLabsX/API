@@ -31,7 +31,7 @@ router = APIRouter(prefix="/templates", tags=["templates"])
 
 
 @router.get("/ranges")
-async def get_range_templates(
+async def get_range_template_ids(
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
 ) -> list[OpenLabsRangeID]:
     """Get a list of range template UUIDs.
@@ -108,7 +108,7 @@ async def upload_range_template(
 
 
 @router.get("/vpcs")
-async def get_vpc_templates(
+async def get_vpc_template_ids(
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
 ) -> list[OpenLabsVPCID]:
     """Get a list of vpc template UUIDs.
@@ -184,7 +184,7 @@ async def upload_vpc_template(
 
 
 @router.get("/subnets")
-async def get_subnet_templates(
+async def get_subnet_template_ids(
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
 ) -> list[OpenLabsSubnetID]:
     """Get a list of subnet template UUIDs.
@@ -261,7 +261,7 @@ async def upload_subnet_template(
 
 
 @router.get("/hosts")
-async def get_host_templates(
+async def get_host_template_ids(
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
 ) -> list[OpenLabsHostID]:
     """Get a list of host template UUIDs.
