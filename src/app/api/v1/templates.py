@@ -132,7 +132,7 @@ async def get_vpc_template_headers(
     if not vpc_headers:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Unable to find any vpc templates!",
+            detail=f"Unable to find any{" standalone" if standalone_only else ""} vpc templates!",
         )
 
     return [
@@ -211,7 +211,7 @@ async def get_subnet_template_headers(
     if not subnet_headers:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Unable to find any subnet templates!",
+            detail=f"Unable to find any{" standalone" if standalone_only else ""} subnet templates!",
         )
 
     return [
