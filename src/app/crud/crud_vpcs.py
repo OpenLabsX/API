@@ -36,7 +36,7 @@ async def get_vpc_headers(
         getattr(OpenLabsVPCModel, attr.key) for attr in mapped_vpc_model.column_attrs
     ]
 
-    # Build the query: filter for rows where range_id is null if template_only is True
+    # Build the query: filter for rows where range_id is null if standalone_only is True
     if standalone_only:
         stmt = (
             select(OpenLabsVPCModel)
