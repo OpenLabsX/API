@@ -50,14 +50,16 @@ def max_num_hosts_in_subnet(subnet: IPv4Network) -> int:
 
     """
     total_addresses = subnet.num_addresses
-    multi_host_subnet_prefix_max = 31
+
+    # Minimum subnet mask https://aws.amazon.com/vpc/faqs/
+    multi_host_subnet_prefix_max = 28
 
     # If we can fit more than one host on the subnet
     # then subtract router and broadcast addresses
-    if subnet.prefixlen < multi_host_subnet_prefix_max:
-        return total_addresses - 2
+    if subnet.prefixlen > multi_host_subnet_prefix_max:
+        return 0
 
-    return total_addresses
+    return total_addresses - 5
 
 
 def is_valid_disk_size(os: OpenLabsOS, size: int) -> bool:
