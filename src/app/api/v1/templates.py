@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from ...core.db.database import async_get_db
 from ...crud.crud_hosts import create_host, get_host, get_hosts
-from ...crud.crud_ranges import create_range, get_range, get_ranges
+from ...crud.crud_ranges import create_range, get_range, get_range_headers
 from ...crud.crud_subnets import create_subnet, get_subnet, get_subnets
 from ...crud.crud_vpcs import create_vpc, get_vpc, get_vpcs
 from ...schemas.openlabs_host_schema import (
@@ -13,6 +13,7 @@ from ...schemas.openlabs_host_schema import (
 )
 from ...schemas.openlabs_range_schema import (
     OpenLabsRangeBaseSchema,
+    OpenLabsRangeHeaderSchema,
     OpenLabsRangeID,
     OpenLabsRangeSchema,
 )
@@ -31,10 +32,10 @@ router = APIRouter(prefix="/templates", tags=["templates"])
 
 
 @router.get("/ranges")
-async def get_range_template_ids(
+async def get_range_template_headers(
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-) -> list[OpenLabsRangeID]:
-    """Get a list of range template UUIDs.
+) -> list[OpenLabsRangeHeaderSchema]:
+    """Get a list of range template headers.
 
     Args:
     ----
@@ -42,20 +43,20 @@ async def get_range_template_ids(
 
     Returns:
     -------
-        list[OpenLabsRangeID]: List of range template UUIDs.
+        list[OpenLabsRangeID]: List of range template headers.
 
     """
-    range_ids = await get_ranges(db)
+    range_headers = await get_range_headers(db)
 
-    if not range_ids:
+    if not range_headers:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Unable to find any range template IDs!",
+            detail="Unable to find any range templates!",
         )
 
     return [
-        OpenLabsRangeID.model_validate(range_id, from_attributes=True)
-        for range_id in range_ids
+        OpenLabsRangeHeaderSchema.model_validate(header, from_attributes=True)
+        for header in range_headers
     ]
 
 
