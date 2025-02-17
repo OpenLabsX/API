@@ -55,7 +55,7 @@ def max_num_hosts_in_subnet(subnet: IPv4Network) -> int:
     multi_host_subnet_prefix_max = 28
 
     # If we can fit more than one host on the subnet
-    # then subtract router and broadcast addresses
+    # then subtract reserved addresses
     if subnet.prefixlen > multi_host_subnet_prefix_max:
         return 0
 
