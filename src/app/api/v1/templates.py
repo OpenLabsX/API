@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from ...core.db.database import async_get_db
-from ...crud.crud_hosts import create_host, get_host, get_hosts
+from ...crud.crud_hosts import create_host, get_host, get_host_headers
 from ...crud.crud_ranges import create_range, get_range, get_range_headers
 from ...crud.crud_subnets import create_subnet, get_subnet, get_subnet_headers
 from ...crud.crud_vpcs import create_vpc, get_vpc, get_vpc_headers
@@ -269,13 +269,15 @@ async def upload_subnet_template(
 
 
 @router.get("/hosts")
-async def get_host_template_ids(
+async def get_host_template_headers(
+    standalone_only: bool = True,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-) -> list[OpenLabsHostID]:
-    """Get a list of host template UUIDs.
+) -> list[OpenLabsHostSchema]:
+    """Get a list of host template headers.
 
     Args:
     ----
+        standalone_only (bool): Return only standalone host templates (not part of a range/vpc/subnet template). Defaults to True.
         db (AsyncSession): Async database connection.
 
     Returns:
@@ -283,17 +285,17 @@ async def get_host_template_ids(
         list[OpenLabsHostID]: List of host template UUIDs.
 
     """
-    host_ids = await get_hosts(db)
+    host_headers = await get_host_headers(db, standalone_only=standalone_only)
 
-    if not host_ids:
+    if not host_headers:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Unable to find any host template IDs!",
+            detail=f"Unable to find any{" standalone" if standalone_only else ""} host templates!",
         )
 
     return [
-        OpenLabsHostID.model_validate(host_id, from_attributes=True)
-        for host_id in host_ids
+        OpenLabsHostSchema.model_validate(header, from_attributes=True)
+        for header in host_headers
     ]
 
 

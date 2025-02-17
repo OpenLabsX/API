@@ -1,5 +1,7 @@
+from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import load_only
 
 from ..models.openlabs_host_model import OpenLabsHostModel
 from ..schemas.openlabs_host_schema import (
@@ -10,21 +12,40 @@ from ..schemas.openlabs_host_schema import (
 from ..schemas.openlabs_subnet_schema import OpenLabsSubnetID
 
 
-async def get_hosts(db: AsyncSession) -> list[OpenLabsHostID]:
-    """Get list of OpenLabsHost uuids.
+async def get_host_headers(
+    db: AsyncSession, standalone_only: bool = True
+) -> list[OpenLabsHostModel]:
+    """Get list of OpenLabsHost headers.
 
     Args:
     ----
         db (Session): Database connection.
+        standalone_only (bool): Include only hosts that are standalone templates
+            (i.e. those with a null subnet_id). Defaults to True.
 
     Returns:
     -------
-        list[OpenLabsHostID]: List of all OpenLabsHostID for each OpenHostVPC.
+        list[OpenLabsHostModel]: List of OpenLabsHost models.
 
     """
-    stmt = select(OpenLabsHostModel.id)
+    mapped_subnet_model = inspect(OpenLabsHostModel)
+    main_columns = [
+        getattr(OpenLabsHostModel, attr.key)
+        for attr in mapped_subnet_model.column_attrs
+    ]
+
+    # Build the query: filter for rows where subnet_id is null if standalone_only is True
+    if standalone_only:
+        stmt = (
+            select(OpenLabsHostModel)
+            .where(OpenLabsHostModel.subnet_id.is_(None))
+            .options(load_only(*main_columns))
+        )
+    else:
+        stmt = select(OpenLabsHostModel).options(load_only(*main_columns))
+
     result = await db.execute(stmt)
-    return [OpenLabsHostID(id=host_id) for host_id in result.scalars().all()]
+    return list(result.scalars().all())
 
 
 async def get_host(

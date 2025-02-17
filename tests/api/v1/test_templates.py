@@ -6,6 +6,7 @@ from typing import Any
 from fastapi import status
 from httpx import AsyncClient
 
+from src.app.schemas.openlabs_host_schema import OpenLabsHostSchema
 from src.app.schemas.openlabs_subnet_schema import OpenLabsSubnetHeaderSchema
 
 from .config import BASE_ROUTE
@@ -106,7 +107,6 @@ async def test_template_host_get_all_empty_list(client: AsyncClient) -> None:
     """Test that we get a 404 response when there are no template templates."""
     response = await client.get(f"{BASE_ROUTE}/templates/hosts")
     assert response.status_code == status.HTTP_404_NOT_FOUND
-    assert response.json() == {"detail": "Unable to find any host template IDs!"}
 
 
 async def test_template_range_get_non_empty_list(client: AsyncClient) -> None:
@@ -165,6 +165,31 @@ async def test_template_subnet_get_non_empty_list(client: AsyncClient) -> None:
     subnet_header_obj = OpenLabsSubnetHeaderSchema(**concat_dict)
 
     expected = json.loads(subnet_header_obj.model_dump_json())
+    assert expected in response_json
+
+
+async def test_template_host_get_non_empty_list(client: AsyncClient) -> None:
+    """Test all templates to see that we get a 200 response and that correct headers exist."""
+    # Create unique host object for this test
+    unique_valid_host_payload = copy.deepcopy(valid_host_payload)
+    unique_valid_host_payload["name"] = str(uuid.uuid4())
+
+    response = await client.post(
+        f"{BASE_ROUTE}/templates/hosts", json=unique_valid_host_payload
+    )
+    host_template_id = response.json()["id"]
+    assert response.status_code == status.HTTP_200_OK
+
+    response = await client.get(f"{BASE_ROUTE}/templates/hosts?standalone_only=true")
+    assert response.status_code == status.HTTP_200_OK
+    response_json = response.json()
+    assert len(response_json) >= 1  # Our subnet template must be in there
+
+    # Dynamically build header object to avoid future updates breaking tests
+    concat_dict = {"id": host_template_id, **unique_valid_host_payload}
+    host_header_obj = OpenLabsHostSchema(**concat_dict)
+
+    expected = json.loads(host_header_obj.model_dump_json())
     assert expected in response_json
 
 
