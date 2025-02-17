@@ -1,6 +1,7 @@
+from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import load_only, selectinload
 
 from ..models.openlabs_subnet_model import OpenLabsSubnetModel
 from ..schemas.openlabs_subnet_schema import (
@@ -12,21 +13,41 @@ from ..schemas.openlabs_vpc_schema import OpenLabsVPCID
 from .crud_hosts import create_host
 
 
-async def get_subnets(db: AsyncSession) -> list[OpenLabsSubnetID]:
-    """Get list of OpenLabsSubnet uuids.
+async def get_subnet_headers(
+    db: AsyncSession, standalone_only: bool = True
+) -> list[OpenLabsSubnetModel]:
+    """Get list of OpenLabsSubnet headers.
 
     Args:
     ----
         db (Session): Database connection.
+        standalone_only (bool): Include only subnets that are standalone templates
+            (i.e. those with a null vpc_id). Defaults to True.
 
     Returns:
     -------
-        list[OpenLabsSubnetID]: List of all OpenLabsSubnetID for each OpenSubnetVPC.
+        list[OpenLabsSubnetModel]: List of OpenLabsSubnet models.
 
     """
-    stmt = select(OpenLabsSubnetModel.id)
+    # Dynamically select non-nested columns/attributes
+    mapped_subnet_model = inspect(OpenLabsSubnetModel)
+    main_columns = [
+        getattr(OpenLabsSubnetModel, attr.key)
+        for attr in mapped_subnet_model.column_attrs
+    ]
+
+    # Build the query: filter for rows where vpc_id is null if standalone_only is True
+    if standalone_only:
+        stmt = (
+            select(OpenLabsSubnetModel)
+            .where(OpenLabsSubnetModel.vpc_id.is_(None))
+            .options(load_only(*main_columns))
+        )
+    else:
+        stmt = select(OpenLabsSubnetModel).options(load_only(*main_columns))
+
     result = await db.execute(stmt)
-    return [OpenLabsSubnetID(id=subnet_id) for subnet_id in result.scalars().all()]
+    return list(result.scalars().all())
 
 
 async def get_subnet(

@@ -89,3 +89,14 @@ class OpenLabsSubnetSchema(OpenLabsSubnetBaseSchema, OpenLabsSubnetID):
     """Subnet object for OpenLabs."""
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class OpenLabsSubnetHeaderSchema(OpenLabsSubnetID):
+    """Header (non-nested object) information for the OpenLabsSubnetHeaderSchema."""
+
+    cidr: IPv4Network = Field(
+        ..., description="CIDR range", examples=["192.168.1.0/24"]
+    )
+    name: str = Field(
+        ..., description="Subnet name", min_length=1, examples=["example-subnet-1"]
+    )
