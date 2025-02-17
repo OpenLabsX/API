@@ -127,6 +127,35 @@ async def test_template_range_get_non_empty_list(client: AsyncClient) -> None:
     assert response_json[0] == {"id": range_template_id, **non_nested_range_dict}
 
 
+async def test_template_all_get_non_standalone_templates(client: AsyncClient) -> None:
+    """Test that, after uploading range template previously, we have all non-standalone templates."""
+    response = await client.get(f"{BASE_ROUTE}/templates/vpcs?standalone_only=false")
+    assert response.status_code == status.HTTP_200_OK
+    response_json = response.json()
+    assert len(response_json) == 1
+
+    non_nested_vpc_dict = copy.deepcopy(valid_vpc_payload)
+    del non_nested_vpc_dict["subnets"]
+    assert response_json[0] == {"id": response_json[0]["id"], **non_nested_vpc_dict}
+
+    response = await client.get(f"{BASE_ROUTE}/templates/subnets?standalone_only=false")
+    assert response.status_code == status.HTTP_200_OK
+    response_json = response.json()
+    assert len(response_json) == 1
+
+    non_nested_subnet_dict = copy.deepcopy(valid_subnet_payload)
+    del non_nested_subnet_dict["hosts"]
+    assert response_json[0] == {"id": response_json[0]["id"], **non_nested_subnet_dict}
+
+    response = await client.get(f"{BASE_ROUTE}/templates/hosts?standalone_only=false")
+    assert response.status_code == status.HTTP_200_OK
+    response_json = response.json()
+    assert len(response_json) == 1
+
+    non_nested_host_dict = copy.deepcopy(valid_host_payload)
+    assert response_json[0] == {"id": response_json[0]["id"], **non_nested_host_dict}
+
+
 async def test_template_vpc_get_non_empty_list(client: AsyncClient) -> None:
     """Test all templates to see that we get a 200 response and that correct headers exist."""
     response = await client.post(f"{BASE_ROUTE}/templates/vpcs", json=valid_vpc_payload)
