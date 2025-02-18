@@ -4,7 +4,6 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
-from ...core.cdktf.aws.aws import create_aws_stack, deploy_infrastructure
 from ...core.config import settings
 from ...core.db.database import async_get_db
 from ...crud.crud_ranges import get_range
@@ -18,6 +17,9 @@ async def deploy_range_from_template(
     range_ids: list[OpenLabsRangeID], db: AsyncSession = Depends(async_get_db)
 ) -> dict[str, Any]:
     """Deploy range templates."""
+    # Import CDKTF dependencies to avoid long import times
+    from ...core.cdktf.aws.aws import create_aws_stack, deploy_infrastructure
+
     ranges: list[OpenLabsRangeSchema] = []
     for range_id in range_ids:
         range_model = await get_range(db, range_id)
