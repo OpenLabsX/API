@@ -198,6 +198,25 @@ async def test_template_range_valid_payload(client: AsyncClient) -> None:
     assert str(uuid_obj) == uuid_response
 
 
+async def test_template_range_get_range_invalid_uuid(client: AsyncClient) -> None:
+    """Test that we get a 400 when providing an invalid UUID4."""
+    response = await client.post(
+        f"{BASE_ROUTE}/templates/ranges", json=valid_range_payload
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["id"]
+    uuid_response = response.json()["id"]
+
+    # Test that the invalid UUID doesn't work
+    response = await client.get(f"{BASE_ROUTE}/templates/ranges/{uuid_response[:-1]}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "uuid" in str(response.json()["detail"]).lower()  # Mentions the UUID
+
+    # Test that the valid UUID still works
+    response = await client.get(f"{BASE_ROUTE}/templates/ranges/{uuid_response}")
+    assert response.status_code == status.HTTP_200_OK
+
+
 async def test_template_range_invalid_vpc_cidr(client: AsyncClient) -> None:
     """Test for 422 response when VPC CIDR is invalid."""
     # Use deepcopy to ensure all nested dicts are copied
@@ -359,6 +378,23 @@ async def test_template_vpc_valid_payload(client: AsyncClient) -> None:
     assert str(uuid_obj) == uuid_response
 
 
+async def test_template_vpc_get_vpc_invalid_uuid(client: AsyncClient) -> None:
+    """Test that we get a 400 when providing an invalid UUID4."""
+    response = await client.post(f"{BASE_ROUTE}/templates/vpcs", json=valid_vpc_payload)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["id"]
+    uuid_response = response.json()["id"]
+
+    # Test that the invalid UUID doesn't work
+    response = await client.get(f"{BASE_ROUTE}/templates/vpcs/{uuid_response[:-1]}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "uuid" in str(response.json()["detail"]).lower()  # Mentions the UUID
+
+    # Test that the valid UUID still works
+    response = await client.get(f"{BASE_ROUTE}/templates/vpcs/{uuid_response}")
+    assert response.status_code == status.HTTP_200_OK
+
+
 async def test_template_vpc_invalid_cidr(client: AsyncClient) -> None:
     """Test that we get a 422 response when the VPC CIDR is invalid."""
     invalid_payload = copy.deepcopy(valid_vpc_payload)
@@ -425,6 +461,25 @@ async def test_template_subnet_valid_payload(client: AsyncClient) -> None:
     uuid_response = response.json()["id"]
     uuid_obj = uuid.UUID(uuid_response, version=4)
     assert str(uuid_obj) == uuid_response
+
+
+async def test_template_subnet_get_subnet_invalid_uuid(client: AsyncClient) -> None:
+    """Test that we get a 400 when providing an invalid UUID4."""
+    response = await client.post(
+        f"{BASE_ROUTE}/templates/subnets", json=valid_subnet_payload
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["id"]
+    uuid_response = response.json()["id"]
+
+    # Test that the invalid UUID doesn't work
+    response = await client.get(f"{BASE_ROUTE}/templates/subnets/{uuid_response[:-1]}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "uuid" in str(response.json()["detail"]).lower()  # Mentions the UUID
+
+    # Test that the valid UUID still works
+    response = await client.get(f"{BASE_ROUTE}/templates/subnets/{uuid_response}")
+    assert response.status_code == status.HTTP_200_OK
 
 
 async def test_template_subnet_invalid_subnet_cidr(client: AsyncClient) -> None:
@@ -496,6 +551,25 @@ async def test_template_host_valid_payload(client: AsyncClient) -> None:
     uuid_response = response.json()["id"]
     uuid_obj = uuid.UUID(uuid_response, version=4)
     assert str(uuid_obj) == uuid_response
+
+
+async def test_template_host_get_host_invalid_uuid(client: AsyncClient) -> None:
+    """Test that we get a 400 when providing an invalid UUID4."""
+    response = await client.post(
+        f"{BASE_ROUTE}/templates/hosts", json=valid_host_payload
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["id"]
+    uuid_response = response.json()["id"]
+
+    # Test that the invalid UUID doesn't work
+    response = await client.get(f"{BASE_ROUTE}/templates/hosts/{uuid_response[:-1]}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "uuid" in str(response.json()["detail"]).lower()  # Mentions the UUID
+
+    # Test that the valid UUID still works
+    response = await client.get(f"{BASE_ROUTE}/templates/hosts/{uuid_response}")
+    assert response.status_code == status.HTTP_200_OK
 
 
 async def test_template_host_get_host(client: AsyncClient) -> None:
