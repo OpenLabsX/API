@@ -5,5 +5,5 @@ asyncpg~=0.30
 setuptools-scm~=8.1
 
 # CDKTF
-cdktf~=0.20
-cdktf-cdktf-provider-aws~=19.52
+cdktf>=0.20
+cdktf-cdktf-provider-aws>=19.52

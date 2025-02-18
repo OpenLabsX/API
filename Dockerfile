@@ -27,7 +27,13 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 COPY src /code/src
 COPY .env /code/.env
 
-
+# Set up terraform cache
+WORKDIR src/app/core/cdktf
+RUN mkdir -p "/root/.terraform.d/plugin-cache"
+COPY src/app/core/cdktf/.terraformrc /root/.terraformrc 
+RUN terraform init
+RUN rm -rf .terraform*
+WORKDIR /code
 
 # For dynamic versioning
 COPY .git /code/.git

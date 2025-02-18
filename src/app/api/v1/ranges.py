@@ -1,4 +1,5 @@
 from typing import Any
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio.session import AsyncSession
@@ -9,11 +10,11 @@ from ...core.db.database import async_get_db
 from ...crud.crud_ranges import get_range
 from ...schemas.openlabs_range_schema import OpenLabsRangeID, OpenLabsRangeSchema
 
-router = APIRouter(prefix="/ranges", tags=["templates"])
+router = APIRouter(prefix="/ranges", tags=["ranges"])
 
 
 @router.post("/deploy")
-async def deploy_range_template(
+async def deploy_range_from_template(
     range_ids: list[OpenLabsRangeID], db: AsyncSession = Depends(async_get_db)
 ) -> dict[str, Any]:
     """Deploy range templates."""
@@ -25,7 +26,13 @@ async def deploy_range_template(
         )
 
     for deploy_range in ranges:
-        stack_name = create_aws_stack(deploy_range, settings.CDKTF_DIR)
-        deploy_infrastructure(settings.CDKTF_DIR, stack_name)
+        deployed_range_id = uuid.uuid4()
+        stack_name = create_aws_stack(deploy_range, settings.CDKTF_DIR, deployed_range_id)
+        state_file = deploy_infrastructure(settings.CDKTF_DIR, stack_name)
+
+        if not state_file:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to read terraform state file.")
+        # deployed_range_obj = DeployedRange(deployed_range_id, range_template, state_file, range_template.provider, account: OpenLabsAccount, cloud_account_id: uuid/int) OpenLabsAccount --> Provider --> Cloud Account ID --> AWS Creds
+        # save(db, deployed_range_obj)
 
     return {"deployed": True}

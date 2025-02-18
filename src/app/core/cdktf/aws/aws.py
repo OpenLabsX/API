@@ -13,7 +13,7 @@ from .aws_stack import AWSStack
 def deploy_infrastructure(
     stack_dir: str, stack_name: str
 ) -> (
-    None
+    str
 ):  # work on possibly returning something in the future for caching purposes (state file)
     """Run `terraform deploy --auto-approve` programmatically.
 
@@ -24,7 +24,7 @@ def deploy_infrastructure(
 
     Returns:
     -------
-        None
+        str: terraform state file created from terraform apply
 
     """
     inital_dir = os.getcwd()
@@ -42,17 +42,17 @@ def deploy_infrastructure(
     subprocess.run(["terraform", "apply", "--auto-approve"], check=True)
     print("Terraform apply complete!")
 
-    # # Read state file into string
-    # content = ""
-    # with open(state_file, "r", encoding="utf-8") as file:
-    #     content = file.read()
+    # Read state file into string
+    content = ""
+    with open(f"terraform.{stack_name}.tfstate", "r", encoding="utf-8") as file:
+        content = file.read()
 
     # # Remove terraform build files
     os.chdir(
         inital_dir
     )  # do not delete for now, jsut return to working directory in repo root
     # shutil.rmtree(stack_dir)
-    # return content
+    return content
 
 
 def destroy_infrastructure(
@@ -84,20 +84,21 @@ def destroy_infrastructure(
     os.chdir(inital_dir)
 
 
-def create_aws_stack(cyber_range: OpenLabsRangeSchema, tmp_dir: str) -> str:
+def create_aws_stack(cyber_range: OpenLabsRangeSchema, tmp_dir: str, deployed_range_id: uuid.UUID) -> str:
     """Create and synthesize an AWS stack using the provided OpenLabsRange.
 
     Args:
     ----
         cyber_range (OpenLabsRange): OpenLabs compliant range object.
         tmp_dir (str): Temporary directory to store CDKTF files.
+        deployed_range_id: (uuid.UUID): UUID of the newly deployed range
 
     Returns:
     -------
         str: Stack name.
 
     """
-    stack_name = cyber_range.name + "-" + str(cyber_range.id)
+    stack_name = cyber_range.name + "-" + str(deployed_range_id)
     app = App(outdir=tmp_dir)
     AWSStack(app, stack_name, cyber_range, tmp_dir)
 
