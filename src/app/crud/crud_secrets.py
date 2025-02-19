@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from ..models.openlabs_secret_model import OpenLabsSecretModel
+from ..schemas.openlabs_secret_schema import OpenLabsSecretBaseSchema
 
 async def create_secret(
     db: AsyncSession,

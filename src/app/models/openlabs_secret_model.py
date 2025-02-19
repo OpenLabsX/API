@@ -1,6 +1,8 @@
 import uuid
 
-from sqlalchemy import ForeignKey, String
+from datetime import datetime
+
+from sqlalchemy import ForeignKey, String, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -11,7 +13,7 @@ class OpenLabsSecretModel(Base):
 
     __tablename__ = "secrets"
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", unique=True), nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, primary_key=True)
 
     aws_access_key: Mapped[str] = mapped_column(String, nullable=True)
     aws_secret_key: Mapped[str] = mapped_column(String, nullable=True)

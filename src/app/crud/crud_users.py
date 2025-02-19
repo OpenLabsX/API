@@ -1,7 +1,8 @@
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from ..models.openlabs_user_model import OpenLabsUserModel
+from ..schemas.openlabs_user_schema import OpenLabsUserBaseSchema
 
-async def create_user(db: AsyncSession, openlabs_user: OpenLabsBaseUserSchema) -> OpenLabsUserModel:
+async def create_user(db: AsyncSession, openlabs_user: OpenLabsUserBaseSchema) -> OpenLabsUserModel:
     """Create and add a new OpenLabsUser to the database.
 
     Args:
