@@ -1,4 +1,10 @@
+import uuid
 
+from sqlalchemy import ForeignKey, String
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from ..core.db.database import Base
 
 class OpenLabsSecretModel(Base):
     """SQLAlchemy ORM model for OpenLabs Secrets."""
