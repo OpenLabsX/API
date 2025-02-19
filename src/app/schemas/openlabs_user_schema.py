@@ -49,7 +49,7 @@ class OpenLabsUserBaseSchema(BaseModel):
     #)
 
     secrets: OpenLabsSecretSchema = Field(
-        ...,
+        default_factory = OpenLabsSecretSchema,
         description = "Secrets used for providers",
     )
 
