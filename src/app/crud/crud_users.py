@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from ..models.openlabs_user_model import OpenLabsUserModel
-from ..schemas.openlabs_user_schema import OpenLabsUserBaseSchema
+from ..schemas.openlabs_user_schema import OpenLabsUserBaseSchema, OpenLabsUserID, OpenLabsUserSchema
+from ..crud.crud_secrets import create_secret
 
 async def create_user(db: AsyncSession, openlabs_user: OpenLabsUserBaseSchema) -> OpenLabsUserModel:
     """Create and add a new OpenLabsUser to the database.
@@ -17,14 +18,14 @@ async def create_user(db: AsyncSession, openlabs_user: OpenLabsUserBaseSchema) -
     """
 
     openlabs_user = OpenLabsUserSchema(**openlabs_user.model_dump())
-    user_dict = openlabs_user.model_dump()
+    user_dict = openlabs_user.model_dump(exclude={"secrets"})
 
     user_obj = OpenLabsUserModel(**user_dict)
     db.add(user_obj)
 
-    user_id = OpenLabsHostID(id=user_obj.id)
+    user_id = OpenLabsUserID(id=user_obj.id)
 
-    secrets_object = await create_secrets(db, openlabs_user.secrets)
+    secrets_object = await create_secret(db, openlabs_user.secrets, user_id)
 
     db.add(secrets_object)
 

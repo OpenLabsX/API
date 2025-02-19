@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 
-class OpenLabsSecretSchema(BaseModel):
+class OpenLabsSecretBaseSchema(BaseModel):
     """Base secret object for OpenLabs."""
 
     aws_access_key: str = Field(
@@ -29,3 +29,8 @@ class OpenLabsSecretSchema(BaseModel):
         description="Time Azure secrets were populated",
         examples=[datetime(2025, 2, 5)]
     )
+
+class OpenLabsSecretSchema(OpenLabsSecretBaseSchema):
+    """Secret object for OpenLabs."""
+
+    model_config = ConfigDict(from_attributes=True)
