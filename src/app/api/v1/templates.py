@@ -99,7 +99,7 @@ async def upload_range_template(
     Args:
     ----
         openlabs_range (OpenLabsRangeBaseSchema): OpenLabs compliant range object.
-        db (AsynSession): Async database connection.
+        db (AsyncSession): Async database connection.
 
     Returns:
     -------
