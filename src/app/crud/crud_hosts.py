@@ -83,7 +83,7 @@ async def create_host(
 
     Returns:
     -------
-        OpenLabsVPC: The newly created range.
+        OpenLabsHost: The newly created host.
 
     """
     openlabs_host = OpenLabsHostSchema(**openlabs_host.model_dump())
