@@ -16,6 +16,7 @@ from cdktf_cdktf_provider_aws.subnet import Subnet
 from cdktf_cdktf_provider_aws.vpc import Vpc
 from constructs import Construct
 
+from ....enums.operating_systems import AWS_OS_MAP
 from ....enums.specs import AWS_SPEC_MAP
 from ....schemas.openlabs_range_schema import OpenLabsRangeSchema
 
@@ -55,6 +56,15 @@ class AWSStack(TerraformStack):
         # AWS Provider
         AwsProvider(self, "AWS", region="us-east-1")
 
+        # Step 5: Create the key access to all instances provisioned on AWS
+        key_pair = KeyPair(
+            self,
+            "JumpBoxKeyPair",
+            key_name="cdktf-key",
+            public_key="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH8URIMqVKb6EAK4O+E+9g8df1uvcOfpvPFl7sQrX7KM email@example.com",  # NOTE: Hardcoded key, will need a way to dynamically add a key to user instances
+            tags={"Name": "cdktf-public-key"},
+        )
+
         for vpc in cyber_range.vpcs:
 
             # Step 1: Create a VPC
@@ -81,7 +91,7 @@ class AWSStack(TerraformStack):
             # Step 2: Create a Public Subnet for the Jump Box
             public_subnet = Subnet(
                 self,
-                "RangePublicSubnet",
+                f"RangePublicSubnet-{vpc.name}",
                 vpc_id=new_vpc.id,
                 cidr_block=public_subnet_cidr,
                 map_public_ip_on_launch=True,  # Enable public IP auto-assignment
@@ -92,49 +102,40 @@ class AWSStack(TerraformStack):
             # Step 3: Create an Internet Gateway for Public Subnet
             igw = InternetGateway(
                 self,
-                "RangeInternetGateway",
+                f"RangeInternetGateway-{vpc.name}",
                 vpc_id=new_vpc.id,
                 tags={"Name": "RangeInternetGateway"},
             )
 
             # Step 4: Create a NAT Gateway for Private Subnet with EIP
             eip = Eip(
-                self, "RangeNatEIP", tags={"Name": "RangeNatEIP"}
+                self, f"RangeNatEIP-{vpc.name}", tags={"Name": "RangeNatEIP"}
             )  # Elastic IP for NAT Gateway
             nat_gateway = NatGateway(
                 self,
-                "RangeNatGateway",
+                f"RangeNatGateway-{vpc.name}",
                 subnet_id=public_subnet.id,  # NAT must be in a public subnet
                 allocation_id=eip.id,
                 tags={"Name": "RangeNatGateway"},
             )
 
-            # Step 5: Create the key access to all instances provisioned on AWS
-            key_pair = KeyPair(
-                self,
-                "JumpBoxKeyPair",
-                key_name="cdktf-key",
-                public_key="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH8URIMqVKb6EAK4O+E+9g8df1uvcOfpvPFl7sQrX7KM email@example.com",  # NOTE: Hardcoded key, will need a way to dynamically add a key to user instances
-                tags={"Name": "cdktf-public-key"},
-            )
-
             # Step 6: Create a Route Table for Public Subnet with association
             public_route_table = RouteTable(
                 self,
-                "RangePublicRouteTable",
+                f"RangePublicRouteTable-{vpc.name}",
                 vpc_id=new_vpc.id,
                 tags={"Name": "RangePublicRouteTable"},
             )
             Route(
                 self,
-                "RangePublicInternetRoute",
+                f"RangePublicInternetRoute-{vpc.name}",
                 route_table_id=public_route_table.id,
                 destination_cidr_block="0.0.0.0/0",  # Allow internet access
                 gateway_id=igw.id,
             )
             RouteTableAssociation(
                 self,
-                "RangePublicRouteAssociation",
+                f"RangePublicRouteAssociation-{vpc.name}",
                 subnet_id=public_subnet.id,
                 route_table_id=public_route_table.id,
             )
@@ -142,13 +143,13 @@ class AWSStack(TerraformStack):
             # Step 7: Create a Route Table for Private Subnet (Using NAT)
             private_route_table = RouteTable(
                 self,
-                "RangePrivateRouteTable",
+                f"RangePrivateRouteTable-{vpc.name}",
                 vpc_id=new_vpc.id,
                 tags={"Name": "RangePrivateRouteTable"},
             )
             Route(
                 self,
-                "RangePrivateNatRoute",
+                f"RangePrivateNatRoute-{vpc.name}",
                 route_table_id=private_route_table.id,
                 destination_cidr_block="0.0.0.0/0",  # Allow internet access
                 nat_gateway_id=nat_gateway.id,  # Route through NAT Gateway
@@ -157,13 +158,13 @@ class AWSStack(TerraformStack):
             # Step 8: Create Security Group and Rules for Jump Box (only allow SSH directly into jump box, for now)
             jumpbox_sg = SecurityGroup(
                 self,
-                "RangeJumpBoxSecurityGroup",
+                f"RangeJumpBoxSecurityGroup-{vpc.name}",
                 vpc_id=new_vpc.id,
                 tags={"Name": "RangeJumpBoxSecurityGroup"},
             )
             SecurityGroupRule(
                 self,
-                "RangeAllowJumpBoxSSHFromInternet",
+                f"RangeAllowJumpBoxSSHFromInternet-{vpc.name}",
                 type="ingress",
                 from_port=22,
                 to_port=22,
@@ -173,7 +174,7 @@ class AWSStack(TerraformStack):
             )
             SecurityGroupRule(
                 self,
-                "RangeJumpBoxAllowOutbound",
+                f"RangeJumpBoxAllowOutbound-{vpc.name}",
                 type="egress",
                 from_port=0,
                 to_port=0,
@@ -188,13 +189,13 @@ class AWSStack(TerraformStack):
             # Step 10: Create Security Group for Private EC2 Instances
             private_sg = SecurityGroup(
                 self,
-                "RangePrivateInternalSecurityGroup",
+                f"RangePrivateInternalSecurityGroup-{vpc.name}",
                 vpc_id=new_vpc.id,
                 tags={"Name": "RangePrivateInternalSecurityGroup"},
             )
             SecurityGroupRule(
                 self,
-                "RangeAllowAllTrafficFromJumpBox",
+                f"RangeAllowAllTrafficFromJumpBox-{vpc.name}",
                 type="ingress",
                 from_port=0,
                 to_port=0,
@@ -204,7 +205,7 @@ class AWSStack(TerraformStack):
             )
             SecurityGroupRule(
                 self,
-                "RangeAllowInternalTraffic",  # Allow all internal subnets to communicate ONLY with each other
+                f"RangeAllowInternalTraffic-{vpc.name}",  # Allow all internal subnets to communicate ONLY with each other
                 type="ingress",
                 from_port=0,
                 to_port=0,
@@ -214,7 +215,7 @@ class AWSStack(TerraformStack):
             )
             SecurityGroupRule(
                 self,
-                "RangeAllowPrivateOutbound",
+                f"RangeAllowPrivateOutbound-{vpc.name}",
                 type="egress",
                 from_port=0,
                 to_port=0,
@@ -226,7 +227,7 @@ class AWSStack(TerraformStack):
             # Step 11: Create Jump Box
             Instance(
                 self,
-                "JumpBoxInstance",
+                f"JumpBoxInstance-{vpc.name}",
                 ami="ami-014f7ab33242ea43c",  # Amazon Ubuntu 20.04 AMI
                 instance_type="t2.micro",
                 subnet_id=public_subnet.id,
@@ -258,7 +259,9 @@ class AWSStack(TerraformStack):
                     Instance(
                         self,
                         host.hostname,
-                        ami="ami-014f7ab33242ea43c",  # WIll need to grab from update OpenLabsRange object
+                        ami=AWS_OS_MAP[
+                            host.os
+                        ],  # WIll need to grab from update OpenLabsRange object
                         instance_type=AWS_SPEC_MAP[host.spec],
                         subnet_id=new_subnet.id,
                         vpc_security_group_ids=[private_sg.id],

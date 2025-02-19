@@ -98,11 +98,358 @@ def test_create_aws_stack_synth_one_all() -> None:
 
     # Jumpbox
     assert len(cdktf_hosts) >= 1  # Must be at least one host if JumpBox is default
-    assert "JumpBoxInstance" in cdktf_hosts
+    assert f"JumpBoxInstance-{cyber_range.vpcs[0].name}" in cdktf_hosts
 
     # Template Hosts
     assert len(cdktf_hosts) == len(cyber_range_hosts) + 1  # Extra for Jumpbox
     assert cyber_range_hosts[0].hostname in cdktf_hosts
+
+    # ====== Clean Up ====== #
+    shutil.rmtree(test_dir)
+
+
+# Valid payload for comparison
+valid_multi_all_range_payload: dict[str, Any] = {
+    "vpcs": [
+        {
+            "cidr": "192.168.0.0/16",
+            "name": "example-vpc-1",
+            "subnets": [
+                {
+                    "cidr": "192.168.1.0/24",
+                    "name": "example-subnet-1",
+                    "hosts": [
+                        {
+                            "hostname": "example-host-1",
+                            "os": "debian_11",
+                            "spec": "tiny",
+                            "size": 8,
+                            "tags": ["web", "linux"],
+                        }
+                    ],
+                }
+            ],
+        },
+        {
+            "cidr": "10.0.0.0/16",
+            "name": "example-vpc-2",
+            "subnets": [
+                {
+                    "cidr": "10.0.2.0/24",
+                    "name": "example-subnet-2",
+                    "hosts": [
+                        {
+                            "hostname": "example-host-2",
+                            "os": "debian_11",
+                            "spec": "tiny",
+                            "size": 8,
+                            "tags": ["web", "linux"],
+                        }
+                    ],
+                }
+            ],
+        },
+    ],
+    "provider": "aws",
+    "name": "example-range-1",
+    "vnc": False,
+    "vpn": False,
+}
+
+
+@skip_if_env(var="SKIP_CDKTF_TESTS", reason="Skipping CDKTF tests")
+def test_create_aws_stack_synth_multi_everything() -> None:
+    """Test that the terraform JSON output matches the input range template.
+
+    This is with a range that has only one VPC, Subnet, and Host.
+    """
+    # Prevent slow pytest imports
+    from src.app.core.cdktf.aws.aws import create_aws_stack
+
+    cyber_range = OpenLabsRangeSchema.model_validate(
+        valid_multi_all_range_payload, from_attributes=True
+    )
+    cyber_range_id = uuid.uuid4()
+    test_dir = create_cdktf_dir()
+
+    stack_name = create_aws_stack(cyber_range, test_dir, cyber_range_id)
+    synth_output_dir = f"{test_dir}/stacks/{stack_name}"
+
+    cdktf_json_content = ""
+    with open(f"{synth_output_dir}/cdk.tf.json", "r", encoding="utf-8") as file:
+        cdktf_json_content = file.read()
+    cdktf_json: dict[str, Any] = json.loads(cdktf_json_content)
+
+    # Check that there is content first
+    assert cdktf_json
+
+    # ====== Validate Terraform Output ====== #
+    cdktf_resources: dict[str, Any] = cdktf_json["resource"]
+
+    # Provider
+    cdktf_provider = cdktf_json["provider"]
+    assert len(cdktf_provider) == 1  # Only AWS provider
+    assert cyber_range.provider.value in cdktf_provider
+
+    # Validate VPCs and nested objects
+    cdktf_vpcs = cdktf_resources["aws_vpc"]
+    assert len(cdktf_vpcs) == len(cyber_range.vpcs)
+    cdktf_subnets: dict[str, Any] = cdktf_resources["aws_subnet"]
+    for i in range(len(cyber_range.vpcs)):
+
+        # VPC
+        assert cyber_range.vpcs[i].name in cdktf_vpcs
+        assert (  # CIDR Block
+            str(cyber_range.vpcs[i].cidr)
+            == cdktf_resources["aws_vpc"][cyber_range.vpcs[i].name]["cidr_block"]
+        )
+
+        # Subnet
+        cdktf_subnets = cdktf_resources["aws_subnet"]
+        cyber_range_subnets = cyber_range.vpcs[i].subnets
+        assert cyber_range_subnets[0].name in cdktf_subnets
+        assert (
+            str(cyber_range_subnets[0].cidr)
+            == cdktf_resources["aws_subnet"][cyber_range_subnets[0].name]["cidr_block"]
+        )
+
+        # Hosts
+        cdktf_hosts = cdktf_resources["aws_instance"]
+        cyber_range_hosts = cyber_range.vpcs[i].subnets[0].hosts
+
+        # Jumpbox
+        assert len(cdktf_hosts) >= 1  # Must be at least one host if JumpBox is default
+        assert f"JumpBoxInstance-{cyber_range.vpcs[i].name}" in cdktf_hosts
+
+        # Template Hosts
+        assert cyber_range_hosts[0].hostname in cdktf_hosts
+
+    # ====== Clean Up ====== #
+    shutil.rmtree(test_dir)
+
+
+# Valid payload for comparison
+valid_multi_host_range_payload: dict[str, Any] = {
+    "vpcs": [
+        {
+            "cidr": "192.168.0.0/16",
+            "name": "example-vpc-1",
+            "subnets": [
+                {
+                    "cidr": "192.168.1.0/24",
+                    "name": "example-subnet-1",
+                    "hosts": [
+                        {
+                            "hostname": "example-host-1",
+                            "os": "debian_11",
+                            "spec": "tiny",
+                            "size": 8,
+                            "tags": ["web", "linux"],
+                        },
+                        {
+                            "hostname": "example-host-2",
+                            "os": "debian_11",
+                            "spec": "tiny",
+                            "size": 8,
+                            "tags": ["web", "linux"],
+                        },
+                    ],
+                }
+            ],
+        }
+    ],
+    "provider": "aws",
+    "name": "example-range-1",
+    "vnc": False,
+    "vpn": False,
+}
+
+
+@skip_if_env(var="SKIP_CDKTF_TESTS", reason="Skipping CDKTF tests")
+def test_create_aws_stack_synth_multi_hosts() -> None:
+    """Test that the terraform JSON output matches the input range template.
+
+    This is with a range that has only one VPC, Subnet, and Host.
+    """
+    # Prevent slow pytest imports
+    from src.app.core.cdktf.aws.aws import create_aws_stack
+
+    cyber_range = OpenLabsRangeSchema.model_validate(
+        valid_multi_host_range_payload, from_attributes=True
+    )
+    cyber_range_id = uuid.uuid4()
+    test_dir = create_cdktf_dir()
+
+    stack_name = create_aws_stack(cyber_range, test_dir, cyber_range_id)
+    synth_output_dir = f"{test_dir}/stacks/{stack_name}"
+
+    cdktf_json_content = ""
+    with open(f"{synth_output_dir}/cdk.tf.json", "r", encoding="utf-8") as file:
+        cdktf_json_content = file.read()
+    cdktf_json: dict[str, Any] = json.loads(cdktf_json_content)
+
+    # Check that there is content first
+    assert cdktf_json
+
+    # ====== Validate Terraform Output ====== #
+    cdktf_resources: dict[str, Any] = cdktf_json["resource"]
+
+    # Provider
+    cdktf_provider = cdktf_json["provider"]
+    assert len(cdktf_provider) == 1  # Only AWS provider
+    assert cyber_range.provider.value in cdktf_provider
+
+    # VPC
+    cdktf_vpcs = cdktf_resources["aws_vpc"]
+    assert len(cdktf_vpcs) == 1
+    assert cyber_range.vpcs[0].name in cdktf_vpcs
+    assert (  # CIDR Block
+        str(cyber_range.vpcs[0].cidr)
+        == cdktf_resources["aws_vpc"][cyber_range.vpcs[0].name]["cidr_block"]
+    )
+
+    # Subnet
+    cdktf_subnets = cdktf_resources["aws_subnet"]
+    cyber_range_subnets = cyber_range.vpcs[0].subnets
+    assert (
+        len(cdktf_subnets) == len(cyber_range_subnets) + 1
+    )  # Extra for RangePublicSubnet
+    assert cyber_range_subnets[0].name in cdktf_subnets
+    assert (
+        str(cyber_range_subnets[0].cidr)
+        == cdktf_resources["aws_subnet"][cyber_range_subnets[0].name]["cidr_block"]
+    )
+
+    # Hosts
+    cdktf_hosts = cdktf_resources["aws_instance"]
+    cyber_range_hosts = cyber_range.vpcs[0].subnets[0].hosts
+
+    # Jumpbox
+    assert len(cdktf_hosts) >= 1  # Must be at least one host if JumpBox is default
+    assert f"JumpBoxInstance-{cyber_range.vpcs[0].name}" in cdktf_hosts
+
+    # Template Hosts
+    assert len(cdktf_hosts) == len(cyber_range_hosts) + 1  # Extra for Jumpbox
+    assert cyber_range_hosts[0].hostname in cdktf_hosts
+
+    # ====== Clean Up ====== #
+    shutil.rmtree(test_dir)
+
+
+# Valid payload for comparison
+valid_multi_subnet_range_payload: dict[str, Any] = {
+    "vpcs": [
+        {
+            "cidr": "192.168.0.0/16",
+            "name": "example-vpc-1",
+            "subnets": [
+                {
+                    "cidr": "192.168.1.0/24",
+                    "name": "example-subnet-1",
+                    "hosts": [
+                        {
+                            "hostname": "example-host-1",
+                            "os": "debian_11",
+                            "spec": "tiny",
+                            "size": 8,
+                            "tags": ["web", "linux"],
+                        }
+                    ],
+                },
+                {
+                    "cidr": "192.168.2.0/24",
+                    "name": "example-subnet-2",
+                    "hosts": [
+                        {
+                            "hostname": "example-host-2",
+                            "os": "debian_11",
+                            "spec": "tiny",
+                            "size": 8,
+                            "tags": ["web", "linux"],
+                        }
+                    ],
+                },
+            ],
+        }
+    ],
+    "provider": "aws",
+    "name": "example-range-1",
+    "vnc": False,
+    "vpn": False,
+}
+
+
+@skip_if_env(var="SKIP_CDKTF_TESTS", reason="Skipping CDKTF tests")
+def test_create_aws_stack_synth_multi_subnets() -> None:
+    """Test that the terraform JSON output matches the input range template.
+
+    This is with a range that has only one VPC, Subnet, and Host.
+    """
+    # Prevent slow pytest imports
+    from src.app.core.cdktf.aws.aws import create_aws_stack
+
+    cyber_range = OpenLabsRangeSchema.model_validate(
+        valid_multi_subnet_range_payload, from_attributes=True
+    )
+    cyber_range_id = uuid.uuid4()
+    test_dir = create_cdktf_dir()
+
+    stack_name = create_aws_stack(cyber_range, test_dir, cyber_range_id)
+    synth_output_dir = f"{test_dir}/stacks/{stack_name}"
+
+    cdktf_json_content = ""
+    with open(f"{synth_output_dir}/cdk.tf.json", "r", encoding="utf-8") as file:
+        cdktf_json_content = file.read()
+    cdktf_json: dict[str, Any] = json.loads(cdktf_json_content)
+
+    # Check that there is content first
+    assert cdktf_json
+
+    # ====== Validate Terraform Output ====== #
+    cdktf_resources: dict[str, Any] = cdktf_json["resource"]
+
+    # Provider
+    cdktf_provider = cdktf_json["provider"]
+    assert len(cdktf_provider) == 1  # Only AWS provider
+    assert cyber_range.provider.value in cdktf_provider
+
+    # VPC
+    cdktf_vpcs = cdktf_resources["aws_vpc"]
+    assert len(cdktf_vpcs) == 1
+    assert cyber_range.vpcs[0].name in cdktf_vpcs
+    assert (  # CIDR Block
+        str(cyber_range.vpcs[0].cidr)
+        == cdktf_resources["aws_vpc"][cyber_range.vpcs[0].name]["cidr_block"]
+    )
+
+    # Subnet
+    cdktf_subnets = cdktf_resources["aws_subnet"]
+    cyber_range_subnets = cyber_range.vpcs[0].subnets
+    assert (
+        len(cdktf_subnets) == len(cyber_range_subnets) + 1
+    )  # Extra for RangePublicSubnet
+
+    for i in range(len(cyber_range.vpcs[0].subnets)):
+        # Subnets
+        assert cyber_range_subnets[i].name in cdktf_subnets
+        assert (
+            str(cyber_range_subnets[i].cidr)
+            == cdktf_resources["aws_subnet"][cyber_range_subnets[i].name]["cidr_block"]
+        )
+
+        # Hosts
+        cdktf_hosts = cdktf_resources["aws_instance"]
+        cyber_range_hosts = cyber_range.vpcs[0].subnets[i].hosts
+
+        # Jumpbox
+        assert len(cdktf_hosts) >= 1  # Must be at least one host if JumpBox is default
+        assert f"JumpBoxInstance-{cyber_range.vpcs[0].name}" in cdktf_hosts
+
+        # Template Hosts
+        assert (
+            len(cdktf_hosts) - 1 == len(cyber_range_hosts) + 1
+        )  # Extra for Jumpbox but minus 1 from the second subnet since we are not counting that host for this assertion
+        assert cyber_range_hosts[0].hostname in cdktf_hosts
 
     # ====== Clean Up ====== #
     shutil.rmtree(test_dir)
