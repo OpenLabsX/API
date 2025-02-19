@@ -14,42 +14,42 @@ class OpenLabsUserBaseSchema(BaseModel):
         description="Full name of user",
         min_length=1,
         examples=["Adam Hassan", "Alex Christy", "Naresh Panchal"]
-   )
-   email: str = Field(
+    )
+    email: str = Field(
         ...,
         description="Email of user",
         min_length=1,
         examples=["adam@ufsit.club", "alex@christy.com", "naresh@panch.al"],
-   )
+    )
 
-   is_admin: bool = Field(default=False, description = "Is this user an admin of OpenLabs?")
-   hashed_password: str = Field(
+    is_admin: bool = Field(default=False, description = "Is this user an admin of OpenLabs?")
+    hashed_password: str = Field(
         ...,
         description = "Bcrypt hash of user password",
         min_length = 1,
         examples=["$2y$10$x4QEI5RQdlbWSKQr8ZuL4.1OIdIdhfuwXJJPtf4/LJXt7mH6HQCsW"],
-   )
+    )
 
-   created_at: datetime = Field(
+    created_at: datetime = Field(
         ...,
         description = "Time the user was created",
         examples=[datetime(1988, 11, 6)]
-   )
+    )
 
-   last_active: datetime = Field(
+    last_active: datetime = Field(
         ...,
         description = "Time the user last made a request",
         examples=[datetime(2025, 2, 5)]
-   )
+    )
 
-   secrets: OpenLabsSecretSchema = Field(
+    secrets: OpenLabsSecretSchema = Field(
         ...,
         description = "Secrets used for providers",
-   )
+    )
 
-   @field_validator("email")
-   @classmethod
-   def validate_email(
+    @field_validator("email")
+    @classmethod
+    def validate_email(
         cls, email: str) -> str:
         """Check that email format is valid.
 
