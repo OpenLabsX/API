@@ -4,6 +4,8 @@ from pydantic_settings import BaseSettings
 from setuptools_scm import get_version
 from starlette.config import Config
 
+from ..utils.cdktf_utils import create_cdktf_dir
+
 current_file_dir = os.path.dirname(os.path.realpath(__file__))
 env_path = os.path.join(current_file_dir, "..", "..", "..", ".env")
 config = Config(env_path)
@@ -26,6 +28,12 @@ class AppSettings(BaseSettings):
     )
     CONTACT_NAME: str | None = config("CONTACT_NAME", default="OpenLabsX Support")
     CONTACT_EMAIL: str | None = config("CONTACT_EMAIL", default="support@openlabsx.com")
+
+
+class CDKTFSettings(BaseSettings):
+    """CDKTF settings."""
+
+    CDKTF_DIR: str = config("CDKTF_DIR", default=create_cdktf_dir())
 
 
 class DatabaseSettings(BaseSettings):
@@ -52,7 +60,7 @@ class PostgresSettings(DatabaseSettings):
     POSTGRES_URL: str | None = config("POSTGRES_URL", default=None)
 
 
-class Settings(AppSettings, PostgresSettings):
+class Settings(AppSettings, PostgresSettings, CDKTFSettings):
     """FastAPI app settings."""
 
     pass

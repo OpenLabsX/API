@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import AsyncGenerator, Generator
 
 import httpx
@@ -19,6 +20,22 @@ from src.app.main import app
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+
+def skip_if_env(var: str, reason: str) -> pytest.MarkDecorator:
+    """Return a pytest mark to skip tests if the specified environment variable is set.
+
+    Args:
+    ----
+        var (str): Environment var to check if set.
+        reason (str): Reason why test is being skipped.
+
+    Returns:
+    -------
+        pytest.MarkDecorator: Pytest skip test decorator.
+
+    """
+    return pytest.mark.skipif(os.getenv(var) is not None, reason=reason)
 
 
 @pytest.fixture(scope="session")

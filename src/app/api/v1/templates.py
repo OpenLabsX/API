@@ -29,6 +29,7 @@ from ...schemas.openlabs_vpc_schema import (
     OpenLabsVPCID,
     OpenLabsVPCSchema,
 )
+from ...validators.id import is_valid_uuid4
 
 router = APIRouter(prefix="/templates", tags=["templates"])
 
@@ -78,6 +79,12 @@ async def get_range_template(
         OpenLabsRangeSchema: Range data from database.
 
     """
+    if not is_valid_uuid4(range_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="ID provided is not a valid UUID4.",
+        )
+
     openlabs_range = await get_range(db, OpenLabsRangeID(id=range_id))
 
     if not openlabs_range:
@@ -157,6 +164,12 @@ async def get_vpc_template(
         OpenLabsVPCSchema: VPC data from database.
 
     """
+    if not is_valid_uuid4(vpc_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="ID provided is not a valid UUID4.",
+        )
+
     openlabs_vpc = await get_vpc(db, OpenLabsVPCID(id=vpc_id))
 
     if not openlabs_vpc:
@@ -236,6 +249,12 @@ async def get_subnet_template(
         OpenLabsSubnetSchema: Subnet data from database.
 
     """
+    if not is_valid_uuid4(subnet_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="ID provided is not a valid UUID4.",
+        )
+
     openlabs_subnet = await get_subnet(db, OpenLabsSubnetID(id=subnet_id))
 
     if not openlabs_subnet:
@@ -315,6 +334,12 @@ async def get_host_template(
         OpenLabsHostSchema: Host data from database.
 
     """
+    if not is_valid_uuid4(host_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="ID provided is not a valid UUID4.",
+        )
+
     openlabs_host = await get_host(db, OpenLabsHostID(id=host_id))
 
     if not openlabs_host:
