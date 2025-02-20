@@ -21,7 +21,7 @@ from ....enums.specs import AWS_SPEC_MAP
 from ....schemas.openlabs_range_schema import OpenLabsRangeSchema
 
 
-class AWSStack(TerraformStack):  # type: ignore
+class AWSStack(TerraformStack):
     """Stack for generating terraform for AWS."""
 
     def __init__(
