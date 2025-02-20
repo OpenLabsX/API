@@ -14,7 +14,8 @@ router = APIRouter(prefix="/ranges", tags=["ranges"])
 
 @router.post("/deploy")
 async def deploy_range_from_template(
-    range_ids: list[OpenLabsRangeID], db: AsyncSession = Depends(async_get_db)
+    range_ids: list[OpenLabsRangeID],
+    db: AsyncSession = Depends(async_get_db),  # noqa: B008
 ) -> dict[str, Any]:
     """Deploy range templates."""
     # Import CDKTF dependencies to avoid long import times

@@ -35,10 +35,12 @@ def deploy_infrastructure(
 
     # Run Terraform commands
     print("Running terraform init...")
-    subprocess.run(["terraform", "init"], check=True)
+    subprocess.run(["terraform", "init"], check=True)  # noqa: S603, S607
 
     print("Running terraform apply...")
-    subprocess.run(["terraform", "apply", "--auto-approve"], check=True)
+    subprocess.run(  # noqa: S603
+        ["terraform", "apply", "--auto-approve"], check=True  # noqa: S607
+    )
     print("Terraform apply complete!")
 
     # Read state file into string
@@ -76,7 +78,9 @@ def destroy_infrastructure(
 
     # Run Terraform commands
     print("Tearing down selected range")
-    subprocess.run(["terraform", "destroy", "--auto-approve"], check=True)
+    subprocess.run(  # noqa: S603
+        ["terraform", "destroy", "--auto-approve"], check=True  # noqa: S607
+    )
 
     # os.chdir(synth_output_dir.)
 
