@@ -6,8 +6,8 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validat
 from .template_subnet_schema import TemplateSubnetBaseSchema
 
 
-class OpenLabsVPCBaseSchema(BaseModel):
-    """VPC object for OpenLabs."""
+class TemplateVPCBaseSchema(BaseModel):
+    """Template VPC object for OpenLabs."""
 
     cidr: IPv4Network = Field(
         ..., description="CIDR range", examples=["192.168.0.0/16"]
@@ -51,7 +51,7 @@ class OpenLabsVPCBaseSchema(BaseModel):
 
         Args:
         ----
-            cls: OpenLabsVPCBaseSchema object.
+            cls: TemplateVPCBaseSchema object.
             subnets (list[TemplateSubnetBaseSchema]): Subnet objects.
             info (ValidationInfo): Info of object currently being validated.
 
@@ -74,8 +74,8 @@ class OpenLabsVPCBaseSchema(BaseModel):
         return subnets
 
 
-class OpenLabsVPCID(BaseModel):
-    """Identity class for OpenLabsVPC."""
+class TemplateVPCID(BaseModel):
+    """Identity class for the template VPC object."""
 
     id: uuid.UUID = Field(
         default_factory=uuid.uuid4, description="Unique VPC identifier."
@@ -84,14 +84,14 @@ class OpenLabsVPCID(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class OpenLabsVPCSchema(OpenLabsVPCBaseSchema, OpenLabsVPCID):
-    """VPC object for OpenLabs."""
+class TemplateVPCSchema(TemplateVPCBaseSchema, TemplateVPCID):
+    """Template VPC object for OpenLabs."""
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class OpenLabsVPCHeaderSchema(OpenLabsVPCID):
-    """Header (non-nested object) information for the OpenLabsVPCSchema."""
+class TemplateVPCHeaderSchema(TemplateVPCID):
+    """Header (non-nested object) information for the TemplateVPCSchema."""
 
     cidr: IPv4Network = Field(
         ..., description="CIDR range", examples=["192.168.0.0/16"]

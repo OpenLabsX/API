@@ -24,10 +24,10 @@ from ...schemas.template_subnet_schema import (
     TemplateSubnetSchema,
 )
 from ...schemas.template_vpc_schema import (
-    OpenLabsVPCBaseSchema,
-    OpenLabsVPCHeaderSchema,
-    OpenLabsVPCID,
-    OpenLabsVPCSchema,
+    TemplateVPCBaseSchema,
+    TemplateVPCHeaderSchema,
+    TemplateVPCID,
+    TemplateVPCSchema,
 )
 from ...validators.id import is_valid_uuid4
 
@@ -121,7 +121,7 @@ async def upload_range_template(
 async def get_vpc_template_headers(
     standalone_only: bool = True,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-) -> list[OpenLabsVPCHeaderSchema]:
+) -> list[TemplateVPCHeaderSchema]:
     """Get a list of vpc template headers.
 
     Args:
@@ -131,7 +131,7 @@ async def get_vpc_template_headers(
 
     Returns:
     -------
-        list[OpenLabsVPCID]: List of vpc template headers.
+        list[TemplateVPCID]: List of vpc template headers.
 
     """
     vpc_headers = await get_vpc_headers(db, standalone_only=standalone_only)
@@ -143,7 +143,7 @@ async def get_vpc_template_headers(
         )
 
     return [
-        OpenLabsVPCHeaderSchema.model_validate(header, from_attributes=True)
+        TemplateVPCHeaderSchema.model_validate(header, from_attributes=True)
         for header in vpc_headers
     ]
 
@@ -151,7 +151,7 @@ async def get_vpc_template_headers(
 @router.get("/vpcs/{vpc_id}")
 async def get_vpc_template(
     vpc_id: str, db: AsyncSession = Depends(async_get_db)  # noqa: B008
-) -> OpenLabsVPCSchema:
+) -> TemplateVPCSchema:
     """Get a VPC template.
 
     Args:
@@ -161,7 +161,7 @@ async def get_vpc_template(
 
     Returns:
     -------
-        OpenLabsVPCSchema: VPC data from database.
+        TemplateVPCSchema: VPC data from database.
 
     """
     if not is_valid_uuid4(vpc_id):
@@ -170,7 +170,7 @@ async def get_vpc_template(
             detail="ID provided is not a valid UUID4.",
         )
 
-    openlabs_vpc = await get_vpc(db, OpenLabsVPCID(id=vpc_id))
+    openlabs_vpc = await get_vpc(db, TemplateVPCID(id=vpc_id))
 
     if not openlabs_vpc:
         raise HTTPException(
@@ -178,28 +178,28 @@ async def get_vpc_template(
             detail=f"VPC with id: {vpc_id} not found!",
         )
 
-    return OpenLabsVPCSchema.model_validate(openlabs_vpc, from_attributes=True)
+    return TemplateVPCSchema.model_validate(openlabs_vpc, from_attributes=True)
 
 
 @router.post("/vpcs")
 async def upload_vpc_template(
-    openlabs_vpc: OpenLabsVPCBaseSchema,
+    openlabs_vpc: TemplateVPCBaseSchema,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-) -> OpenLabsVPCID:
+) -> TemplateVPCID:
     """Upload a VPC template.
 
     Args:
     ----
-        openlabs_vpc (OpenLabsVPCBaseSchema): OpenLabs compliant VPC object.
+        openlabs_vpc (TemplateVPCBaseSchema): OpenLabs compliant VPC object.
         db (AsyncSession): Async database connection.
 
     Returns:
     -------
-        OpenLabsVPCID: Identity of the VPC template.
+        TemplateVPCID: Identity of the VPC template.
 
     """
     created_vpc = await create_vpc(db, openlabs_vpc)
-    return OpenLabsVPCID.model_validate(created_vpc, from_attributes=True)
+    return TemplateVPCID.model_validate(created_vpc, from_attributes=True)
 
 
 @router.get("/subnets")

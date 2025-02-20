@@ -9,7 +9,7 @@ from ..schemas.template_subnet_schema import (
     TemplateSubnetID,
     TemplateSubnetSchema,
 )
-from ..schemas.template_vpc_schema import OpenLabsVPCID
+from ..schemas.template_vpc_schema import TemplateVPCID
 from .crud_hosts import create_host
 
 
@@ -77,7 +77,7 @@ async def get_subnet(
 async def create_subnet(
     db: AsyncSession,
     openlabs_subnet: TemplateSubnetBaseSchema,
-    vpc_id: OpenLabsVPCID | None = None,
+    vpc_id: TemplateVPCID | None = None,
 ) -> OpenLabsSubnetModel:
     """Create and add a new OpenLabsSubnet to the database.
 
@@ -85,7 +85,7 @@ async def create_subnet(
     ----
         db (Session): Database connection.
         openlabs_subnet (TemplateSubnetBaseSchema): Dictionary containing OpenLabsSubnet data.
-        vpc_id (Optional[OpenLabsVPCID]): VPC ID to link subnet back too.
+        vpc_id (Optional[TemplateVPCID]): VPC ID to link subnet back too.
 
     Returns:
     -------

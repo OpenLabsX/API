@@ -7,9 +7,9 @@ from ..models.openlabs_subnet_model import OpenLabsSubnetModel
 from ..models.openlabs_vpc_model import OpenLabsVPCModel
 from ..schemas.template_range_schema import OpenLabsRangeID
 from ..schemas.template_vpc_schema import (
-    OpenLabsVPCBaseSchema,
-    OpenLabsVPCID,
-    OpenLabsVPCSchema,
+    TemplateVPCBaseSchema,
+    TemplateVPCID,
+    TemplateVPCSchema,
 )
 from .crud_subnets import create_subnet
 
@@ -51,13 +51,13 @@ async def get_vpc_headers(
     return list(result.scalars().all())
 
 
-async def get_vpc(db: AsyncSession, vpc_id: OpenLabsVPCID) -> OpenLabsVPCModel | None:
+async def get_vpc(db: AsyncSession, vpc_id: TemplateVPCID) -> OpenLabsVPCModel | None:
     """Get OpenLabsVPC by id (uuid).
 
     Args:
     ----
         db (Session): Database connection.
-        vpc_id (OpenLabsVPCID): ID of the range.
+        vpc_id (TemplateVPCID): ID of the range.
 
     Returns:
     -------
@@ -79,7 +79,7 @@ async def get_vpc(db: AsyncSession, vpc_id: OpenLabsVPCID) -> OpenLabsVPCModel |
 
 async def create_vpc(
     db: AsyncSession,
-    openlabs_vpc: OpenLabsVPCBaseSchema,
+    openlabs_vpc: TemplateVPCBaseSchema,
     range_id: OpenLabsRangeID | None = None,
 ) -> OpenLabsVPCModel:
     """Create and add a new OpenLabsVPC to the database.
@@ -87,7 +87,7 @@ async def create_vpc(
     Args:
     ----
         db (Session): Database connection.
-        openlabs_vpc (OpenLabsVPCBaseSchema): Dictionary containing OpenLabsVPC data.
+        openlabs_vpc (TemplateVPCBaseSchema): Dictionary containing OpenLabsVPC data.
         range_id (Optional[str]): Range ID to link VPC back too.
 
     Returns:
@@ -95,7 +95,7 @@ async def create_vpc(
         OpenLabsVPC: The newly created VPC.
 
     """
-    openlabs_vpc = OpenLabsVPCSchema(**openlabs_vpc.model_dump())
+    openlabs_vpc = TemplateVPCSchema(**openlabs_vpc.model_dump())
     vpc_dict = openlabs_vpc.model_dump(exclude={"subnets"})
     if range_id:
         vpc_dict["range_id"] = range_id.id
@@ -105,7 +105,7 @@ async def create_vpc(
 
     # Add subnets
     subnet_objects = [
-        await create_subnet(db, subnet_data, OpenLabsVPCID(id=vpc_obj.id))
+        await create_subnet(db, subnet_data, TemplateVPCID(id=vpc_obj.id))
         for subnet_data in openlabs_vpc.subnets
     ]
 
