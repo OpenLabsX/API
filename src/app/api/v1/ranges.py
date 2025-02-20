@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from ...core.config import settings
 from ...core.db.database import async_get_db
 from ...crud.crud_ranges import get_range
-from ...schemas.openlabs_range_schema import OpenLabsRangeID, OpenLabsRangeSchema
+from ...schemas.template_range_schema import OpenLabsRangeID, OpenLabsRangeSchema
 
 router = APIRouter(prefix="/ranges", tags=["ranges"])
 

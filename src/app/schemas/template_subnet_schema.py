@@ -4,7 +4,7 @@ from ipaddress import IPv4Network
 from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 from ..validators.network import max_num_hosts_in_subnet
-from .openlabs_host_schema import OpenLabsHostBaseSchema
+from .template_host_schema import OpenLabsHostBaseSchema
 
 
 class OpenLabsSubnetBaseSchema(BaseModel):

@@ -2,7 +2,7 @@ from typing import Any
 
 import pytest
 
-from src.app.schemas.openlabs_range_schema import OpenLabsRangeSchema
+from src.app.schemas.template_range_schema import OpenLabsRangeSchema
 from src.app.utils.cdktf_utils import create_cdktf_dir
 
 # Valid payload for comparison

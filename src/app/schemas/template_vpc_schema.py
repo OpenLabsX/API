@@ -3,7 +3,7 @@ from ipaddress import IPv4Network
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
-from .openlabs_subnet_schema import OpenLabsSubnetBaseSchema
+from .template_subnet_schema import OpenLabsSubnetBaseSchema
 
 
 class OpenLabsVPCBaseSchema(BaseModel):

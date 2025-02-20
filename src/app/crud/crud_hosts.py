@@ -4,12 +4,12 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import load_only
 
 from ..models.openlabs_host_model import OpenLabsHostModel
-from ..schemas.openlabs_host_schema import (
+from ..schemas.template_host_schema import (
     OpenLabsHostBaseSchema,
     OpenLabsHostID,
     OpenLabsHostSchema,
 )
-from ..schemas.openlabs_subnet_schema import OpenLabsSubnetID
+from ..schemas.template_subnet_schema import OpenLabsSubnetID
 
 
 async def get_host_headers(

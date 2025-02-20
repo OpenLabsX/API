@@ -3,7 +3,7 @@ import uuid
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..enums.providers import OpenLabsProvider
-from .openlabs_vpc_schema import OpenLabsVPCBaseSchema
+from .template_vpc_schema import OpenLabsVPCBaseSchema
 
 
 class OpenLabsRangeBaseSchema(BaseModel):

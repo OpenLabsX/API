@@ -6,7 +6,7 @@ from sqlalchemy.orm import load_only, selectinload
 from ..models.openlabs_range_model import OpenLabsRangeModel
 from ..models.openlabs_subnet_model import OpenLabsSubnetModel
 from ..models.openlabs_vpc_model import OpenLabsVPCModel
-from ..schemas.openlabs_range_schema import (
+from ..schemas.template_range_schema import (
     OpenLabsRangeBaseSchema,
     OpenLabsRangeID,
     OpenLabsRangeSchema,

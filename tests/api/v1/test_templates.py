@@ -6,8 +6,8 @@ from typing import Any
 from fastapi import status
 from httpx import AsyncClient
 
-from src.app.schemas.openlabs_host_schema import OpenLabsHostSchema
-from src.app.schemas.openlabs_subnet_schema import OpenLabsSubnetHeaderSchema
+from src.app.schemas.template_host_schema import OpenLabsHostSchema
+from src.app.schemas.template_subnet_schema import OpenLabsSubnetHeaderSchema
 
 from .config import BASE_ROUTE
 

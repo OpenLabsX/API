@@ -6,24 +6,24 @@ from ...crud.crud_hosts import create_host, get_host, get_host_headers
 from ...crud.crud_ranges import create_range, get_range, get_range_headers
 from ...crud.crud_subnets import create_subnet, get_subnet, get_subnet_headers
 from ...crud.crud_vpcs import create_vpc, get_vpc, get_vpc_headers
-from ...schemas.openlabs_host_schema import (
+from ...schemas.template_host_schema import (
     OpenLabsHostBaseSchema,
     OpenLabsHostID,
     OpenLabsHostSchema,
 )
-from ...schemas.openlabs_range_schema import (
+from ...schemas.template_range_schema import (
     OpenLabsRangeBaseSchema,
     OpenLabsRangeHeaderSchema,
     OpenLabsRangeID,
     OpenLabsRangeSchema,
 )
-from ...schemas.openlabs_subnet_schema import (
+from ...schemas.template_subnet_schema import (
     OpenLabsSubnetBaseSchema,
     OpenLabsSubnetHeaderSchema,
     OpenLabsSubnetID,
     OpenLabsSubnetSchema,
 )
-from ...schemas.openlabs_vpc_schema import (
+from ...schemas.template_vpc_schema import (
     OpenLabsVPCBaseSchema,
     OpenLabsVPCHeaderSchema,
     OpenLabsVPCID,

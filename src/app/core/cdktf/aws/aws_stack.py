@@ -18,7 +18,7 @@ from constructs import Construct
 
 from ....enums.operating_systems import AWS_OS_MAP
 from ....enums.specs import AWS_SPEC_MAP
-from ....schemas.openlabs_range_schema import OpenLabsRangeSchema
+from ....schemas.template_range_schema import OpenLabsRangeSchema
 
 
 class AWSStack(TerraformStack):

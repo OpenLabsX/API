@@ -5,7 +5,7 @@ from pathlib import Path
 
 from cdktf import App
 
-from ....schemas.openlabs_range_schema import OpenLabsRangeSchema
+from ....schemas.template_range_schema import OpenLabsRangeSchema
 from .aws_stack import AWSStack
 
 

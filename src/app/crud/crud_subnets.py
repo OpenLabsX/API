@@ -4,12 +4,12 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import load_only, selectinload
 
 from ..models.openlabs_subnet_model import OpenLabsSubnetModel
-from ..schemas.openlabs_subnet_schema import (
+from ..schemas.template_subnet_schema import (
     OpenLabsSubnetBaseSchema,
     OpenLabsSubnetID,
     OpenLabsSubnetSchema,
 )
-from ..schemas.openlabs_vpc_schema import OpenLabsVPCID
+from ..schemas.template_vpc_schema import OpenLabsVPCID
 from .crud_hosts import create_host
 
 
