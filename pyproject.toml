@@ -49,6 +49,7 @@ exclude = [
     "dist",
     "node_modules",
     "venv",
+    "*.tf*",
     ]
 lint.per-file-ignores = { "test_*.py" = ["S101"] } # S101 - assert used
 
@@ -81,7 +82,8 @@ omit = [
     "*/tests/*",
     "test_*",
     "venv/*",       # omit anything in a .venv directory anywhere
-    "*logger*"
+    "*logger*",
+    "*.tf*"        # omit terraform files
 ]
 concurrency = ["gevent"]
 
