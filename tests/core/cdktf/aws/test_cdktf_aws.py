@@ -77,7 +77,7 @@ def synthesized() -> str:
 
     app = Testing.app()
     test_dir = create_cdktf_dir()
-    return Testing.synth(AWSStack(app, "test-stack", cyber_range, test_dir))
+    return str(Testing.synth(AWSStack(app, "test-stack", cyber_range, test_dir)))
 
 
 def test_every_vpc_is_valid(synthesized: str) -> None:
