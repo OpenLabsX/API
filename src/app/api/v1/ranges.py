@@ -1,5 +1,5 @@
-from typing import Any
 import uuid
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio.session import AsyncSession
@@ -29,11 +29,16 @@ async def deploy_range_from_template(
 
     for deploy_range in ranges:
         deployed_range_id = uuid.uuid4()
-        stack_name = create_aws_stack(deploy_range, settings.CDKTF_DIR, deployed_range_id)
+        stack_name = create_aws_stack(
+            deploy_range, settings.CDKTF_DIR, deployed_range_id
+        )
         state_file = deploy_infrastructure(settings.CDKTF_DIR, stack_name)
 
         if not state_file:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to read terraform state file.")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to read terraform state file.",
+            )
         # deployed_range_obj = DeployedRange(deployed_range_id, range_template, state_file, range_template.provider, account: OpenLabsAccount, cloud_account_id: uuid/int) OpenLabsAccount --> Provider --> Cloud Account ID --> AWS Creds
         # save(db, deployed_range_obj)
 

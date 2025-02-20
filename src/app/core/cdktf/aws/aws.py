@@ -1,5 +1,4 @@
 import os
-import shutil
 import subprocess
 import uuid
 from pathlib import Path
@@ -84,7 +83,9 @@ def destroy_infrastructure(
     os.chdir(inital_dir)
 
 
-def create_aws_stack(cyber_range: OpenLabsRangeSchema, tmp_dir: str, deployed_range_id: uuid.UUID) -> str:
+def create_aws_stack(
+    cyber_range: OpenLabsRangeSchema, tmp_dir: str, deployed_range_id: uuid.UUID
+) -> str:
     """Create and synthesize an AWS stack using the provided OpenLabsRange.
 
     Args:
