@@ -1,3 +1,17 @@
+# v0.6.0 (Thu Feb 20 2025)
+
+#### 🚀 Enhancement
+
+- Cdktf [#50](https://github.com/OpenLabsX/API/pull/50) ([@Nareshp1](https://github.com/Nareshp1) [@alexchristy](https://github.com/alexchristy) [@Adamkadaban](https://github.com/Adamkadaban))
+
+#### Authors: 3
+
+- Adam Hassan ([@Adamkadaban](https://github.com/Adamkadaban))
+- Alex Christy ([@alexchristy](https://github.com/alexchristy))
+- Naresh Panchal ([@Nareshp1](https://github.com/Nareshp1))
+
+---
+
 # v0.5.0 (Mon Feb 17 2025)
 
 #### 🚀 Enhancement
