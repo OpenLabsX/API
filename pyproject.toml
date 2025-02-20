@@ -53,6 +53,7 @@ exclude = [
     ".gitignore",
     "*.lock",
     "*.json"
+    ".terraform*"
     ]
 lint.per-file-ignores = { "test_*.py" = ["S101"] } # S101 - assert used
 
