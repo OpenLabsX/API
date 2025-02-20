@@ -5,9 +5,9 @@ from sqlalchemy.orm import load_only
 
 from ..models.openlabs_host_model import OpenLabsHostModel
 from ..schemas.template_host_schema import (
-    OpenLabsHostBaseSchema,
-    OpenLabsHostID,
-    OpenLabsHostSchema,
+    TemplateHostBaseSchema,
+    TemplateHostID,
+    TemplateHostSchema,
 )
 from ..schemas.template_subnet_schema import OpenLabsSubnetID
 
@@ -49,14 +49,14 @@ async def get_host_headers(
 
 
 async def get_host(
-    db: AsyncSession, host_id: OpenLabsHostID
+    db: AsyncSession, host_id: TemplateHostID
 ) -> OpenLabsHostModel | None:
     """Get OpenLabs host by ID.
 
     Args:
     ----
         db (Sessions): Database connection.
-        host_id (OpenLabsHostID): ID of the host.
+        host_id (TemplateHostID): ID of the host.
 
     Returns:
     -------
@@ -70,7 +70,7 @@ async def get_host(
 
 async def create_host(
     db: AsyncSession,
-    openlabs_host: OpenLabsHostBaseSchema,
+    openlabs_host: TemplateHostBaseSchema,
     subnet_id: OpenLabsSubnetID | None = None,
 ) -> OpenLabsHostModel:
     """Create and add a new OpenLabsHost to the database.
@@ -78,7 +78,7 @@ async def create_host(
     Args:
     ----
         db (Session): Database connection.
-        openlabs_host (OpenLabsHostBaseSchema): Dictionary containing OpenLabsHost data.
+        openlabs_host (TemplateHostBaseSchema): Dictionary containing OpenLabsHost data.
         subnet_id (Optional[str]): Subnet ID to link VPC back too.
 
     Returns:
@@ -86,7 +86,7 @@ async def create_host(
         OpenLabsVPC: The newly created range.
 
     """
-    openlabs_host = OpenLabsHostSchema(**openlabs_host.model_dump())
+    openlabs_host = TemplateHostSchema(**openlabs_host.model_dump())
     host_dict = openlabs_host.model_dump()
     if subnet_id:
         host_dict["subnet_id"] = subnet_id.id

@@ -7,9 +7,9 @@ from ...crud.crud_ranges import create_range, get_range, get_range_headers
 from ...crud.crud_subnets import create_subnet, get_subnet, get_subnet_headers
 from ...crud.crud_vpcs import create_vpc, get_vpc, get_vpc_headers
 from ...schemas.template_host_schema import (
-    OpenLabsHostBaseSchema,
-    OpenLabsHostID,
-    OpenLabsHostSchema,
+    TemplateHostBaseSchema,
+    TemplateHostID,
+    TemplateHostSchema,
 )
 from ...schemas.template_range_schema import (
     OpenLabsRangeBaseSchema,
@@ -291,7 +291,7 @@ async def upload_subnet_template(
 async def get_host_template_headers(
     standalone_only: bool = True,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-) -> list[OpenLabsHostSchema]:
+) -> list[TemplateHostSchema]:
     """Get a list of host template headers.
 
     Args:
@@ -301,7 +301,7 @@ async def get_host_template_headers(
 
     Returns:
     -------
-        list[OpenLabsHostID]: List of host template UUIDs.
+        list[TemplateHostID]: List of host template UUIDs.
 
     """
     host_headers = await get_host_headers(db, standalone_only=standalone_only)
@@ -313,7 +313,7 @@ async def get_host_template_headers(
         )
 
     return [
-        OpenLabsHostSchema.model_validate(header, from_attributes=True)
+        TemplateHostSchema.model_validate(header, from_attributes=True)
         for header in host_headers
     ]
 
@@ -321,7 +321,7 @@ async def get_host_template_headers(
 @router.get("/hosts/{host_id}")
 async def get_host_template(
     host_id: str, db: AsyncSession = Depends(async_get_db)  # noqa: B008
-) -> OpenLabsHostSchema:
+) -> TemplateHostSchema:
     """Get a host template.
 
     Args:
@@ -331,7 +331,7 @@ async def get_host_template(
 
     Returns:
     -------
-        OpenLabsHostSchema: Host data from database.
+        TemplateHostSchema: Host data from database.
 
     """
     if not is_valid_uuid4(host_id):
@@ -340,7 +340,7 @@ async def get_host_template(
             detail="ID provided is not a valid UUID4.",
         )
 
-    openlabs_host = await get_host(db, OpenLabsHostID(id=host_id))
+    openlabs_host = await get_host(db, TemplateHostID(id=host_id))
 
     if not openlabs_host:
         raise HTTPException(
@@ -348,25 +348,25 @@ async def get_host_template(
             detail=f"Host with id: {host_id} not found!",
         )
 
-    return OpenLabsHostSchema.model_validate(openlabs_host, from_attributes=True)
+    return TemplateHostSchema.model_validate(openlabs_host, from_attributes=True)
 
 
 @router.post("/hosts")
 async def upload_host_template(
-    openlabs_host: OpenLabsHostBaseSchema,
+    openlabs_host: TemplateHostBaseSchema,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-) -> OpenLabsHostID:
+) -> TemplateHostID:
     """Upload a host template.
 
     Args:
     ----
-        openlabs_host (OpenLabsHostBaseSchema): OpenLabs compliant host object.
+        openlabs_host (TemplateHostBaseSchema): OpenLabs compliant host object.
         db (AsyncSession): Async database connection.
 
     Returns:
     -------
-        OpenLabsHostID: Identity of the subnet template.
+        TemplateHostID: Identity of the subnet template.
 
     """
     created_host = await create_host(db, openlabs_host)
-    return OpenLabsHostSchema.model_validate(created_host, from_attributes=True)
+    return TemplateHostSchema.model_validate(created_host, from_attributes=True)

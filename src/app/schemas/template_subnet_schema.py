@@ -4,7 +4,7 @@ from ipaddress import IPv4Network
 from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 from ..validators.network import max_num_hosts_in_subnet
-from .template_host_schema import OpenLabsHostBaseSchema
+from .template_host_schema import TemplateHostBaseSchema
 
 
 class OpenLabsSubnetBaseSchema(BaseModel):
@@ -16,13 +16,13 @@ class OpenLabsSubnetBaseSchema(BaseModel):
     name: str = Field(
         ..., description="Subnet name", min_length=1, examples=["example-subnet-1"]
     )
-    hosts: list[OpenLabsHostBaseSchema] = Field(..., description="All hosts in subnet")
+    hosts: list[TemplateHostBaseSchema] = Field(..., description="All hosts in subnet")
 
     @field_validator("hosts")
     @classmethod
     def validate_unique_hostnames(
-        cls, hosts: list[OpenLabsHostBaseSchema]
-    ) -> list[OpenLabsHostBaseSchema]:
+        cls, hosts: list[TemplateHostBaseSchema]
+    ) -> list[TemplateHostBaseSchema]:
         """Check hostnames are unique.
 
         Args:
@@ -44,19 +44,19 @@ class OpenLabsSubnetBaseSchema(BaseModel):
     @field_validator("hosts")
     @classmethod
     def validate_max_number_hosts(
-        cls, hosts: list[OpenLabsHostBaseSchema], info: ValidationInfo
-    ) -> list[OpenLabsHostBaseSchema]:
+        cls, hosts: list[TemplateHostBaseSchema], info: ValidationInfo
+    ) -> list[TemplateHostBaseSchema]:
         """Check that the number of hosts does not exceed subnet CIDR.
 
         Args:
         ----
             cls: OpenLabsSubnetBaseSchema object.
-            hosts (list[OpenLabsHostBaseSchema]): List of host objects.
+            hosts (list[TemplateHostBaseSchema]): List of host objects.
             info (ValidationInfo): Info of object currently being validated.
 
         Returns:
         -------
-            list[OpenLabsHostBaseSchema]: List of host objects.
+            list[TemplateHostBaseSchema]: List of host objects.
 
         """
         subnet_cidr = info.data.get("cidr")

@@ -13,8 +13,8 @@ from ..enums.specs import OpenLabsSpec
 from ..validators.network import is_valid_disk_size, is_valid_hostname
 
 
-class OpenLabsHostBaseSchema(BaseModel):
-    """Base host object for OpenLabs."""
+class TemplateHostBaseSchema(BaseModel):
+    """Base template host object for OpenLabs."""
 
     hostname: str = Field(
         ...,
@@ -109,8 +109,8 @@ class OpenLabsHostBaseSchema(BaseModel):
         return size
 
 
-class OpenLabsHostID(BaseModel):
-    """Identity class for OpenLabsHost."""
+class TemplateHostID(BaseModel):
+    """Identity class for template host object."""
 
     id: uuid.UUID = Field(
         default_factory=uuid.uuid4, description="Unique object identifier."
@@ -119,7 +119,7 @@ class OpenLabsHostID(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class OpenLabsHostSchema(OpenLabsHostBaseSchema, OpenLabsHostID):
-    """Host object for OpenLabs."""
+class TemplateHostSchema(TemplateHostBaseSchema, TemplateHostID):
+    """Template host object for OpenLabs."""
 
     model_config = ConfigDict(from_attributes=True)
