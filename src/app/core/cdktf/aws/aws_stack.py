@@ -96,7 +96,7 @@ class AWSStack(TerraformStack):
                 cidr_block=public_subnet_cidr,
                 map_public_ip_on_launch=True,  # Enable public IP auto-assignment
                 availability_zone="us-east-1a",
-                tags={"Name": "RangePublicSubnet"},
+                tags={"Name": f"RangePublicSubnet-{vpc.name}"},
             )
 
             # Step 3: Create an Internet Gateway for Public Subnet
@@ -234,22 +234,22 @@ class AWSStack(TerraformStack):
                 vpc_security_group_ids=[jumpbox_sg.id],
                 associate_public_ip_address=True,  # Ensures public IP is assigned
                 key_name=key_pair.key_name,  # Use the generated key pair
-                tags={"Name": "JumpBox"},
+                tags={"Name": f"JumpBox-{vpc.name}"},
             )
 
             # Step 12: Create private subnets with their respecitve EC2 instances
             for subnet in vpc.subnets:
                 new_subnet = Subnet(
                     self,
-                    subnet.name,
+                    f"{subnet.name}-{vpc.name}",
                     vpc_id=new_vpc.id,
                     cidr_block=str(subnet.cidr),
                     availability_zone="us-east-1a",
-                    tags={"Name": subnet.name},
+                    tags={"Name": f"{subnet.name}-{vpc.name}"},
                 )
                 RouteTableAssociation(
                     self,
-                    subnet.name + "RouteAssociation",
+                    f"{subnet.name}-RouteAssociation-{vpc.name}",
                     subnet_id=new_subnet.id,
                     route_table_id=private_route_table.id,
                 )
@@ -258,7 +258,7 @@ class AWSStack(TerraformStack):
                 ) in subnet.hosts:  # Create specified instances in the given subnet
                     Instance(
                         self,
-                        host.hostname,
+                        f"{host.hostname}-{vpc.name}",
                         ami=AWS_OS_MAP[
                             host.os
                         ],  # WIll need to grab from update OpenLabsRange object
@@ -266,5 +266,5 @@ class AWSStack(TerraformStack):
                         subnet_id=new_subnet.id,
                         vpc_security_group_ids=[private_sg.id],
                         key_name=key_pair.key_name,  # Use the generated key pair
-                        tags={"Name": host.hostname},
+                        tags={"Name": f"{host.hostname}-{vpc.name}"},
                     )
