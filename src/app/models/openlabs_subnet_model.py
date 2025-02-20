@@ -5,7 +5,7 @@ from sqlalchemy.dialects.postgresql import CIDR, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..core.db.database import Base
-from .openlabs_base_model import OpenLabsTemplateMixin
+from .template_base_model import OpenLabsTemplateMixin
 
 
 class OpenLabsSubnetModel(Base, OpenLabsTemplateMixin):
@@ -29,5 +29,5 @@ class OpenLabsSubnetModel(Base, OpenLabsTemplateMixin):
 
     # One-to-many relationship with Hosts
     hosts = relationship(
-        "OpenLabsHostModel", back_populates="subnet", cascade="all, delete-orphan"
+        "TemplateHostModel", back_populates="subnet", cascade="all, delete-orphan"
     )

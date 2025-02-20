@@ -7,13 +7,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..core.db.database import Base
 from ..enums.operating_systems import OpenLabsOS
 from ..enums.specs import OpenLabsSpec
-from .openlabs_base_model import OpenLabsTemplateMixin
+from .template_base_model import OpenLabsTemplateMixin
 
 
-class OpenLabsHostModel(Base, OpenLabsTemplateMixin):
-    """SQLAlchemy ORM model for OpenLabsHost."""
+class TemplateHostModel(Base, OpenLabsTemplateMixin):
+    """SQLAlchemy ORM model for template host."""
 
-    __tablename__ = "hosts"
+    __tablename__ = "template_hosts"
 
     hostname: Mapped[str] = mapped_column(String, nullable=False)
     os: Mapped[OpenLabsOS] = mapped_column(Enum(OpenLabsOS), nullable=False)

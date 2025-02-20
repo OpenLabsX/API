@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import load_only
 
-from ..models.openlabs_host_model import OpenLabsHostModel
+from ..models.template_host_model import TemplateHostModel
 from ..schemas.template_host_schema import (
     TemplateHostBaseSchema,
     TemplateHostID,
@@ -14,7 +14,7 @@ from ..schemas.template_subnet_schema import TemplateSubnetID
 
 async def get_host_headers(
     db: AsyncSession, standalone_only: bool = True
-) -> list[OpenLabsHostModel]:
+) -> list[TemplateHostModel]:
     """Get list of OpenLabsHost headers.
 
     Args:
@@ -25,24 +25,24 @@ async def get_host_headers(
 
     Returns:
     -------
-        list[OpenLabsHostModel]: List of OpenLabsHost models.
+        list[TemplateHostModel]: List of OpenLabsHost models.
 
     """
-    mapped_subnet_model = inspect(OpenLabsHostModel)
+    mapped_subnet_model = inspect(TemplateHostModel)
     main_columns = [
-        getattr(OpenLabsHostModel, attr.key)
+        getattr(TemplateHostModel, attr.key)
         for attr in mapped_subnet_model.column_attrs
     ]
 
     # Build the query: filter for rows where subnet_id is null if standalone_only is True
     if standalone_only:
         stmt = (
-            select(OpenLabsHostModel)
-            .where(OpenLabsHostModel.subnet_id.is_(None))
+            select(TemplateHostModel)
+            .where(TemplateHostModel.subnet_id.is_(None))
             .options(load_only(*main_columns))
         )
     else:
-        stmt = select(OpenLabsHostModel).options(load_only(*main_columns))
+        stmt = select(TemplateHostModel).options(load_only(*main_columns))
 
     result = await db.execute(stmt)
     return list(result.scalars().all())
@@ -50,7 +50,7 @@ async def get_host_headers(
 
 async def get_host(
     db: AsyncSession, host_id: TemplateHostID
-) -> OpenLabsHostModel | None:
+) -> TemplateHostModel | None:
     """Get OpenLabs host by ID.
 
     Args:
@@ -60,10 +60,10 @@ async def get_host(
 
     Returns:
     -------
-        Optional[OpenLabsHostModel]: OpenLabsHostModel if it exists.
+        Optional[TemplateHostModel]: TemplateHostModel if it exists.
 
     """
-    stmt = select(OpenLabsHostModel).filter(OpenLabsHostModel.id == host_id.id)
+    stmt = select(TemplateHostModel).filter(TemplateHostModel.id == host_id.id)
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
@@ -72,7 +72,7 @@ async def create_host(
     db: AsyncSession,
     openlabs_host: TemplateHostBaseSchema,
     subnet_id: TemplateSubnetID | None = None,
-) -> OpenLabsHostModel:
+) -> TemplateHostModel:
     """Create and add a new OpenLabsHost to the database.
 
     Args:
@@ -91,7 +91,7 @@ async def create_host(
     if subnet_id:
         host_dict["subnet_id"] = subnet_id.id
 
-    host_obj = OpenLabsHostModel(**host_dict)
+    host_obj = TemplateHostModel(**host_dict)
     db.add(host_obj)
 
     if not subnet_id:
