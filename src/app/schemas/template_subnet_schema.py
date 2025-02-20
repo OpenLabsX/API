@@ -7,8 +7,8 @@ from ..validators.network import max_num_hosts_in_subnet
 from .template_host_schema import TemplateHostBaseSchema
 
 
-class OpenLabsSubnetBaseSchema(BaseModel):
-    """Subnet object for OpenLabs."""
+class TemplateSubnetBaseSchema(BaseModel):
+    """Template subnet object for OpenLabs."""
 
     cidr: IPv4Network = Field(
         ..., description="CIDR range", examples=["192.168.1.0/24"]
@@ -50,7 +50,7 @@ class OpenLabsSubnetBaseSchema(BaseModel):
 
         Args:
         ----
-            cls: OpenLabsSubnetBaseSchema object.
+            cls: TemplateSubnetBaseSchema object.
             hosts (list[TemplateHostBaseSchema]): List of host objects.
             info (ValidationInfo): Info of object currently being validated.
 
@@ -75,8 +75,8 @@ class OpenLabsSubnetBaseSchema(BaseModel):
         return hosts
 
 
-class OpenLabsSubnetID(BaseModel):
-    """Identiy class for OpenLabsSubnet."""
+class TemplateSubnetID(BaseModel):
+    """Identiy class for tempalte subnet object."""
 
     id: uuid.UUID = Field(
         default_factory=uuid.uuid4, description="Unique subnet identifier."
@@ -85,14 +85,14 @@ class OpenLabsSubnetID(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class OpenLabsSubnetSchema(OpenLabsSubnetBaseSchema, OpenLabsSubnetID):
-    """Subnet object for OpenLabs."""
+class TemplateSubnetSchema(TemplateSubnetBaseSchema, TemplateSubnetID):
+    """Template subnet object for OpenLabs."""
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class OpenLabsSubnetHeaderSchema(OpenLabsSubnetID):
-    """Header (non-nested object) information for the OpenLabsSubnetHeaderSchema."""
+class TemplateSubnetHeaderSchema(TemplateSubnetID):
+    """Header (non-nested object) information for the TemplateSubnetSchema."""
 
     cidr: IPv4Network = Field(
         ..., description="CIDR range", examples=["192.168.1.0/24"]

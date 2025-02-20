@@ -9,7 +9,7 @@ from ..schemas.template_host_schema import (
     TemplateHostID,
     TemplateHostSchema,
 )
-from ..schemas.template_subnet_schema import OpenLabsSubnetID
+from ..schemas.template_subnet_schema import TemplateSubnetID
 
 
 async def get_host_headers(
@@ -71,7 +71,7 @@ async def get_host(
 async def create_host(
     db: AsyncSession,
     openlabs_host: TemplateHostBaseSchema,
-    subnet_id: OpenLabsSubnetID | None = None,
+    subnet_id: TemplateSubnetID | None = None,
 ) -> OpenLabsHostModel:
     """Create and add a new OpenLabsHost to the database.
 

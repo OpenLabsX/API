@@ -18,10 +18,10 @@ from ...schemas.template_range_schema import (
     OpenLabsRangeSchema,
 )
 from ...schemas.template_subnet_schema import (
-    OpenLabsSubnetBaseSchema,
-    OpenLabsSubnetHeaderSchema,
-    OpenLabsSubnetID,
-    OpenLabsSubnetSchema,
+    TemplateSubnetBaseSchema,
+    TemplateSubnetHeaderSchema,
+    TemplateSubnetID,
+    TemplateSubnetSchema,
 )
 from ...schemas.template_vpc_schema import (
     OpenLabsVPCBaseSchema,
@@ -206,7 +206,7 @@ async def upload_vpc_template(
 async def get_subnet_template_headers(
     standalone_only: bool = True,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-) -> list[OpenLabsSubnetHeaderSchema]:
+) -> list[TemplateSubnetHeaderSchema]:
     """Get a list of subnet template headers.
 
     Args:
@@ -216,7 +216,7 @@ async def get_subnet_template_headers(
 
     Returns:
     -------
-        list[OpenLabsSubnetHeaderSchema]: List of subnet template headers.
+        list[TemplateSubnetHeaderSchema]: List of subnet template headers.
 
     """
     subnet_headers = await get_subnet_headers(db, standalone_only=standalone_only)
@@ -228,7 +228,7 @@ async def get_subnet_template_headers(
         )
 
     return [
-        OpenLabsSubnetHeaderSchema.model_validate(header, from_attributes=True)
+        TemplateSubnetHeaderSchema.model_validate(header, from_attributes=True)
         for header in subnet_headers
     ]
 
@@ -236,7 +236,7 @@ async def get_subnet_template_headers(
 @router.get("/subnets/{subnet_id}")
 async def get_subnet_template(
     subnet_id: str, db: AsyncSession = Depends(async_get_db)  # noqa: B008
-) -> OpenLabsSubnetSchema:
+) -> TemplateSubnetSchema:
     """Get a subnet template.
 
     Args:
@@ -246,7 +246,7 @@ async def get_subnet_template(
 
     Returns:
     -------
-        OpenLabsSubnetSchema: Subnet data from database.
+        TemplateSubnetSchema: Subnet data from database.
 
     """
     if not is_valid_uuid4(subnet_id):
@@ -255,7 +255,7 @@ async def get_subnet_template(
             detail="ID provided is not a valid UUID4.",
         )
 
-    openlabs_subnet = await get_subnet(db, OpenLabsSubnetID(id=subnet_id))
+    openlabs_subnet = await get_subnet(db, TemplateSubnetID(id=subnet_id))
 
     if not openlabs_subnet:
         raise HTTPException(
@@ -263,28 +263,28 @@ async def get_subnet_template(
             detail=f"Subnet with id: {subnet_id} not found!",
         )
 
-    return OpenLabsSubnetSchema.model_validate(openlabs_subnet, from_attributes=True)
+    return TemplateSubnetSchema.model_validate(openlabs_subnet, from_attributes=True)
 
 
 @router.post("/subnets")
 async def upload_subnet_template(
-    openlabs_subnet: OpenLabsSubnetBaseSchema,
+    openlabs_subnet: TemplateSubnetBaseSchema,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-) -> OpenLabsSubnetID:
+) -> TemplateSubnetID:
     """Upload a subnet template.
 
     Args:
     ----
-        openlabs_subnet (OpenLabsSubnetBaseSchema): OpenLabs compliant subnet object.
+        openlabs_subnet (TemplateSubnetBaseSchema): OpenLabs compliant subnet object.
         db (AsyncSession): Async database connection.
 
     Returns:
     -------
-        OpenLabsSubnetID: Identity of the subnet template.
+        TemplateSubnetID: Identity of the subnet template.
 
     """
     created_subnet = await create_subnet(db, openlabs_subnet)
-    return OpenLabsSubnetID.model_validate(created_subnet, from_attributes=True)
+    return TemplateSubnetID.model_validate(created_subnet, from_attributes=True)
 
 
 @router.get("/hosts")
