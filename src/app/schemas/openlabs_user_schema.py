@@ -6,6 +6,47 @@ from email_validator import validate_email, EmailNotValidError
 
 from .openlabs_secret_schema import OpenLabsSecretSchema
 
+class OpenLabsAuthBaseSchema(BaseModel):
+    """Schema for user authentication."""
+
+    email: str = Field(
+        ...,
+        description="Email of user",
+        min_length=1,
+        examples=["adam@ufsit.club", "alex@christy.com", "naresh@panch.al"],
+    )
+
+    password: str = Field(
+        ...,
+        description = "Password of user",
+        min_length = 1,
+        examples=["password123"]
+    )
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(
+        cls, email: str) -> str:
+        """Check that email format is valid.
+
+        Args:
+        ----
+            cls: OpenLabsUser object.
+            email (str): User email address.
+
+        Returns:
+        -------
+            str: User email address.
+        """
+
+        try:
+            emailinfo = validate_email(email, check_deliverability=False)
+
+            return emailinfo.normalized
+        except EmailNotValidError:
+            msg = "Provided email address is invalid."
+            raise ValueError(msg)
+
 class OpenLabsUserBaseSchema(BaseModel):
     """Base user object for OpenLabs."""
 
@@ -48,10 +89,10 @@ class OpenLabsUserBaseSchema(BaseModel):
     #    examples=[datetime(2025, 2, 5)]
     #)
 
-    secrets: OpenLabsSecretSchema = Field(
-        default_factory = OpenLabsSecretSchema,
-        description = "Secrets used for providers",
-    )
+    #secrets: OpenLabsSecretSchema = Field(
+    #    default_factory = OpenLabsSecretSchema,
+    #    description = "Secrets used for providers",
+    #)
 
     @field_validator("email")
     @classmethod
@@ -90,7 +131,14 @@ class OpenLabsUserID(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+
 class OpenLabsUserSchema(OpenLabsUserBaseSchema, OpenLabsUserID):
     """User object for OpenLabs."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class OpenLabsAuthSchema(OpenLabsAuthBaseSchema):
+    """User auth object for OpenLabs."""
 
     model_config = ConfigDict(from_attributes=True)

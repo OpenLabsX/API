@@ -5,3 +5,4 @@ asyncpg~=0.30
 setuptools-scm~=8.1
 email_validator~=2.2
 bcrypt~=4.2
+PyJWT~=2.10.1
