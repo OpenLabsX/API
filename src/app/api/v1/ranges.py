@@ -7,25 +7,25 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from ...core.config import settings
 from ...core.db.database import async_get_db
 from ...crud.crud_ranges import get_range
-from ...schemas.template_range_schema import OpenLabsRangeID, OpenLabsRangeSchema
+from ...schemas.template_range_schema import TemplateRangeID, TemplateRangeSchema
 
 router = APIRouter(prefix="/ranges", tags=["ranges"])
 
 
 @router.post("/deploy")
 async def deploy_range_from_template(
-    range_ids: list[OpenLabsRangeID],
+    range_ids: list[TemplateRangeID],
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
 ) -> dict[str, Any]:
     """Deploy range templates."""
     # Import CDKTF dependencies to avoid long import times
     from ...core.cdktf.aws.aws import create_aws_stack, deploy_infrastructure
 
-    ranges: list[OpenLabsRangeSchema] = []
+    ranges: list[TemplateRangeSchema] = []
     for range_id in range_ids:
         range_model = await get_range(db, range_id)
         ranges.append(
-            OpenLabsRangeSchema.model_validate(range_model, from_attributes=True)
+            TemplateRangeSchema.model_validate(range_model, from_attributes=True)
         )
 
     for deploy_range in ranges:

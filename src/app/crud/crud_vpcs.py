@@ -5,7 +5,7 @@ from sqlalchemy.orm import load_only, selectinload
 
 from ..models.openlabs_subnet_model import OpenLabsSubnetModel
 from ..models.openlabs_vpc_model import OpenLabsVPCModel
-from ..schemas.template_range_schema import OpenLabsRangeID
+from ..schemas.template_range_schema import TemplateRangeID
 from ..schemas.template_vpc_schema import (
     TemplateVPCBaseSchema,
     TemplateVPCID,
@@ -80,7 +80,7 @@ async def get_vpc(db: AsyncSession, vpc_id: TemplateVPCID) -> OpenLabsVPCModel |
 async def create_vpc(
     db: AsyncSession,
     openlabs_vpc: TemplateVPCBaseSchema,
-    range_id: OpenLabsRangeID | None = None,
+    range_id: TemplateRangeID | None = None,
 ) -> OpenLabsVPCModel:
     """Create and add a new OpenLabsVPC to the database.
 

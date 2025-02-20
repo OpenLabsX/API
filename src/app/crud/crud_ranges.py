@@ -7,9 +7,9 @@ from ..models.openlabs_range_model import OpenLabsRangeModel
 from ..models.openlabs_subnet_model import OpenLabsSubnetModel
 from ..models.openlabs_vpc_model import OpenLabsVPCModel
 from ..schemas.template_range_schema import (
-    OpenLabsRangeBaseSchema,
-    OpenLabsRangeID,
-    OpenLabsRangeSchema,
+    TemplateRangeBaseSchema,
+    TemplateRangeID,
+    TemplateRangeSchema,
 )
 from .crud_vpcs import create_vpc
 
@@ -39,14 +39,14 @@ async def get_range_headers(db: AsyncSession) -> list[OpenLabsRangeModel]:
 
 
 async def get_range(
-    db: AsyncSession, range_id: OpenLabsRangeID
+    db: AsyncSession, range_id: TemplateRangeID
 ) -> OpenLabsRangeModel | None:
     """Get OpenLabsRange by id (uuid).
 
     Args:
     ----
         db (Session): Database connection.
-        range_id (OpenLabsRangeID): ID of the range.
+        range_id (TemplateRangeID): ID of the range.
 
     Returns:
     -------
@@ -68,21 +68,21 @@ async def get_range(
 
 
 async def create_range(
-    db: AsyncSession, openlabs_range: OpenLabsRangeBaseSchema
+    db: AsyncSession, openlabs_range: TemplateRangeBaseSchema
 ) -> OpenLabsRangeModel:
     """Create and add a new OpenLabsRange to the database.
 
     Args:
     ----
         db (Session): Database connection.
-        openlabs_range (OpenLabsRangeSchema): Dictionary containing OpenLabsRange data.
+        openlabs_range (TemplateRangeSchema): Dictionary containing OpenLabsRange data.
 
     Returns:
     -------
         OpenLabsRange: The newly created range.
 
     """
-    openlabs_range = OpenLabsRangeSchema(**openlabs_range.model_dump())
+    openlabs_range = TemplateRangeSchema(**openlabs_range.model_dump())
     range_dict = openlabs_range.model_dump(exclude={"vpcs"})
 
     # Create the Range object (No commit yet)
@@ -90,7 +90,7 @@ async def create_range(
     db.add(range_obj)  # Stage the range
 
     # Build range ID
-    range_id = OpenLabsRangeID(id=range_obj.id)
+    range_id = TemplateRangeID(id=range_obj.id)
 
     # Create VPCs and associate them with the range (No commit yet)
     vpc_objects = [

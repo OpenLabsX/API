@@ -18,7 +18,7 @@ from constructs import Construct
 
 from ....enums.operating_systems import AWS_OS_MAP
 from ....enums.specs import AWS_SPEC_MAP
-from ....schemas.template_range_schema import OpenLabsRangeSchema
+from ....schemas.template_range_schema import TemplateRangeSchema
 
 
 class AWSStack(TerraformStack):
@@ -28,7 +28,7 @@ class AWSStack(TerraformStack):
         self,
         scope: Construct,
         cdktfid: str,
-        cyber_range: OpenLabsRangeSchema,
+        cyber_range: TemplateRangeSchema,
         tmp_dir: str,
     ) -> None:
         """Initialize AWS terraform stack.
