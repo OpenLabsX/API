@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import load_only, selectinload
 
-from ..models.openlabs_subnet_model import TemplateSubnetModel
+from ..models.template_subnet_model import TemplateSubnetModel
 from ..schemas.template_subnet_schema import (
     TemplateSubnetBaseSchema,
     TemplateSubnetID,

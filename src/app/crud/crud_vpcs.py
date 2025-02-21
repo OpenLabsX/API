@@ -3,8 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import load_only, selectinload
 
-from ..models.openlabs_subnet_model import TemplateSubnetModel
 from ..models.openlabs_vpc_model import OpenLabsVPCModel
+from ..models.template_subnet_model import TemplateSubnetModel
 from ..schemas.template_range_schema import TemplateRangeID
 from ..schemas.template_vpc_schema import (
     TemplateVPCBaseSchema,
