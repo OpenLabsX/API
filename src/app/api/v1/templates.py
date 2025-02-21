@@ -265,27 +265,27 @@ async def get_subnet_template_endpoint(
             detail="ID provided is not a valid UUID4.",
         )
 
-    openlabs_subnet = await get_subnet_template(db, TemplateSubnetID(id=subnet_id))
+    subnet_template = await get_subnet_template(db, TemplateSubnetID(id=subnet_id))
 
-    if not openlabs_subnet:
+    if not subnet_template:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Subnet with id: {subnet_id} not found!",
         )
 
-    return TemplateSubnetSchema.model_validate(openlabs_subnet, from_attributes=True)
+    return TemplateSubnetSchema.model_validate(subnet_template, from_attributes=True)
 
 
 @router.post("/subnets")
 async def upload_subnet_template_endpoint(
-    openlabs_subnet: TemplateSubnetBaseSchema,
+    subnet_template: TemplateSubnetBaseSchema,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
 ) -> TemplateSubnetID:
     """Upload a subnet template.
 
     Args:
     ----
-        openlabs_subnet (TemplateSubnetBaseSchema): OpenLabs compliant subnet object.
+        subnet_template (TemplateSubnetBaseSchema): OpenLabs compliant subnet template object.
         db (AsyncSession): Async database connection.
 
     Returns:
@@ -293,7 +293,7 @@ async def upload_subnet_template_endpoint(
         TemplateSubnetID: Identity of the subnet template.
 
     """
-    created_subnet = await create_subnet_template(db, openlabs_subnet)
+    created_subnet = await create_subnet_template(db, subnet_template)
     return TemplateSubnetID.model_validate(created_subnet, from_attributes=True)
 
 
