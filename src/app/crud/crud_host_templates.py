@@ -12,10 +12,10 @@ from ..schemas.template_host_schema import (
 from ..schemas.template_subnet_schema import TemplateSubnetID
 
 
-async def get_host_headers(
+async def get_host_template_headers(
     db: AsyncSession, standalone_only: bool = True
 ) -> list[TemplateHostModel]:
-    """Get list of OpenLabsHost headers.
+    """Get list of host template headers.
 
     Args:
     ----
@@ -25,13 +25,12 @@ async def get_host_headers(
 
     Returns:
     -------
-        list[TemplateHostModel]: List of OpenLabsHost models.
+        list[TemplateHostModel]: List of host template models.
 
     """
-    mapped_subnet_model = inspect(TemplateHostModel)
+    mapped_host_model = inspect(TemplateHostModel)
     main_columns = [
-        getattr(TemplateHostModel, attr.key)
-        for attr in mapped_subnet_model.column_attrs
+        getattr(TemplateHostModel, attr.key) for attr in mapped_host_model.column_attrs
     ]
 
     # Build the query: filter for rows where subnet_id is null if standalone_only is True
@@ -48,10 +47,10 @@ async def get_host_headers(
     return list(result.scalars().all())
 
 
-async def get_host(
+async def get_host_template(
     db: AsyncSession, host_id: TemplateHostID
 ) -> TemplateHostModel | None:
-    """Get OpenLabs host by ID.
+    """Get host template by ID.
 
     Args:
     ----
@@ -68,26 +67,26 @@ async def get_host(
     return result.scalar_one_or_none()
 
 
-async def create_host(
+async def create_host_template(
     db: AsyncSession,
-    openlabs_host: TemplateHostBaseSchema,
+    template_host: TemplateHostBaseSchema,
     subnet_id: TemplateSubnetID | None = None,
 ) -> TemplateHostModel:
-    """Create and add a new OpenLabsHost to the database.
+    """Create and add a new host tempalte to the database.
 
     Args:
     ----
         db (Session): Database connection.
-        openlabs_host (TemplateHostBaseSchema): Dictionary containing OpenLabsHost data.
+        template_host (TemplateHostBaseSchema): Dictionary containing host data.
         subnet_id (Optional[str]): Subnet ID to link VPC back too.
 
     Returns:
     -------
-        OpenLabsVPC: The newly created range.
+        TemplateHostModel: The newly created template host.
 
     """
-    openlabs_host = TemplateHostSchema(**openlabs_host.model_dump())
-    host_dict = openlabs_host.model_dump()
+    template_host = TemplateHostSchema(**template_host.model_dump())
+    host_dict = template_host.model_dump()
     if subnet_id:
         host_dict["subnet_id"] = subnet_id.id
 

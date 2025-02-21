@@ -10,7 +10,7 @@ from ..schemas.template_subnet_schema import (
     TemplateSubnetSchema,
 )
 from ..schemas.template_vpc_schema import TemplateVPCID
-from .crud_hosts import create_host
+from .crud_host_templates import create_host_template
 
 
 async def get_subnet_headers(
@@ -102,7 +102,7 @@ async def create_subnet(
 
     # Add subnets
     host_objects = [
-        await create_host(db, host_data, TemplateSubnetID(id=subnet_obj.id))
+        await create_host_template(db, host_data, TemplateSubnetID(id=subnet_obj.id))
         for host_data in openlabs_subnet.hosts
     ]
 

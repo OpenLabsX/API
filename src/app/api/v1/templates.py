@@ -2,7 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from ...core.db.database import async_get_db
-from ...crud.crud_hosts import create_host, get_host, get_host_headers
+from ...crud.crud_host_templates import (
+    create_host_template,
+    get_host_template,
+    get_host_template_headers,
+)
 from ...crud.crud_ranges import create_range, get_range, get_range_headers
 from ...crud.crud_subnets import create_subnet, get_subnet, get_subnet_headers
 from ...crud.crud_vpcs import create_vpc, get_vpc, get_vpc_headers
@@ -288,7 +292,7 @@ async def upload_subnet_template(
 
 
 @router.get("/hosts")
-async def get_host_template_headers(
+async def get_host_template_headers_endpoint(
     standalone_only: bool = True,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
 ) -> list[TemplateHostSchema]:
@@ -304,7 +308,7 @@ async def get_host_template_headers(
         list[TemplateHostID]: List of host template UUIDs.
 
     """
-    host_headers = await get_host_headers(db, standalone_only=standalone_only)
+    host_headers = await get_host_template_headers(db, standalone_only=standalone_only)
 
     if not host_headers:
         raise HTTPException(
@@ -319,7 +323,7 @@ async def get_host_template_headers(
 
 
 @router.get("/hosts/{host_id}")
-async def get_host_template(
+async def get_host_template_endpoint(
     host_id: str, db: AsyncSession = Depends(async_get_db)  # noqa: B008
 ) -> TemplateHostSchema:
     """Get a host template.
@@ -340,7 +344,7 @@ async def get_host_template(
             detail="ID provided is not a valid UUID4.",
         )
 
-    openlabs_host = await get_host(db, TemplateHostID(id=host_id))
+    openlabs_host = await get_host_template(db, TemplateHostID(id=host_id))
 
     if not openlabs_host:
         raise HTTPException(
@@ -368,5 +372,5 @@ async def upload_host_template(
         TemplateHostID: Identity of the subnet template.
 
     """
-    created_host = await create_host(db, openlabs_host)
+    created_host = await create_host_template(db, openlabs_host)
     return TemplateHostSchema.model_validate(created_host, from_attributes=True)
