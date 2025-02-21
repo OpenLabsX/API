@@ -72,6 +72,7 @@ OS_SIZE_THRESHOLD = {
     OpenLabsOS.DEBIAN_12: 8,
     OpenLabsOS.UBUNTU_20: 8,
     OpenLabsOS.UBUNTU_22: 8,
+    OpenLabsOS.UBUNTU_24: 8,
     OpenLabsOS.SUSE_12: 8,
     OpenLabsOS.SUSE_15: 8,
     OpenLabsOS.KALI: 32,

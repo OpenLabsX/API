@@ -8,7 +8,7 @@ from pydantic import (
     field_validator,
 )
 
-from ..enums.operating_systems import OpenLabsOS
+from ..enums.operating_systems import OS_SIZE_THRESHOLD, OpenLabsOS
 from ..enums.specs import OpenLabsSpec
 from ..validators.network import is_valid_disk_size, is_valid_hostname
 
@@ -104,7 +104,7 @@ class TemplateHostBaseSchema(BaseModel):
             raise ValueError(msg)
 
         if not is_valid_disk_size(os, size):
-            msg = f"Invalid disk size for {os.value}: {size}GB"
+            msg = f"Disk size {size}GB too small for OS: {os.value}. Minimum disk size: {OS_SIZE_THRESHOLD[os]}GB"
             raise ValueError(msg)
         return size
 
