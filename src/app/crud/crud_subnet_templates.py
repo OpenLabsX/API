@@ -13,10 +13,10 @@ from ..schemas.template_vpc_schema import TemplateVPCID
 from .crud_host_templates import create_host_template
 
 
-async def get_subnet_headers(
+async def get_subnet_template_headers(
     db: AsyncSession, standalone_only: bool = True
 ) -> list[TemplateSubnetModel]:
-    """Get list of OpenLabsSubnet headers.
+    """Get list of subnet template headers.
 
     Args:
     ----
@@ -26,7 +26,7 @@ async def get_subnet_headers(
 
     Returns:
     -------
-        list[TemplateSubnetModel]: List of OpenLabsSubnet models.
+        list[TemplateSubnetModel]: List of subnet template models.
 
     """
     # Dynamically select non-nested columns/attributes
@@ -50,10 +50,10 @@ async def get_subnet_headers(
     return list(result.scalars().all())
 
 
-async def get_subnet(
+async def get_subnet_template(
     db: AsyncSession, subnet_id: TemplateSubnetID
 ) -> TemplateSubnetModel | None:
-    """Get OpenLabsSubnet by id (uuid).
+    """Get subnet template by id (uuid).
 
     Args:
     ----
@@ -74,26 +74,26 @@ async def get_subnet(
     return result.scalar_one_or_none()
 
 
-async def create_subnet(
+async def create_subnet_template(
     db: AsyncSession,
-    openlabs_subnet: TemplateSubnetBaseSchema,
+    template_subnet: TemplateSubnetBaseSchema,
     vpc_id: TemplateVPCID | None = None,
 ) -> TemplateSubnetModel:
-    """Create and add a new OpenLabsSubnet to the database.
+    """Create and add a new subnet template to the database.
 
     Args:
     ----
         db (Session): Database connection.
-        openlabs_subnet (TemplateSubnetBaseSchema): Dictionary containing OpenLabsSubnet data.
+        template_subnet (TemplateSubnetBaseSchema): Dictionary containing OpenLabsSubnet data.
         vpc_id (Optional[TemplateVPCID]): VPC ID to link subnet back too.
 
     Returns:
     -------
-        OpenLabsSubnet: The newly created Subnet.
+        TemplateSubnetModel: The newly created subnet template.
 
     """
-    openlabs_subnet = TemplateSubnetSchema(**openlabs_subnet.model_dump())
-    subnet_dict = openlabs_subnet.model_dump(exclude={"hosts"})
+    template_subnet = TemplateSubnetSchema(**template_subnet.model_dump())
+    subnet_dict = template_subnet.model_dump(exclude={"hosts"})
     if vpc_id:
         subnet_dict["vpc_id"] = vpc_id.id
 
@@ -103,7 +103,7 @@ async def create_subnet(
     # Add subnets
     host_objects = [
         await create_host_template(db, host_data, TemplateSubnetID(id=subnet_obj.id))
-        for host_data in openlabs_subnet.hosts
+        for host_data in template_subnet.hosts
     ]
 
     # Commit if we are parent object
