@@ -350,27 +350,27 @@ async def get_host_template_endpoint(
             detail="ID provided is not a valid UUID4.",
         )
 
-    openlabs_host = await get_host_template(db, TemplateHostID(id=host_id))
+    host_template = await get_host_template(db, TemplateHostID(id=host_id))
 
-    if not openlabs_host:
+    if not host_template:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Host with id: {host_id} not found!",
         )
 
-    return TemplateHostSchema.model_validate(openlabs_host, from_attributes=True)
+    return TemplateHostSchema.model_validate(host_template, from_attributes=True)
 
 
 @router.post("/hosts")
 async def upload_host_template_endpoint(
-    openlabs_host: TemplateHostBaseSchema,
+    host_template: TemplateHostBaseSchema,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
 ) -> TemplateHostID:
     """Upload a host template.
 
     Args:
     ----
-        openlabs_host (TemplateHostBaseSchema): OpenLabs compliant host object.
+        host_template (TemplateHostBaseSchema): OpenLabs compliant host template object.
         db (AsyncSession): Async database connection.
 
     Returns:
@@ -378,5 +378,5 @@ async def upload_host_template_endpoint(
         TemplateHostID: Identity of the subnet template.
 
     """
-    created_host = await create_host_template(db, openlabs_host)
+    created_host = await create_host_template(db, host_template)
     return TemplateHostSchema.model_validate(created_host, from_attributes=True)
