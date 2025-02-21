@@ -4,7 +4,7 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import load_only, selectinload
 
 from ..models.openlabs_range_model import OpenLabsRangeModel
-from ..models.openlabs_subnet_model import OpenLabsSubnetModel
+from ..models.openlabs_subnet_model import TemplateSubnetModel
 from ..models.openlabs_vpc_model import OpenLabsVPCModel
 from ..schemas.template_range_schema import (
     TemplateRangeBaseSchema,
@@ -59,7 +59,7 @@ async def get_range(
         .options(
             selectinload(OpenLabsRangeModel.vpcs)
             .selectinload(OpenLabsVPCModel.subnets)
-            .selectinload(OpenLabsSubnetModel.hosts)
+            .selectinload(TemplateSubnetModel.hosts)
         )
         .filter(OpenLabsRangeModel.id == range_id.id)
     )

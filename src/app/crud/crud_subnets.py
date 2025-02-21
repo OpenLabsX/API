@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import load_only, selectinload
 
-from ..models.openlabs_subnet_model import OpenLabsSubnetModel
+from ..models.openlabs_subnet_model import TemplateSubnetModel
 from ..schemas.template_subnet_schema import (
     TemplateSubnetBaseSchema,
     TemplateSubnetID,
@@ -15,7 +15,7 @@ from .crud_hosts import create_host
 
 async def get_subnet_headers(
     db: AsyncSession, standalone_only: bool = True
-) -> list[OpenLabsSubnetModel]:
+) -> list[TemplateSubnetModel]:
     """Get list of OpenLabsSubnet headers.
 
     Args:
@@ -26,25 +26,25 @@ async def get_subnet_headers(
 
     Returns:
     -------
-        list[OpenLabsSubnetModel]: List of OpenLabsSubnet models.
+        list[TemplateSubnetModel]: List of OpenLabsSubnet models.
 
     """
     # Dynamically select non-nested columns/attributes
-    mapped_subnet_model = inspect(OpenLabsSubnetModel)
+    mapped_subnet_model = inspect(TemplateSubnetModel)
     main_columns = [
-        getattr(OpenLabsSubnetModel, attr.key)
+        getattr(TemplateSubnetModel, attr.key)
         for attr in mapped_subnet_model.column_attrs
     ]
 
     # Build the query: filter for rows where vpc_id is null if standalone_only is True
     if standalone_only:
         stmt = (
-            select(OpenLabsSubnetModel)
-            .where(OpenLabsSubnetModel.vpc_id.is_(None))
+            select(TemplateSubnetModel)
+            .where(TemplateSubnetModel.vpc_id.is_(None))
             .options(load_only(*main_columns))
         )
     else:
-        stmt = select(OpenLabsSubnetModel).options(load_only(*main_columns))
+        stmt = select(TemplateSubnetModel).options(load_only(*main_columns))
 
     result = await db.execute(stmt)
     return list(result.scalars().all())
@@ -52,7 +52,7 @@ async def get_subnet_headers(
 
 async def get_subnet(
     db: AsyncSession, subnet_id: TemplateSubnetID
-) -> OpenLabsSubnetModel | None:
+) -> TemplateSubnetModel | None:
     """Get OpenLabsSubnet by id (uuid).
 
     Args:
@@ -62,13 +62,13 @@ async def get_subnet(
 
     Returns:
     -------
-        Optional[OpenLabsSubnet]: OpenLabsSubnetModel if it exists in database.
+        Optional[OpenLabsSubnet]: TemplateSubnetModel if it exists in database.
 
     """
     stmt = (
-        select(OpenLabsSubnetModel)
-        .options(selectinload(OpenLabsSubnetModel.hosts))
-        .filter(OpenLabsSubnetModel.id == subnet_id.id)
+        select(TemplateSubnetModel)
+        .options(selectinload(TemplateSubnetModel.hosts))
+        .filter(TemplateSubnetModel.id == subnet_id.id)
     )
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
@@ -78,7 +78,7 @@ async def create_subnet(
     db: AsyncSession,
     openlabs_subnet: TemplateSubnetBaseSchema,
     vpc_id: TemplateVPCID | None = None,
-) -> OpenLabsSubnetModel:
+) -> TemplateSubnetModel:
     """Create and add a new OpenLabsSubnet to the database.
 
     Args:
@@ -97,7 +97,7 @@ async def create_subnet(
     if vpc_id:
         subnet_dict["vpc_id"] = vpc_id.id
 
-    subnet_obj = OpenLabsSubnetModel(**subnet_dict)
+    subnet_obj = TemplateSubnetModel(**subnet_dict)
     db.add(subnet_obj)
 
     # Add subnets

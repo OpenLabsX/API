@@ -30,5 +30,5 @@ class OpenLabsVPCModel(Base, OpenLabsTemplateMixin):
 
     # One-to-many relationship with Subnets
     subnets = relationship(
-        "OpenLabsSubnetModel", back_populates="vpc", cascade="all, delete-orphan"
+        "TemplateSubnetModel", back_populates="vpc", cascade="all, delete-orphan"
     )

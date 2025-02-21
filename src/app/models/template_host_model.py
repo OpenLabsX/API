@@ -20,12 +20,12 @@ class TemplateHostModel(Base, OpenLabsTemplateMixin):
     spec: Mapped[OpenLabsSpec] = mapped_column(Enum(OpenLabsSpec), nullable=False)
     size: Mapped[int] = mapped_column(Integer, nullable=False)
     # Relationship with Subnet
-    subnet = relationship("OpenLabsSubnetModel", back_populates="hosts")
+    subnet = relationship("TemplateSubnetModel", back_populates="hosts")
 
     # ForeignKey to ensure each Host belongs to exactly one Subnet
     subnet_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("subnets.id", ondelete="CASCADE"),
+        ForeignKey("subnet_templates.id", ondelete="CASCADE"),
         nullable=True,
         default=None,
     )
