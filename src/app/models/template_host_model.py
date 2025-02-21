@@ -13,7 +13,7 @@ from .template_base_model import OpenLabsTemplateMixin
 class TemplateHostModel(Base, OpenLabsTemplateMixin):
     """SQLAlchemy ORM model for template host."""
 
-    __tablename__ = "template_hosts"
+    __tablename__ = "host_templates"
 
     hostname: Mapped[str] = mapped_column(String, nullable=False)
     os: Mapped[OpenLabsOS] = mapped_column(Enum(OpenLabsOS), nullable=False)
