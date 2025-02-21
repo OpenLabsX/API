@@ -10,7 +10,7 @@ from .template_base_model import OpenLabsTemplateMixin
 
 
 class TemplateVPCModel(Base, OpenLabsTemplateMixin):
-    """SQLAlchemy ORM model for OpenLabsVPC."""
+    """SQLAlchemy ORM model for template vpc objects."""
 
     __tablename__ = "vpc_templates"
 
@@ -20,13 +20,13 @@ class TemplateVPCModel(Base, OpenLabsTemplateMixin):
     # ForeignKey to ensure each VPC belongs to exactly one Range
     range_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("ranges.id", ondelete="CASCADE"),
+        ForeignKey("range_templates.id", ondelete="CASCADE"),
         nullable=True,
         default=None,
     )
 
     # Relationship with Range
-    range = relationship("OpenLabsRangeModel", back_populates="vpcs")
+    range = relationship("TemplateRangeModel", back_populates="vpcs")
 
     # One-to-many relationship with Subnets
     subnets = relationship(

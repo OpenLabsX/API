@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import load_only, selectinload
 
-from ..models.openlabs_range_model import OpenLabsRangeModel
+from ..models.template_range_model import TemplateRangeModel
 from ..models.template_subnet_model import TemplateSubnetModel
 from ..models.template_vpc_model import TemplateVPCModel
 from ..schemas.template_range_schema import (
@@ -14,7 +14,7 @@ from ..schemas.template_range_schema import (
 from .crud_vpcs import create_vpc
 
 
-async def get_range_headers(db: AsyncSession) -> list[OpenLabsRangeModel]:
+async def get_range_headers(db: AsyncSession) -> list[TemplateRangeModel]:
     """Get list of OpenLabsRange headers.
 
     Args:
@@ -23,24 +23,24 @@ async def get_range_headers(db: AsyncSession) -> list[OpenLabsRangeModel]:
 
     Returns:
     -------
-        list[OpenLabsRangeModel]: List of OpenLabsRangeModel objects.
+        list[TemplateRangeModel]: List of TemplateRangeModel objects.
 
     """
     # Dynamically select non-nested columns/attributes
-    mapped_range_model = inspect(OpenLabsRangeModel)
+    mapped_range_model = inspect(TemplateRangeModel)
     main_columns = [
-        getattr(OpenLabsRangeModel, attr.key)
+        getattr(TemplateRangeModel, attr.key)
         for attr in mapped_range_model.column_attrs
     ]
 
-    stmt = select(OpenLabsRangeModel).options(load_only(*main_columns))
+    stmt = select(TemplateRangeModel).options(load_only(*main_columns))
     result = await db.execute(stmt)
     return list(result.scalars().all())
 
 
 async def get_range(
     db: AsyncSession, range_id: TemplateRangeID
-) -> OpenLabsRangeModel | None:
+) -> TemplateRangeModel | None:
     """Get OpenLabsRange by id (uuid).
 
     Args:
@@ -55,13 +55,13 @@ async def get_range(
     """
     # Eagerly fetch relationships to make single query
     stmt = (
-        select(OpenLabsRangeModel)
+        select(TemplateRangeModel)
         .options(
-            selectinload(OpenLabsRangeModel.vpcs)
+            selectinload(TemplateRangeModel.vpcs)
             .selectinload(TemplateVPCModel.subnets)
             .selectinload(TemplateSubnetModel.hosts)
         )
-        .filter(OpenLabsRangeModel.id == range_id.id)
+        .filter(TemplateRangeModel.id == range_id.id)
     )
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
@@ -69,7 +69,7 @@ async def get_range(
 
 async def create_range(
     db: AsyncSession, openlabs_range: TemplateRangeBaseSchema
-) -> OpenLabsRangeModel:
+) -> TemplateRangeModel:
     """Create and add a new OpenLabsRange to the database.
 
     Args:
@@ -86,7 +86,7 @@ async def create_range(
     range_dict = openlabs_range.model_dump(exclude={"vpcs"})
 
     # Create the Range object (No commit yet)
-    range_obj = OpenLabsRangeModel(**range_dict)
+    range_obj = TemplateRangeModel(**range_dict)
     db.add(range_obj)  # Stage the range
 
     # Build range ID
