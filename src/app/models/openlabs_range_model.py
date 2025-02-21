@@ -20,5 +20,5 @@ class OpenLabsRangeModel(Base, OpenLabsTemplateMixin):
 
     # One-to-many relationship with VPCs
     vpcs = relationship(
-        "OpenLabsVPCModel", back_populates="range", cascade="all, delete-orphan"
+        "TemplateVPCModel", back_populates="range", cascade="all, delete-orphan"
     )

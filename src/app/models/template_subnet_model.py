@@ -19,13 +19,13 @@ class TemplateSubnetModel(Base, OpenLabsTemplateMixin):
     # ForeignKey to ensure each Subnet belongs to exactly one VPC
     vpc_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("vpcs.id", ondelete="CASCADE"),
+        ForeignKey("vpc_templates.id", ondelete="CASCADE"),
         nullable=True,
         default=None,
     )
 
     # Relationship with VPC
-    vpc = relationship("OpenLabsVPCModel", back_populates="subnets")
+    vpc = relationship("TemplateVPCModel", back_populates="subnets")
 
     # One-to-many relationship with Hosts
     hosts = relationship(

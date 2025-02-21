@@ -9,10 +9,10 @@ from ..core.db.database import Base
 from .template_base_model import OpenLabsTemplateMixin
 
 
-class OpenLabsVPCModel(Base, OpenLabsTemplateMixin):
+class TemplateVPCModel(Base, OpenLabsTemplateMixin):
     """SQLAlchemy ORM model for OpenLabsVPC."""
 
-    __tablename__ = "vpcs"
+    __tablename__ = "vpc_templates"
 
     name: Mapped[str] = mapped_column(String, nullable=False)
     cidr: Mapped[IPv4Network] = mapped_column(CIDR, nullable=False)
