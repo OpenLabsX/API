@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from ...core.config import settings
 from ...core.db.database import async_get_db
-from ...crud.crud_ranges import get_range
+from ...crud.crud_range_templates import get_range_template
 from ...schemas.template_range_schema import TemplateRangeID, TemplateRangeSchema
 
 router = APIRouter(prefix="/ranges", tags=["ranges"])
@@ -23,7 +23,7 @@ async def deploy_range_from_template(
 
     ranges: list[TemplateRangeSchema] = []
     for range_id in range_ids:
-        range_model = await get_range(db, range_id)
+        range_model = await get_range_template(db, range_id)
         ranges.append(
             TemplateRangeSchema.model_validate(range_model, from_attributes=True)
         )

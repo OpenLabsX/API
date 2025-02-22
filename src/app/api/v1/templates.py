@@ -7,7 +7,11 @@ from ...crud.crud_host_templates import (
     get_host_template,
     get_host_template_headers,
 )
-from ...crud.crud_ranges import create_range, get_range, get_range_headers
+from ...crud.crud_range_templates import (
+    create_range_template,
+    get_range_template,
+    get_range_template_headers,
+)
 from ...crud.crud_subnet_templates import (
     create_subnet_template,
     get_subnet_template,
@@ -47,7 +51,7 @@ router = APIRouter(prefix="/templates", tags=["templates"])
 
 
 @router.get("/ranges")
-async def get_range_template_headers(
+async def get_range_template_headers_endpoint(
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
 ) -> list[TemplateRangeHeaderSchema]:
     """Get a list of range template headers.
@@ -61,7 +65,7 @@ async def get_range_template_headers(
         list[TemplateRangeID]: List of range template headers.
 
     """
-    range_headers = await get_range_headers(db)
+    range_headers = await get_range_template_headers(db)
 
     if not range_headers:
         raise HTTPException(
@@ -76,7 +80,7 @@ async def get_range_template_headers(
 
 
 @router.get("/ranges/{range_id}")
-async def get_range_template(
+async def get_range_template_endpoint(
     range_id: str, db: AsyncSession = Depends(async_get_db)  # noqa: B008
 ) -> TemplateRangeSchema:
     """Get a range template.
@@ -88,7 +92,7 @@ async def get_range_template(
 
     Returns:
     -------
-        TemplateRangeSchema: Range data from database.
+        TemplateRangeSchema: Range template data from database.
 
     """
     if not is_valid_uuid4(range_id):
@@ -97,27 +101,27 @@ async def get_range_template(
             detail="ID provided is not a valid UUID4.",
         )
 
-    openlabs_range = await get_range(db, TemplateRangeID(id=range_id))
+    range_template = await get_range_template(db, TemplateRangeID(id=range_id))
 
-    if not openlabs_range:
+    if not range_template:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Range with id: {range_id} not found!",
         )
 
-    return TemplateRangeSchema.model_validate(openlabs_range, from_attributes=True)
+    return TemplateRangeSchema.model_validate(range_template, from_attributes=True)
 
 
 @router.post("/ranges")
-async def upload_range_template(
-    openlabs_range: TemplateRangeBaseSchema,
+async def upload_range_template_endpoint(
+    range_template: TemplateRangeBaseSchema,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
 ) -> TemplateRangeID:
     """Upload a range template.
 
     Args:
     ----
-        openlabs_range (TemplateRangeBaseSchema): OpenLabs compliant range object.
+        range_template (TemplateRangeBaseSchema): OpenLabs compliant range template object.
         db (AsynSession): Async database connection.
 
     Returns:
@@ -125,7 +129,7 @@ async def upload_range_template(
         TemplateRangeID: Identity of the range template.
 
     """
-    created_range = await create_range(db, openlabs_range)
+    created_range = await create_range_template(db, range_template)
     return TemplateRangeID.model_validate(created_range, from_attributes=True)
 
 

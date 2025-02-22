@@ -14,8 +14,8 @@ from ..schemas.template_range_schema import (
 from .crud_vpc_templates import create_vpc_template
 
 
-async def get_range_headers(db: AsyncSession) -> list[TemplateRangeModel]:
-    """Get list of OpenLabsRange headers.
+async def get_range_template_headers(db: AsyncSession) -> list[TemplateRangeModel]:
+    """Get list of range template headers.
 
     Args:
     ----
@@ -23,7 +23,7 @@ async def get_range_headers(db: AsyncSession) -> list[TemplateRangeModel]:
 
     Returns:
     -------
-        list[TemplateRangeModel]: List of TemplateRangeModel objects.
+        list[TemplateRangeModel]: List of range template objects.
 
     """
     # Dynamically select non-nested columns/attributes
@@ -38,10 +38,10 @@ async def get_range_headers(db: AsyncSession) -> list[TemplateRangeModel]:
     return list(result.scalars().all())
 
 
-async def get_range(
+async def get_range_template(
     db: AsyncSession, range_id: TemplateRangeID
 ) -> TemplateRangeModel | None:
-    """Get OpenLabsRange by id (uuid).
+    """Get range template by id (uuid).
 
     Args:
     ----
@@ -50,7 +50,7 @@ async def get_range(
 
     Returns:
     -------
-        Optional[OpenLabsRange]: OpenLabsRange if it exists in database.
+        Optional[OpenLabsRange]: Range template if it exists in database.
 
     """
     # Eagerly fetch relationships to make single query
@@ -67,23 +67,23 @@ async def get_range(
     return result.scalar_one_or_none()
 
 
-async def create_range(
-    db: AsyncSession, openlabs_range: TemplateRangeBaseSchema
+async def create_range_template(
+    db: AsyncSession, range_template: TemplateRangeBaseSchema
 ) -> TemplateRangeModel:
-    """Create and add a new OpenLabsRange to the database.
+    """Create and add a new range template to the database.
 
     Args:
     ----
         db (Session): Database connection.
-        openlabs_range (TemplateRangeSchema): Dictionary containing OpenLabsRange data.
+        range_template (TemplateRangeSchema): Dictionary containing OpenLabsRange data.
 
     Returns:
     -------
-        OpenLabsRange: The newly created range.
+        OpenLabsRange: The newly created range template.
 
     """
-    openlabs_range = TemplateRangeSchema(**openlabs_range.model_dump())
-    range_dict = openlabs_range.model_dump(exclude={"vpcs"})
+    range_template = TemplateRangeSchema(**range_template.model_dump())
+    range_dict = range_template.model_dump(exclude={"vpcs"})
 
     # Create the Range object (No commit yet)
     range_obj = TemplateRangeModel(**range_dict)
@@ -95,7 +95,7 @@ async def create_range(
     # Create VPCs and associate them with the range (No commit yet)
     vpc_objects = [
         await create_vpc_template(db, vpc_data, range_id)
-        for vpc_data in openlabs_range.vpcs
+        for vpc_data in range_template.vpcs
     ]
     # range_obj.vpcs = vpc_objects
     db.add_all(vpc_objects)  # Stage VPCs
