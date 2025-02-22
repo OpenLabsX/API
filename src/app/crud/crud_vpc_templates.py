@@ -14,10 +14,10 @@ from ..schemas.template_vpc_schema import (
 from .crud_subnet_templates import create_subnet_template
 
 
-async def get_vpc_headers(
+async def get_vpc_template_headers(
     db: AsyncSession, standalone_only: bool = True
 ) -> list[TemplateVPCModel]:
-    """Get list of OpenLabsVPC headers.
+    """Get list of VPC template headers.
 
     Args:
     ----
@@ -27,7 +27,7 @@ async def get_vpc_headers(
 
     Returns:
     -------
-        list[TemplateVPCModel]: List of OpenLabsVPC models.
+        list[TemplateVPCModel]: List of VPC template models.
 
     """
     # Dynamically select non-nested columns/attributes
@@ -51,8 +51,10 @@ async def get_vpc_headers(
     return list(result.scalars().all())
 
 
-async def get_vpc(db: AsyncSession, vpc_id: TemplateVPCID) -> TemplateVPCModel | None:
-    """Get OpenLabsVPC by id (uuid).
+async def get_vpc_template(
+    db: AsyncSession, vpc_id: TemplateVPCID
+) -> TemplateVPCModel | None:
+    """Get VPC template by id (uuid).
 
     Args:
     ----
@@ -77,17 +79,17 @@ async def get_vpc(db: AsyncSession, vpc_id: TemplateVPCID) -> TemplateVPCModel |
     return result.scalar_one_or_none()
 
 
-async def create_vpc(
+async def create_vpc_template(
     db: AsyncSession,
-    openlabs_vpc: TemplateVPCBaseSchema,
+    vpc_template: TemplateVPCBaseSchema,
     range_id: TemplateRangeID | None = None,
 ) -> TemplateVPCModel:
-    """Create and add a new OpenLabsVPC to the database.
+    """Create and add a new VPC template to the database.
 
     Args:
     ----
         db (Session): Database connection.
-        openlabs_vpc (TemplateVPCBaseSchema): Dictionary containing OpenLabsVPC data.
+        vpc_template (TemplateVPCBaseSchema): Dictionary containing OpenLabsVPC data.
         range_id (Optional[str]): Range ID to link VPC back too.
 
     Returns:
@@ -95,8 +97,8 @@ async def create_vpc(
         OpenLabsVPC: The newly created VPC.
 
     """
-    openlabs_vpc = TemplateVPCSchema(**openlabs_vpc.model_dump())
-    vpc_dict = openlabs_vpc.model_dump(exclude={"subnets"})
+    vpc_template = TemplateVPCSchema(**vpc_template.model_dump())
+    vpc_dict = vpc_template.model_dump(exclude={"subnets"})
     if range_id:
         vpc_dict["range_id"] = range_id.id
 
@@ -106,7 +108,7 @@ async def create_vpc(
     # Add subnets
     subnet_objects = [
         await create_subnet_template(db, subnet_data, TemplateVPCID(id=vpc_obj.id))
-        for subnet_data in openlabs_vpc.subnets
+        for subnet_data in vpc_template.subnets
     ]
 
     # Commit if we are parent

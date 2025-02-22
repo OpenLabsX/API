@@ -11,7 +11,7 @@ from ..schemas.template_range_schema import (
     TemplateRangeID,
     TemplateRangeSchema,
 )
-from .crud_vpcs import create_vpc
+from .crud_vpc_templates import create_vpc_template
 
 
 async def get_range_headers(db: AsyncSession) -> list[TemplateRangeModel]:
@@ -94,7 +94,8 @@ async def create_range(
 
     # Create VPCs and associate them with the range (No commit yet)
     vpc_objects = [
-        await create_vpc(db, vpc_data, range_id) for vpc_data in openlabs_range.vpcs
+        await create_vpc_template(db, vpc_data, range_id)
+        for vpc_data in openlabs_range.vpcs
     ]
     # range_obj.vpcs = vpc_objects
     db.add_all(vpc_objects)  # Stage VPCs
