@@ -5,13 +5,13 @@ from sqlalchemy.dialects.postgresql import CIDR, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..core.db.database import Base
-from .openlabs_base_model import OpenLabsTemplateMixin
+from .template_base_model import OpenLabsTemplateMixin
 
 
-class OpenLabsSubnetModel(Base, OpenLabsTemplateMixin):
-    """SQLAlchemy ORM model for OpenLabsSubnet."""
+class TemplateSubnetModel(Base, OpenLabsTemplateMixin):
+    """SQLAlchemy ORM model for template subnet objects."""
 
-    __tablename__ = "subnets"
+    __tablename__ = "subnet_templates"
 
     name: Mapped[str] = mapped_column(String, nullable=False)
     cidr: Mapped[uuid.UUID] = mapped_column(CIDR, nullable=False)
@@ -19,15 +19,15 @@ class OpenLabsSubnetModel(Base, OpenLabsTemplateMixin):
     # ForeignKey to ensure each Subnet belongs to exactly one VPC
     vpc_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("vpcs.id", ondelete="CASCADE"),
+        ForeignKey("vpc_templates.id", ondelete="CASCADE"),
         nullable=True,
         default=None,
     )
 
     # Relationship with VPC
-    vpc = relationship("OpenLabsVPCModel", back_populates="subnets")
+    vpc = relationship("TemplateVPCModel", back_populates="subnets")
 
     # One-to-many relationship with Hosts
     hosts = relationship(
-        "OpenLabsHostModel", back_populates="subnet", cascade="all, delete-orphan"
+        "TemplateHostModel", back_populates="subnet", cascade="all, delete-orphan"
     )

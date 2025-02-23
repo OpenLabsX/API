@@ -3,13 +3,13 @@ import uuid
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..enums.providers import OpenLabsProvider
-from .openlabs_vpc_schema import OpenLabsVPCBaseSchema
+from .template_vpc_schema import TemplateVPCBaseSchema
 
 
-class OpenLabsRangeBaseSchema(BaseModel):
-    """Base range object for OpenLabs."""
+class TemplateRangeBaseSchema(BaseModel):
+    """Base template range object for OpenLabs."""
 
-    vpcs: list[OpenLabsVPCBaseSchema] = Field(..., description="Contained VPCs")
+    vpcs: list[TemplateVPCBaseSchema] = Field(..., description="Contained VPCs")
     provider: OpenLabsProvider = Field(
         ...,
         description="Cloud provider",
@@ -25,8 +25,8 @@ class OpenLabsRangeBaseSchema(BaseModel):
     @field_validator("vpcs")
     @classmethod
     def validate_unique_vpc_names(
-        cls, vpcs: list[OpenLabsVPCBaseSchema]
-    ) -> list[OpenLabsVPCBaseSchema]:
+        cls, vpcs: list[TemplateVPCBaseSchema]
+    ) -> list[TemplateVPCBaseSchema]:
         """Check VPC names are unique.
 
         Args:
@@ -46,8 +46,8 @@ class OpenLabsRangeBaseSchema(BaseModel):
         return vpcs
 
 
-class OpenLabsRangeID(BaseModel):
-    """Identity class for OpenLabsRange."""
+class TemplateRangeID(BaseModel):
+    """Identity class for the template range object."""
 
     id: uuid.UUID = Field(
         default_factory=uuid.uuid4, description="Unique range identifier."
@@ -55,14 +55,14 @@ class OpenLabsRangeID(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class OpenLabsRangeSchema(OpenLabsRangeBaseSchema, OpenLabsRangeID):
-    """Range object for OpenLabs."""
+class TemplateRangeSchema(TemplateRangeBaseSchema, TemplateRangeID):
+    """Template range object for OpenLabs."""
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class OpenLabsRangeHeaderSchema(OpenLabsRangeID):
-    """Header (non-nested object) information for the OpenLabsRangeSchema."""
+class TemplateRangeHeaderSchema(TemplateRangeID):
+    """Header (non-nested object) information for the TemplateRangeSchema."""
 
     provider: OpenLabsProvider = Field(
         ...,

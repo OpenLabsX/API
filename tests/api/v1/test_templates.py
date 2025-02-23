@@ -6,8 +6,8 @@ from typing import Any
 from fastapi import status
 from httpx import AsyncClient
 
-from src.app.schemas.openlabs_host_schema import OpenLabsHostSchema
-from src.app.schemas.openlabs_subnet_schema import OpenLabsSubnetHeaderSchema
+from src.app.schemas.template_host_schema import TemplateHostSchema
+from src.app.schemas.template_subnet_schema import TemplateSubnetHeaderSchema
 
 from .config import BASE_ROUTE
 
@@ -153,7 +153,7 @@ async def test_template_subnet_get_non_empty_list(client: AsyncClient) -> None:
 
     # Dynamically build header object to avoid future updates breaking tests
     concat_dict = {"id": subnet_template_id, **unique_valid_subnet_payload}
-    subnet_header_obj = OpenLabsSubnetHeaderSchema(**concat_dict)
+    subnet_header_obj = TemplateSubnetHeaderSchema(**concat_dict)
 
     expected = json.loads(subnet_header_obj.model_dump_json())
     assert expected in response_json
@@ -178,7 +178,7 @@ async def test_template_host_get_non_empty_list(client: AsyncClient) -> None:
 
     # Dynamically build header object to avoid future updates breaking tests
     concat_dict = {"id": host_template_id, **unique_valid_host_payload}
-    host_header_obj = OpenLabsHostSchema(**concat_dict)
+    host_header_obj = TemplateHostSchema(**concat_dict)
 
     expected = json.loads(host_header_obj.model_dump_json())
     assert expected in response_json

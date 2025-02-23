@@ -3,11 +3,11 @@ from ipaddress import IPv4Network
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
-from .openlabs_subnet_schema import OpenLabsSubnetBaseSchema
+from .template_subnet_schema import TemplateSubnetBaseSchema
 
 
-class OpenLabsVPCBaseSchema(BaseModel):
-    """VPC object for OpenLabs."""
+class TemplateVPCBaseSchema(BaseModel):
+    """Template VPC object for OpenLabs."""
 
     cidr: IPv4Network = Field(
         ..., description="CIDR range", examples=["192.168.0.0/16"]
@@ -15,15 +15,15 @@ class OpenLabsVPCBaseSchema(BaseModel):
     name: str = Field(
         ..., description="VPC name", min_length=1, examples=["example-vpc-1"]
     )
-    subnets: list[OpenLabsSubnetBaseSchema] = Field(
+    subnets: list[TemplateSubnetBaseSchema] = Field(
         ..., description="Contained subnets"
     )
 
     @field_validator("subnets")
     @classmethod
     def validate_unique_subnet_names(
-        cls, subnets: list[OpenLabsSubnetBaseSchema]
-    ) -> list[OpenLabsSubnetBaseSchema]:
+        cls, subnets: list[TemplateSubnetBaseSchema]
+    ) -> list[TemplateSubnetBaseSchema]:
         """Check subnet names are unique.
 
         Args:
@@ -45,19 +45,19 @@ class OpenLabsVPCBaseSchema(BaseModel):
     @field_validator("subnets")
     @classmethod
     def validate_subnets_contained(
-        cls, subnets: list[OpenLabsSubnetBaseSchema], info: ValidationInfo
-    ) -> list[OpenLabsSubnetBaseSchema]:
+        cls, subnets: list[TemplateSubnetBaseSchema], info: ValidationInfo
+    ) -> list[TemplateSubnetBaseSchema]:
         """Check that the VPC CIDR contains all subnet CIDRs.
 
         Args:
         ----
-            cls: OpenLabsVPCBaseSchema object.
-            subnets (list[OpenLabsSubnetBaseSchema]): Subnet objects.
+            cls: TemplateVPCBaseSchema object.
+            subnets (list[TemplateSubnetBaseSchema]): Subnet objects.
             info (ValidationInfo): Info of object currently being validated.
 
         Returns:
         -------
-            list[OpenLabsSubnetBaseSchema]: List of subnet objects.
+            list[TemplateSubnetBaseSchema]: List of subnet objects.
 
         """
         vpc_cidr = info.data.get("cidr")
@@ -74,8 +74,8 @@ class OpenLabsVPCBaseSchema(BaseModel):
         return subnets
 
 
-class OpenLabsVPCID(BaseModel):
-    """Identity class for OpenLabsVPC."""
+class TemplateVPCID(BaseModel):
+    """Identity class for the template VPC object."""
 
     id: uuid.UUID = Field(
         default_factory=uuid.uuid4, description="Unique VPC identifier."
@@ -84,14 +84,14 @@ class OpenLabsVPCID(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class OpenLabsVPCSchema(OpenLabsVPCBaseSchema, OpenLabsVPCID):
-    """VPC object for OpenLabs."""
+class TemplateVPCSchema(TemplateVPCBaseSchema, TemplateVPCID):
+    """Template VPC object for OpenLabs."""
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class OpenLabsVPCHeaderSchema(OpenLabsVPCID):
-    """Header (non-nested object) information for the OpenLabsVPCSchema."""
+class TemplateVPCHeaderSchema(TemplateVPCID):
+    """Header (non-nested object) information for the TemplateVPCSchema."""
 
     cidr: IPv4Network = Field(
         ..., description="CIDR range", examples=["192.168.0.0/16"]

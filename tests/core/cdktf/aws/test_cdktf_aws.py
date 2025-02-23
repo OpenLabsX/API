@@ -2,7 +2,7 @@ from typing import Any
 
 import pytest
 
-from src.app.schemas.openlabs_range_schema import OpenLabsRangeSchema
+from src.app.schemas.template_range_schema import TemplateRangeSchema
 from src.app.utils.cdktf_utils import create_cdktf_dir
 
 # Valid payload for comparison
@@ -53,7 +53,7 @@ valid_one_all_range_payload: dict[str, Any] = {
     "vpn": False,
 }
 
-cyber_range = OpenLabsRangeSchema.model_validate(
+cyber_range = TemplateRangeSchema.model_validate(
     valid_one_all_range_payload, from_attributes=True
 )
 

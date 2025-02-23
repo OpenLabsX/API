@@ -3,13 +3,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..core.db.database import Base
 from ..enums.providers import OpenLabsProvider
-from .openlabs_base_model import OpenLabsTemplateMixin
+from .template_base_model import OpenLabsTemplateMixin
 
 
-class OpenLabsRangeModel(Base, OpenLabsTemplateMixin):
-    """SQLAlchemy ORM model for OpenLabsRange."""
+class TemplateRangeModel(Base, OpenLabsTemplateMixin):
+    """SQLAlchemy ORM model for template range objects."""
 
-    __tablename__ = "ranges"
+    __tablename__ = "range_templates"
 
     name: Mapped[str] = mapped_column(String, nullable=False)
     provider: Mapped[OpenLabsProvider] = mapped_column(
@@ -20,5 +20,5 @@ class OpenLabsRangeModel(Base, OpenLabsTemplateMixin):
 
     # One-to-many relationship with VPCs
     vpcs = relationship(
-        "OpenLabsVPCModel", back_populates="range", cascade="all, delete-orphan"
+        "TemplateVPCModel", back_populates="range", cascade="all, delete-orphan"
     )

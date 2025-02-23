@@ -5,7 +5,7 @@ from pathlib import Path
 
 from cdktf import App
 
-from ....schemas.openlabs_range_schema import OpenLabsRangeSchema
+from ....schemas.template_range_schema import TemplateRangeSchema
 from .aws_stack import AWSStack
 
 
@@ -88,7 +88,7 @@ def destroy_infrastructure(
 
 
 def create_aws_stack(
-    cyber_range: OpenLabsRangeSchema, tmp_dir: str, deployed_range_id: uuid.UUID
+    cyber_range: TemplateRangeSchema, tmp_dir: str, deployed_range_id: uuid.UUID
 ) -> str:
     """Create and synthesize an AWS stack using the provided OpenLabsRange.
 

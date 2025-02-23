@@ -4,11 +4,11 @@ from ipaddress import IPv4Network
 from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 from ..validators.network import max_num_hosts_in_subnet
-from .openlabs_host_schema import OpenLabsHostBaseSchema
+from .template_host_schema import TemplateHostBaseSchema
 
 
-class OpenLabsSubnetBaseSchema(BaseModel):
-    """Subnet object for OpenLabs."""
+class TemplateSubnetBaseSchema(BaseModel):
+    """Template subnet object for OpenLabs."""
 
     cidr: IPv4Network = Field(
         ..., description="CIDR range", examples=["192.168.1.0/24"]
@@ -16,13 +16,13 @@ class OpenLabsSubnetBaseSchema(BaseModel):
     name: str = Field(
         ..., description="Subnet name", min_length=1, examples=["example-subnet-1"]
     )
-    hosts: list[OpenLabsHostBaseSchema] = Field(..., description="All hosts in subnet")
+    hosts: list[TemplateHostBaseSchema] = Field(..., description="All hosts in subnet")
 
     @field_validator("hosts")
     @classmethod
     def validate_unique_hostnames(
-        cls, hosts: list[OpenLabsHostBaseSchema]
-    ) -> list[OpenLabsHostBaseSchema]:
+        cls, hosts: list[TemplateHostBaseSchema]
+    ) -> list[TemplateHostBaseSchema]:
         """Check hostnames are unique.
 
         Args:
@@ -44,19 +44,19 @@ class OpenLabsSubnetBaseSchema(BaseModel):
     @field_validator("hosts")
     @classmethod
     def validate_max_number_hosts(
-        cls, hosts: list[OpenLabsHostBaseSchema], info: ValidationInfo
-    ) -> list[OpenLabsHostBaseSchema]:
+        cls, hosts: list[TemplateHostBaseSchema], info: ValidationInfo
+    ) -> list[TemplateHostBaseSchema]:
         """Check that the number of hosts does not exceed subnet CIDR.
 
         Args:
         ----
-            cls: OpenLabsSubnetBaseSchema object.
-            hosts (list[OpenLabsHostBaseSchema]): List of host objects.
+            cls: TemplateSubnetBaseSchema object.
+            hosts (list[TemplateHostBaseSchema]): List of host objects.
             info (ValidationInfo): Info of object currently being validated.
 
         Returns:
         -------
-            list[OpenLabsHostBaseSchema]: List of host objects.
+            list[TemplateHostBaseSchema]: List of host objects.
 
         """
         subnet_cidr = info.data.get("cidr")
@@ -75,8 +75,8 @@ class OpenLabsSubnetBaseSchema(BaseModel):
         return hosts
 
 
-class OpenLabsSubnetID(BaseModel):
-    """Identiy class for OpenLabsSubnet."""
+class TemplateSubnetID(BaseModel):
+    """Identiy class for tempalte subnet object."""
 
     id: uuid.UUID = Field(
         default_factory=uuid.uuid4, description="Unique subnet identifier."
@@ -85,14 +85,14 @@ class OpenLabsSubnetID(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class OpenLabsSubnetSchema(OpenLabsSubnetBaseSchema, OpenLabsSubnetID):
-    """Subnet object for OpenLabs."""
+class TemplateSubnetSchema(TemplateSubnetBaseSchema, TemplateSubnetID):
+    """Template subnet object for OpenLabs."""
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class OpenLabsSubnetHeaderSchema(OpenLabsSubnetID):
-    """Header (non-nested object) information for the OpenLabsSubnetHeaderSchema."""
+class TemplateSubnetHeaderSchema(TemplateSubnetID):
+    """Header (non-nested object) information for the TemplateSubnetSchema."""
 
     cidr: IPv4Network = Field(
         ..., description="CIDR range", examples=["192.168.1.0/24"]
