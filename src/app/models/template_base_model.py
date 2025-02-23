@@ -11,3 +11,11 @@ class OpenLabsTemplateMixin(MappedAsDataclass):
         UUID(as_uuid=True),
         primary_key=True,
     )
+
+class OpenLabsUserMixin(MappedAsDataclass):
+    """Mixin to provide a UUID for each user-based model."""
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+    )
