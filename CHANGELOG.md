@@ -1,3 +1,15 @@
+# v0.6.1 (Sun Feb 23 2025)
+
+#### 🐛 Bug Fix
+
+- Naming refactor [#52](https://github.com/OpenLabsX/API/pull/52) ([@alexchristy](https://github.com/alexchristy))
+
+#### Authors: 1
+
+- Alex Christy ([@alexchristy](https://github.com/alexchristy))
+
+---
+
 # v0.6.0 (Thu Feb 20 2025)
 
 #### 🚀 Enhancement
