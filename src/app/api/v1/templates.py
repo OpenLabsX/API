@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from ...core.db.database import async_get_db
 from ...crud.crud_host_templates import (
     create_host_template,
+    delete_host_template,
     get_host_template,
     get_host_template_headers,
 )
@@ -388,3 +389,45 @@ async def upload_host_template_endpoint(
     """
     created_host = await create_host_template(db, host_template)
     return TemplateHostSchema.model_validate(created_host, from_attributes=True)
+
+
+@router.delete("/hosts/{host_id}")
+async def delete_host_template_endpoint(
+    host_id: str, db: AsyncSession = Depends(async_get_db)  # noqa: B008
+) -> bool:
+    """Delete a host template.
+
+    Args:
+    ----
+        host_id (str): Id of the host.
+        db (AsyncSession): Async database connection.
+
+    Returns:
+    -------
+        bool: True if successfully deleted. False otherwise.
+
+    """
+    # Invalid UUID4 ID
+    if not is_valid_uuid4(host_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="ID provided is not a valid UUID4.",
+        )
+
+    host_template = await get_host_template(db, TemplateHostID(id=host_id))
+
+    # Does not exist
+    if not host_template:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Host with id: {host_id} not found!",
+        )
+
+    # Not standalone template
+    if not host_template.is_standalone():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot delete host template because it is not a standalone template.",
+        )
+
+    return await delete_host_template(db, host_template)

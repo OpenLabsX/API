@@ -31,3 +31,15 @@ class TemplateHostModel(Base, OpenLabsTemplateMixin):
     )
 
     tags: Mapped[list[str]] = mapped_column(ARRAY(String), default_factory=list)
+
+    def is_standalone(self) -> bool:
+        """Return whether host template model is a standalone model.
+
+        Standalone means that the template is not part of a larger template.
+
+        Returns
+        -------
+            bool: True if standalone. False otherwise.
+
+        """
+        return self.subnet_id is None
