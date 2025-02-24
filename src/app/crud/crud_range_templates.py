@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
@@ -12,6 +14,8 @@ from ..schemas.template_range_schema import (
     TemplateRangeSchema,
 )
 from .crud_vpc_templates import create_vpc_template
+
+logger = logging.getLogger(__name__)
 
 
 async def get_range_template_headers(db: AsyncSession) -> list[TemplateRangeModel]:
@@ -104,3 +108,32 @@ async def create_range_template(
     await db.commit()
 
     return range_obj
+
+
+async def delete_range_template(
+    db: AsyncSession, range_model: TemplateRangeModel
+) -> bool:
+    """Delete a standalone range template.
+
+    Only allows deletion if the subnet template is standalone.
+
+    Args:
+    ----
+        db (Sessions): Database connection.
+        range_model (TemplateRangeModel): Range template model object.
+
+    Returns:
+    -------
+        bool: True if successfully delete. False otherwise.
+
+    """
+    if not range_model.is_standalone():
+        log_msg = (
+            "Cannot delete range template because it is not a standalone template."
+        )
+        logger.error(log_msg)
+        return False
+
+    await db.delete(range_model)
+    await db.commit()
+    return True

@@ -3,10 +3,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..core.db.database import Base
 from ..enums.providers import OpenLabsProvider
-from .template_base_model import OpenLabsTemplateMixin
+from .template_base_model import TemplateModelMixin
 
 
-class TemplateRangeModel(Base, OpenLabsTemplateMixin):
+class TemplateRangeModel(Base, TemplateModelMixin):
     """SQLAlchemy ORM model for template range objects."""
 
     __tablename__ = "range_templates"
@@ -22,3 +22,16 @@ class TemplateRangeModel(Base, OpenLabsTemplateMixin):
     vpcs = relationship(
         "TemplateVPCModel", back_populates="range", cascade="all, delete-orphan"
     )
+
+    def is_standalone(self) -> bool:
+        """Return whether host template model is a standalone model.
+
+        Standalone means that the template is not part of a larger template.
+
+        Returns
+        -------
+            bool: True if standalone. False otherwise.
+
+        """
+        # Ranges are currently the highest level template object
+        return True
