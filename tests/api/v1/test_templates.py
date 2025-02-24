@@ -7,6 +7,7 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 
+from src.app.models.template_range_model import TemplateRangeModel
 from src.app.schemas.template_host_schema import TemplateHostSchema
 from src.app.schemas.template_subnet_schema import TemplateSubnetHeaderSchema
 
@@ -183,6 +184,9 @@ async def test_template_host_get_non_empty_list(client: AsyncClient) -> None:
 
     expected = json.loads(host_header_obj.model_dump_json())
     assert expected in response_json
+
+
+###### Order no longer matters ######
 
 
 async def test_template_range_valid_payload(client: AsyncClient) -> None:
@@ -365,6 +369,183 @@ async def test_template_range_host_size_too_small(client: AsyncClient) -> None:
     # Request
     response = await client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+async def test_template_range_delete(client: AsyncClient) -> None:
+    """Test that we can sucessfully delete a range template."""
+    response = await client.post(
+        f"{BASE_ROUTE}/templates/ranges", json=valid_range_payload
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    range_id = response.json()["id"]
+
+    # Delete range
+    response = await client.delete(f"{BASE_ROUTE}/templates/ranges/{range_id}")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() is True  # Strict check for true
+
+    # Check that range is no longer in database
+    response = await client.get(f"{BASE_ROUTE}/templates/ranges/{range_id}")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+async def test_template_range_delete_invalid_uuid(client: AsyncClient) -> None:
+    """Test that we get a 400 when providing an invalid UUID4."""
+    invalid_uuid = str(uuid.uuid4())[:-1]
+    response = await client.delete(f"{BASE_ROUTE}/templates/ranges/{invalid_uuid}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "uuid" in str(response.json()["detail"]).lower()
+
+
+async def test_template_ramge_delete_non_existent(client: AsyncClient) -> None:
+    """Test that we get a 404 when trying to delete a nonexistent range template."""
+    random_uuid = str(uuid.uuid4())
+    response = await client.delete(f"{BASE_ROUTE}/templates/ranges/{random_uuid}")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+async def test_template_range_delete_non_standalone(
+    monkeypatch: pytest.MonkeyPatch, client: AsyncClient
+) -> None:
+    """Test that we get a 409 when trying to delete a non-standalone range template.
+
+    **Note:** When this test was written, ranges could never be non-standalone. Ranges
+    were the highest level template and as a result the is_standalone() method was
+    hardcoded to always return True for compatibility. This is why the method is mocked.
+    """
+    # Patch range model method to return False
+    monkeypatch.setattr(TemplateRangeModel, "is_standalone", lambda self: False)
+
+    # Add a range template
+    response = await client.post(
+        f"{BASE_ROUTE}/templates/ranges", json=valid_range_payload
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    range_id = response.json()["id"]
+
+    # Delete range
+    response = await client.delete(f"{BASE_ROUTE}/templates/ranges/{range_id}")
+    assert response.status_code == status.HTTP_409_CONFLICT
+    assert "standalone" in str(response.json()["detail"]).lower()
+
+
+async def test_template_range_delete_cascade_vpcs_subnets_and_hosts(
+    client: AsyncClient,
+) -> None:
+    """Test that when we delete a range template it cascades and deletes the associated vpcs, subnets, and hosts."""
+    # Get all existing hosts
+    response = await client.get(f"{BASE_ROUTE}/templates/hosts?standalone_only=false")
+
+    if response.status_code == status.HTTP_200_OK:
+        existing_host_template_id = [host["id"] for host in response.json()]
+    elif response.status_code == status.HTTP_404_NOT_FOUND:
+        existing_host_template_id = []
+    else:
+        pytest.fail(f"Unknown status code: {response.status_code} recieved!")
+
+    # Get all existing subnets
+    response = await client.get(f"{BASE_ROUTE}/templates/subnets?standalone_only=false")
+
+    if response.status_code == status.HTTP_200_OK:
+        existing_subnet_template_id = [subnet["id"] for subnet in response.json()]
+    elif response.status_code == status.HTTP_404_NOT_FOUND:
+        existing_subnet_template_id = []
+    else:
+        pytest.fail(f"Unknown status code: {response.status_code} recieved!")
+
+    # Get all existing vpcs
+    response = await client.get(f"{BASE_ROUTE}/templates/vpcs?standalone_only=false")
+
+    if response.status_code == status.HTTP_200_OK:
+        existing_vpc_template_id = [vpc["id"] for vpc in response.json()]
+    elif response.status_code == status.HTTP_404_NOT_FOUND:
+        existing_vpc_template_id = []
+    else:
+        pytest.fail(f"Unknown status code: {response.status_code} recieved!")
+
+    # Add a range template
+    response = await client.post(
+        f"{BASE_ROUTE}/templates/ranges", json=valid_range_payload
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    range_id = response.json()["id"]
+
+    # Find new vpc template
+    response = await client.get(f"{BASE_ROUTE}/templates/vpcs?standalone_only=false")
+    assert response.status_code == status.HTTP_200_OK
+
+    new_vpc_template_id = ""
+    for vpc in response.json():
+        if vpc["id"] not in existing_vpc_template_id:
+            new_vpc_template_id = vpc["id"]
+            break
+    assert new_vpc_template_id
+
+    # Find new subnet template
+    response = await client.get(f"{BASE_ROUTE}/templates/subnets?standalone_only=false")
+    assert response.status_code == status.HTTP_200_OK
+
+    new_subnet_template_id = ""
+    for subnet in response.json():
+        if subnet["id"] not in existing_subnet_template_id:
+            new_subnet_template_id = subnet["id"]
+            break
+    assert new_subnet_template_id
+
+    # Find new host template
+    response = await client.get(f"{BASE_ROUTE}/templates/hosts?standalone_only=false")
+    assert response.status_code == status.HTTP_200_OK
+
+    new_host_template_id = ""
+    for host in response.json():
+        if host["id"] not in existing_host_template_id:
+            new_host_template_id = host["id"]
+            break
+    assert new_host_template_id
+
+    # Delete standalone range template
+    response = await client.delete(f"{BASE_ROUTE}/templates/ranges/{range_id}")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() is True  # Strict check for true
+
+    # Check to see if dependent vpc template was removed
+    response = await client.get(f"{BASE_ROUTE}/templates/vpcs?standalone_only=false")
+
+    if response.status_code == status.HTTP_200_OK:
+        leftover_vpc_template_ids = [vpc["id"] for vpc in response.json()]
+    elif response.status_code == status.HTTP_404_NOT_FOUND:
+        leftover_vpc_template_ids = []
+    else:
+        pytest.fail(f"Unknown status code: {response.status_code} recieved!")
+
+    assert new_vpc_template_id not in leftover_vpc_template_ids
+
+    # Check to see if dependent subnet template was removed
+    response = await client.get(f"{BASE_ROUTE}/templates/subnets?standalone_only=false")
+
+    if response.status_code == status.HTTP_200_OK:
+        leftover_subnet_template_ids = [subnet["id"] for subnet in response.json()]
+    elif response.status_code == status.HTTP_404_NOT_FOUND:
+        leftover_subnet_template_ids = []
+    else:
+        pytest.fail(f"Unknown status code: {response.status_code} recieved!")
+
+    assert new_subnet_template_id not in leftover_subnet_template_ids
+
+    # Check to see if the dependent host template was removed
+    response = await client.get(f"{BASE_ROUTE}/templates/hosts?standalone_only=false")
+
+    if response.status_code == status.HTTP_200_OK:
+        leftover_host_template_ids = [host["id"] for host in response.json()]
+    elif response.status_code == status.HTTP_404_NOT_FOUND:
+        leftover_host_template_ids = []
+    else:
+        pytest.fail(f"Unknown status code: {response.status_code} recieved!")
+
+    assert new_host_template_id not in leftover_host_template_ids
 
 
 async def test_template_vpc_valid_payload(client: AsyncClient) -> None:

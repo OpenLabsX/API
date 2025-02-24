@@ -22,3 +22,16 @@ class TemplateRangeModel(Base, TemplateModelMixin):
     vpcs = relationship(
         "TemplateVPCModel", back_populates="range", cascade="all, delete-orphan"
     )
+
+    def is_standalone(self) -> bool:
+        """Return whether host template model is a standalone model.
+
+        Standalone means that the template is not part of a larger template.
+
+        Returns
+        -------
+            bool: True if standalone. False otherwise.
+
+        """
+        # Ranges are currently the highest level template object
+        return True

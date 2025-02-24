@@ -10,6 +10,7 @@ from ...crud.crud_host_templates import (
 )
 from ...crud.crud_range_templates import (
     create_range_template,
+    delete_range_template,
     get_range_template,
     get_range_template_headers,
 )
@@ -134,6 +135,48 @@ async def upload_range_template_endpoint(
     """
     created_range = await create_range_template(db, range_template)
     return TemplateRangeID.model_validate(created_range, from_attributes=True)
+
+
+@router.delete("/ranges/{range_id}")
+async def delete_range_template_endpoint(
+    range_id: str, db: AsyncSession = Depends(async_get_db)  # noqa: B008
+) -> bool:
+    """Delete a range template.
+
+    Args:
+    ----
+        range_id (str): Id of the range template.
+        db (AsyncSession): Async database connection.
+
+    Returns:
+    -------
+        bool: True if successfully deleted. False otherwise.
+
+    """
+    # Invalid UUID4 ID
+    if not is_valid_uuid4(range_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="ID provided is not a valid UUID4.",
+        )
+
+    range_template = await get_range_template(db, TemplateRangeID(id=range_id))
+
+    # Does not exist
+    if not range_template:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Range template with id: {range_id} not found!",
+        )
+
+    # Not standalone template
+    if not range_template.is_standalone():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot delete range template because it is not a standalone template.",
+        )
+
+    return await delete_range_template(db, range_template)
 
 
 @router.get("/vpcs")
