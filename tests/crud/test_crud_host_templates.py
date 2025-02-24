@@ -16,7 +16,7 @@ async def test_no_delete_non_standalone_host_templates(
     monkeypatch.setattr(dummy_host, "is_standalone", lambda: False)
 
     result = await delete_host_template(dummy_db, dummy_host)  # type: ignore
-    assert result is False  # Stick check
+    assert result is False  # Strict check
 
     # Verify that delete and commit were not called
     dummy_db.delete.assert_not_called()
