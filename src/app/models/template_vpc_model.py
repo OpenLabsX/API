@@ -6,10 +6,10 @@ from sqlalchemy.dialects.postgresql import CIDR, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..core.db.database import Base
-from .template_base_model import OpenLabsTemplateMixin
+from .template_base_model import TemplateModelMixin
 
 
-class TemplateVPCModel(Base, OpenLabsTemplateMixin):
+class TemplateVPCModel(Base, TemplateModelMixin):
     """SQLAlchemy ORM model for template vpc objects."""
 
     __tablename__ = "vpc_templates"

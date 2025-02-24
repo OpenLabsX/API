@@ -15,6 +15,7 @@ from ...crud.crud_range_templates import (
 )
 from ...crud.crud_subnet_templates import (
     create_subnet_template,
+    delete_subnet_template,
     get_subnet_template,
     get_subnet_template_headers,
 )
@@ -306,6 +307,48 @@ async def upload_subnet_template_endpoint(
     return TemplateSubnetID.model_validate(created_subnet, from_attributes=True)
 
 
+@router.delete("/subnets/{subnet_id}")
+async def delete_subnet_template_endpoint(
+    subnet_id: str, db: AsyncSession = Depends(async_get_db)  # noqa: B008
+) -> bool:
+    """Delete a subnet template.
+
+    Args:
+    ----
+        subnet_id (str): Id of the subnet template.
+        db (AsyncSession): Async database connection.
+
+    Returns:
+    -------
+        bool: True if successfully deleted. False otherwise.
+
+    """
+    # Invalid UUID4 ID
+    if not is_valid_uuid4(subnet_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="ID provided is not a valid UUID4.",
+        )
+
+    subnet_template = await get_subnet_template(db, TemplateSubnetID(id=subnet_id))
+
+    # Does not exist
+    if not subnet_template:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Subnet template with id: {subnet_template} not found!",
+        )
+
+    # Not standalone template
+    if not subnet_template.is_standalone():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Cannot delete subnet template because it is not a standalone template. Connected to VPC: {subnet_template.vpc_id}",
+        )
+
+    return await delete_subnet_template(db, subnet_template)
+
+
 @router.get("/hosts")
 async def get_host_template_headers_endpoint(
     standalone_only: bool = True,
@@ -364,7 +407,7 @@ async def get_host_template_endpoint(
     if not host_template:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Host with id: {host_id} not found!",
+            detail=f"Host template with id: {host_id} not found!",
         )
 
     return TemplateHostSchema.model_validate(host_template, from_attributes=True)
@@ -427,7 +470,7 @@ async def delete_host_template_endpoint(
     if not host_template.is_standalone():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Cannot delete host template because it is not a standalone template.",
+            detail=f"Cannot delete host template because it is not a standalone template. Connected to subnet: {host_template.subnet_id}",
         )
 
     return await delete_host_template(db, host_template)
