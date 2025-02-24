@@ -32,3 +32,15 @@ class TemplateVPCModel(Base, TemplateModelMixin):
     subnets = relationship(
         "TemplateSubnetModel", back_populates="vpc", cascade="all, delete-orphan"
     )
+
+    def is_standalone(self) -> bool:
+        """Return whether vpc template model is a standalone model.
+
+        Standalone means that the template is not part of a larger template.
+
+        Returns
+        -------
+            bool: True if standalone. False otherwise.
+
+        """
+        return self.range_id is None

@@ -21,6 +21,7 @@ from ...crud.crud_subnet_templates import (
 )
 from ...crud.crud_vpc_templates import (
     create_vpc_template,
+    delete_vpc_template,
     get_vpc_template,
     get_vpc_template_headers,
 )
@@ -220,6 +221,48 @@ async def upload_vpc_template_endpoint(
     return TemplateVPCID.model_validate(created_vpc, from_attributes=True)
 
 
+@router.delete("/vpcs/{vpc_id}")
+async def delete_vpc_template_endpoint(
+    vpc_id: str, db: AsyncSession = Depends(async_get_db)  # noqa: B008
+) -> bool:
+    """Delete a VPC template.
+
+    Args:
+    ----
+        vpc_id (str): Id of the VPC template.
+        db (AsyncSession): Async database connection.
+
+    Returns:
+    -------
+        bool: True if successfully deleted. False otherwise.
+
+    """
+    # Invalid UUID4 ID
+    if not is_valid_uuid4(vpc_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="ID provided is not a valid UUID4.",
+        )
+
+    vpc_template = await get_vpc_template(db, TemplateVPCID(id=vpc_id))
+
+    # Does not exist
+    if not vpc_template:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"VPC template with id: {vpc_id} not found!",
+        )
+
+    # Not standalone template
+    if not vpc_template.is_standalone():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Cannot delete VPC template because it is not a standalone template. Connected to range: {vpc_template.range_id}",
+        )
+
+    return await delete_vpc_template(db, vpc_template)
+
+
 @router.get("/subnets")
 async def get_subnet_template_headers_endpoint(
     standalone_only: bool = True,
@@ -336,7 +379,7 @@ async def delete_subnet_template_endpoint(
     if not subnet_template:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Subnet template with id: {subnet_template} not found!",
+            detail=f"Subnet template with id: {subnet_id} not found!",
         )
 
     # Not standalone template

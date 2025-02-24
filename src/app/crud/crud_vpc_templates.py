@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -12,6 +14,8 @@ from ..schemas.template_vpc_schema import (
     TemplateVPCSchema,
 )
 from .crud_subnet_templates import create_subnet_template
+
+logger = logging.getLogger(__name__)
 
 
 async def get_vpc_template_headers(
@@ -119,3 +123,29 @@ async def create_vpc_template(
         await db.refresh(vpc_obj)
 
     return vpc_obj
+
+
+async def delete_vpc_template(db: AsyncSession, vpc_model: TemplateVPCModel) -> bool:
+    """Delete a standalone subnet template.
+
+    Only allows deletion if the subnet template is standalone (i.e. vpc_id is None).
+
+    Args:
+    ----
+        db (Sessions): Database connection.
+        vpc_model (TemplateVPCModel): Subnet template model object.
+
+    Returns:
+    -------
+        bool: True if successfully delete. False otherwise.
+
+    """
+    if not vpc_model.is_standalone():
+        log_msg = "Cannot delete VPC template because it is not a standalone template."
+        logger.error(log_msg)
+
+        return False
+
+    await db.delete(vpc_model)
+    await db.commit()
+    return True
