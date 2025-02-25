@@ -119,7 +119,7 @@ async def get_range_template_endpoint(
     if not range_template:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Range with id: {range_id} not found or you don't have access to it!",
+            detail=f"Range with ID: {range_id} not found or you don't have access to it!",
         )
 
     return TemplateRangeSchema.model_validate(range_template, from_attributes=True)
@@ -221,7 +221,7 @@ async def get_vpc_template_endpoint(
     if not vpc_template:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"VPC with id: {vpc_id} not found or you don't have access to it!",
+            detail=f"VPC with ID: {vpc_id} not found or you don't have access to it!",
         )
 
     return TemplateVPCSchema.model_validate(vpc_template, from_attributes=True)
@@ -321,7 +321,7 @@ async def get_subnet_template_endpoint(
     if not subnet_template:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Subnet with id: {subnet_id} not found or you don't have access to it!",
+            detail=f"Subnet with ID: {subnet_id} not found or you don't have access to it!",
         )
 
     return TemplateSubnetSchema.model_validate(subnet_template, from_attributes=True)
@@ -422,7 +422,7 @@ async def get_host_template_endpoint(
     if not host_template:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Host with id: {host_id} not found or you don't have access to it!",
+            detail=f"Host with ID: {host_id} not found or you don't have access to it!",
         )
 
     return TemplateHostSchema.model_validate(host_template, from_attributes=True)
