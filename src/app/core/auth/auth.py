@@ -1,24 +1,22 @@
-from datetime import datetime, timedelta, UTC
-from typing import Optional
+from datetime import UTC, datetime
 
 import jwt
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..config import settings
-from ..db.database import async_get_db
 from ...crud.crud_users import get_user_by_id
 from ...models.user_model import UserModel
 from ...schemas.user_schema import UserID
-
+from ..config import settings
+from ..db.database import async_get_db
 
 # Create a security scheme using HTTPBearer
 security = HTTPBearer()
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: AsyncSession = Depends(async_get_db),
+    credentials: HTTPAuthorizationCredentials = Depends(security), # noqa: B008
+    db: AsyncSession = Depends(async_get_db),  # noqa: B008
 ) -> UserModel:
     """Get the current user from the JWT token.
 
@@ -34,6 +32,7 @@ async def get_current_user(
     Raises:
     ------
         HTTPException: If the token is invalid or the user doesn't exist
+
     """
     try:
         # Decode the JWT token
@@ -42,17 +41,17 @@ async def get_current_user(
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM]
         )
-        
+
         # Get the user ID from the token
         user_id = payload.get("user")
-        
+
         if user_id is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication credentials",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        
+
         # Get the expiration time from the token
         expiration = payload.get("exp")
         if expiration is None:
@@ -61,7 +60,7 @@ async def get_current_user(
                 detail="Token has no expiration",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        
+
         # Check if the token has expired
         if datetime.now(UTC) > datetime.fromtimestamp(expiration, tz=UTC):
             raise HTTPException(
@@ -69,7 +68,7 @@ async def get_current_user(
                 detail="Token has expired",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-            
+
         # Get the user from the database
         user = await get_user_by_id(db, UserID(id=user_id))
         if user is None:
@@ -78,23 +77,24 @@ async def get_current_user(
                 detail="User not found",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        
+
         # Update the last_active field - remove timezone to match DB schema
         now = datetime.now(UTC)
         user.last_active = now.replace(tzinfo=None)
         await db.commit()
-        
+
         return user
-        
-    except jwt.PyJWTError:
+
+    except jwt.PyJWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from e
 
 
-def is_admin(user: UserModel = Depends(get_current_user)) -> UserModel:
+def is_admin(user: UserModel = Depends(get_current_user) # noqa: B008
+             ) -> UserModel:
     """Check if the user is an admin.
 
     Args:
@@ -108,6 +108,7 @@ def is_admin(user: UserModel = Depends(get_current_user)) -> UserModel:
     Raises:
     ------
         HTTPException: If the user is not an admin
+
     """
     if not user.is_admin:
         raise HTTPException(

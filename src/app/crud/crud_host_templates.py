@@ -1,3 +1,5 @@
+import uuid
+
 from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -10,7 +12,7 @@ from ..schemas.template_host_schema import (
     TemplateHostSchema,
 )
 from ..schemas.template_subnet_schema import TemplateSubnetID
-import uuid
+
 
 async def get_host_template_headers(
     db: AsyncSession, standalone_only: bool = True, user_id: uuid.UUID | None = None
@@ -38,10 +40,10 @@ async def get_host_template_headers(
 
     if standalone_only:
         stmt = stmt.where(TemplateHostModel.subnet_id.is_(None))
-    
+
     if user_id:
         stmt = stmt.filter(TemplateHostModel.owner_id == user_id)
-    
+
     stmt = stmt.options(load_only(*main_columns))
 
     result = await db.execute(stmt)
@@ -65,10 +67,10 @@ async def get_host_template(
 
     """
     stmt = select(TemplateHostModel).filter(TemplateHostModel.id == host_id.id)
-    
+
     if user_id:
         stmt = stmt.filter(TemplateHostModel.owner_id == user_id)
-        
+
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
@@ -97,7 +99,7 @@ async def create_host_template(
     host_dict = template_host.model_dump()
     if subnet_id:
         host_dict["subnet_id"] = subnet_id.id
-        
+
     if owner_id:
         host_dict["owner_id"] = owner_id
 

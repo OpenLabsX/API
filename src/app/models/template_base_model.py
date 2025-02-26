@@ -2,7 +2,7 @@ import uuid
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
+from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column
 
 
 class OpenLabsTemplateMixin(MappedAsDataclass):
@@ -12,7 +12,7 @@ class OpenLabsTemplateMixin(MappedAsDataclass):
         UUID(as_uuid=True),
         primary_key=True,
     )
-    
+
     # User who owns this template
     owner_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),

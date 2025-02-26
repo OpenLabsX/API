@@ -1,31 +1,19 @@
-from fastapi import APIRouter, HTTPException, status, Depends
-from sqlalchemy.ext.asyncio.session import AsyncSession
-
-from ...core.db.database import async_get_db
-from ...crud.crud_users import create_user, get_user
-
-from ...models.user_model import UserModel
-
-from ...schemas.user_schema import (
-    UserBaseSchema,
-    UserID,
-    UserCreateSchema,
-    UserCreateBaseSchema
-)
-from ...schemas.secret_schema import (
-    SecretBaseSchema,
-    SecretSchema,
-)
-
-from bcrypt import checkpw
-
-import jwt
-
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from datetime import datetime, timedelta, UTC
+import jwt
+from bcrypt import checkpw
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from ...core.config import settings
+from ...core.db.database import async_get_db
+from ...crud.crud_users import create_user, get_user
+from ...schemas.user_schema import (
+    UserBaseSchema,
+    UserCreateBaseSchema,
+    UserID,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -44,9 +32,8 @@ async def login(
     Returns:
     -------
         dict: token with JWT for the user.
+
     """
-
-
     user = await get_user(db, openlabs_user.email)
 
     if not user:
@@ -94,8 +81,8 @@ async def register_new_user(
     Returns:
     -------
         UserID: Identity of the created user.
-    """
 
+    """
     existing_user = await get_user(db, openlabs_user.email)
     if existing_user:
         raise HTTPException(
@@ -107,7 +94,7 @@ async def register_new_user(
     if not created_user:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Unable to create user",
+            detail="Unable to create user",
         )
 
     return UserID.model_validate(created_user, from_attributes=True)

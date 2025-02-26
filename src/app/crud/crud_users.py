@@ -1,4 +1,4 @@
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
 from bcrypt import gensalt, hashpw
 from sqlalchemy import inspect, select
@@ -17,7 +17,7 @@ from ..schemas.user_schema import (
 
 async def create_secret(db: AsyncSession, secret: SecretSchema, user_id: UserID) -> SecretModel:
     """Create a new secret.
-    
+
     Args:
     ----
         db (AsyncSession): Database connection.

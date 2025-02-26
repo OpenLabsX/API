@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
-from ...core.db.database import async_get_db
 from ...core.auth.auth import get_current_user
-from ...models.user_model import UserModel
+from ...core.db.database import async_get_db
 from ...crud.crud_host_templates import (
     create_host_template,
     get_host_template,
@@ -24,6 +23,7 @@ from ...crud.crud_vpc_templates import (
     get_vpc_template,
     get_vpc_template_headers,
 )
+from ...models.user_model import UserModel
 from ...schemas.template_host_schema import (
     TemplateHostBaseSchema,
     TemplateHostID,
@@ -55,7 +55,7 @@ router = APIRouter(prefix="/templates", tags=["templates"])
 @router.get("/ranges")
 async def get_range_template_headers_endpoint(
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-    current_user: UserModel = Depends(get_current_user),
+    current_user: UserModel = Depends(get_current_user), # noqa: B008
 ) -> list[TemplateRangeHeaderSchema]:
     """Get a list of range template headers.
 
@@ -86,9 +86,9 @@ async def get_range_template_headers_endpoint(
 
 @router.get("/ranges/{range_id}")
 async def get_range_template_endpoint(
-    range_id: str, 
+    range_id: str,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-    current_user: UserModel = Depends(get_current_user)
+    current_user: UserModel = Depends(get_current_user) # noqa: B008
 ) -> TemplateRangeSchema:
     """Get a range template.
 
@@ -111,8 +111,8 @@ async def get_range_template_endpoint(
 
     # Get the template and check if the user is the owner
     range_template = await get_range_template(
-        db, 
-        TemplateRangeID(id=range_id), 
+        db,
+        TemplateRangeID(id=range_id),
         user_id=current_user.id
     )
 
@@ -129,7 +129,7 @@ async def get_range_template_endpoint(
 async def upload_range_template_endpoint(
     range_template: TemplateRangeBaseSchema,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-    current_user: UserModel = Depends(get_current_user)
+    current_user: UserModel = Depends(get_current_user) # noqa: B008
 ) -> TemplateRangeID:
     """Upload a range template.
 
@@ -152,7 +152,7 @@ async def upload_range_template_endpoint(
 async def get_vpc_template_headers_endpoint(
     standalone_only: bool = True,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-    current_user: UserModel = Depends(get_current_user),
+    current_user: UserModel = Depends(get_current_user), # noqa: B008
 ) -> list[TemplateVPCHeaderSchema]:
     """Get a list of vpc template headers.
 
@@ -169,8 +169,8 @@ async def get_vpc_template_headers_endpoint(
     """
     # Get only templates owned by the current user
     vpc_headers = await get_vpc_template_headers(
-        db, 
-        user_id=current_user.id, 
+        db,
+        user_id=current_user.id,
         standalone_only=standalone_only
     )
 
@@ -188,9 +188,9 @@ async def get_vpc_template_headers_endpoint(
 
 @router.get("/vpcs/{vpc_id}")
 async def get_vpc_template_endpoint(
-    vpc_id: str, 
+    vpc_id: str,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-    current_user: UserModel = Depends(get_current_user)
+    current_user: UserModel = Depends(get_current_user) # noqa: B008
 ) -> TemplateVPCSchema:
     """Get a VPC template.
 
@@ -213,8 +213,8 @@ async def get_vpc_template_endpoint(
 
     # Get the template and check if the user is the owner
     vpc_template = await get_vpc_template(
-        db, 
-        TemplateVPCID(id=vpc_id), 
+        db,
+        TemplateVPCID(id=vpc_id),
         user_id=current_user.id
     )
 
@@ -231,7 +231,7 @@ async def get_vpc_template_endpoint(
 async def upload_vpc_template_endpoint(
     vpc_template: TemplateVPCBaseSchema,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-    current_user: UserModel = Depends(get_current_user)
+    current_user: UserModel = Depends(get_current_user) # noqa: B008
 ) -> TemplateVPCID:
     """Upload a VPC template.
 
@@ -248,8 +248,8 @@ async def upload_vpc_template_endpoint(
     """
     # Create the template with the current user as the owner
     created_vpc = await create_vpc_template(
-        db, 
-        vpc_template, 
+        db,
+        vpc_template,
         owner_id=current_user.id
     )
     return TemplateVPCID.model_validate(created_vpc, from_attributes=True)
@@ -259,7 +259,7 @@ async def upload_vpc_template_endpoint(
 async def get_subnet_template_headers_endpoint(
     standalone_only: bool = True,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-    current_user: UserModel = Depends(get_current_user),
+    current_user: UserModel = Depends(get_current_user), # noqa: B008
 ) -> list[TemplateSubnetHeaderSchema]:
     """Get a list of subnet template headers.
 
@@ -293,9 +293,9 @@ async def get_subnet_template_headers_endpoint(
 
 @router.get("/subnets/{subnet_id}")
 async def get_subnet_template_endpoint(
-    subnet_id: str, 
+    subnet_id: str,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-    current_user: UserModel = Depends(get_current_user)
+    current_user: UserModel = Depends(get_current_user) # noqa: B008
 ) -> TemplateSubnetSchema:
     """Get a subnet template.
 
@@ -331,7 +331,7 @@ async def get_subnet_template_endpoint(
 async def upload_subnet_template_endpoint(
     subnet_template: TemplateSubnetBaseSchema,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-    current_user: UserModel = Depends(get_current_user)
+    current_user: UserModel = Depends(get_current_user) # noqa: B008
 ) -> TemplateSubnetID:
     """Upload a subnet template.
 
@@ -348,11 +348,11 @@ async def upload_subnet_template_endpoint(
     """
     # Create subnet with current user as owner
     created_subnet = await create_subnet_template(
-        db, 
+        db,
         subnet_template,
         owner_id=current_user.id
     )
-    
+
     return TemplateSubnetID.model_validate(created_subnet, from_attributes=True)
 
 
@@ -360,7 +360,7 @@ async def upload_subnet_template_endpoint(
 async def get_host_template_headers_endpoint(
     standalone_only: bool = True,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-    current_user: UserModel = Depends(get_current_user)
+    current_user: UserModel = Depends(get_current_user) # noqa: B008
 ) -> list[TemplateHostSchema]:
     """Get a list of host template headers.
 
@@ -394,9 +394,9 @@ async def get_host_template_headers_endpoint(
 
 @router.get("/hosts/{host_id}")
 async def get_host_template_endpoint(
-    host_id: str, 
+    host_id: str,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-    current_user: UserModel = Depends(get_current_user)
+    current_user: UserModel = Depends(get_current_user) # noqa: B008
 ) -> TemplateHostSchema:
     """Get a host template.
 
@@ -432,7 +432,7 @@ async def get_host_template_endpoint(
 async def upload_host_template_endpoint(
     host_template: TemplateHostBaseSchema,
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-    current_user: UserModel = Depends(get_current_user)
+    current_user: UserModel = Depends(get_current_user) # noqa: B008
 ) -> TemplateHostID:
     """Upload a host template.
 
@@ -449,9 +449,9 @@ async def upload_host_template_endpoint(
     """
     # Create host with current user as owner
     created_host = await create_host_template(
-        db, 
+        db,
         host_template,
         owner_id=current_user.id
     )
-    
+
     return TemplateHostID.model_validate(created_host, from_attributes=True)

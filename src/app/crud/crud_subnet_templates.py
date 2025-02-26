@@ -1,3 +1,5 @@
+import uuid
+
 from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -11,7 +13,7 @@ from ..schemas.template_subnet_schema import (
 )
 from ..schemas.template_vpc_schema import TemplateVPCID
 from .crud_host_templates import create_host_template
-import uuid
+
 
 async def get_subnet_template_headers(
     db: AsyncSession, standalone_only: bool = True, user_id: uuid.UUID | None = None
@@ -39,13 +41,13 @@ async def get_subnet_template_headers(
 
     # Start building the query
     stmt = select(TemplateSubnetModel)
-    
+
     if standalone_only:
         stmt = stmt.where(TemplateSubnetModel.vpc_id.is_(None))
-    
+
     if user_id:
         stmt = stmt.filter(TemplateSubnetModel.owner_id == user_id)
-    
+
     stmt = stmt.options(load_only(*main_columns))
 
     result = await db.execute(stmt)
@@ -73,10 +75,10 @@ async def get_subnet_template(
         .options(selectinload(TemplateSubnetModel.hosts))
         .filter(TemplateSubnetModel.id == subnet_id.id)
     )
-    
+
     if user_id:
         stmt = stmt.filter(TemplateSubnetModel.owner_id == user_id)
-        
+
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
@@ -105,7 +107,7 @@ async def create_subnet_template(
     subnet_dict = template_subnet.model_dump(exclude={"hosts"})
     if vpc_id:
         subnet_dict["vpc_id"] = vpc_id.id
-        
+
     if owner_id:
         subnet_dict["owner_id"] = owner_id
 
@@ -115,8 +117,8 @@ async def create_subnet_template(
     # Add hosts
     host_objects = [
         await create_host_template(
-            db, 
-            host_data, 
+            db,
+            host_data,
             TemplateSubnetID(id=subnet_obj.id),
             owner_id=owner_id  # Pass owner_id to hosts
         )

@@ -1,19 +1,18 @@
+import uuid
+
 from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import load_only, selectinload
-import uuid
 
 from ..models.template_subnet_model import TemplateSubnetModel
 from ..models.template_vpc_model import TemplateVPCModel
-from ..models.user_model import UserModel
 from ..schemas.template_range_schema import TemplateRangeID
 from ..schemas.template_vpc_schema import (
     TemplateVPCBaseSchema,
     TemplateVPCID,
     TemplateVPCSchema,
 )
-from ..schemas.user_schema import UserID
 from .crud_subnet_templates import create_subnet_template
 
 
@@ -41,10 +40,10 @@ async def get_vpc_template_headers(
     ]
 
     stmt = select(TemplateVPCModel).options(load_only(*main_columns))
-    
+
     if standalone_only:
         stmt = stmt.where(TemplateVPCModel.range_id.is_(None))
-        
+
     if user_id:
         stmt = stmt.where(TemplateVPCModel.owner_id == user_id)
 
@@ -77,10 +76,10 @@ async def get_vpc_template(
         )
         .filter(TemplateVPCModel.id == vpc_id.id)
     )
-    
+
     if user_id:
         stmt = stmt.filter(TemplateVPCModel.owner_id == user_id)
-        
+
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
@@ -107,11 +106,11 @@ async def create_vpc_template(
     """
     vpc_template = TemplateVPCSchema(**vpc_template.model_dump())
     vpc_dict = vpc_template.model_dump(exclude={"subnets"})
-    
+
     # Set owner ID and range ID if provided
     if owner_id:
         vpc_dict["owner_id"] = owner_id
-    
+
     if range_id:
         vpc_dict["range_id"] = range_id.id
 

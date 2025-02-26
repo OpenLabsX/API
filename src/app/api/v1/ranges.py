@@ -4,11 +4,11 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
+from ...core.auth.auth import get_current_user
 from ...core.config import settings
 from ...core.db.database import async_get_db
-from ...core.auth.auth import get_current_user
-from ...models.user_model import UserModel
 from ...crud.crud_range_templates import get_range_template, is_range_template_owner
+from ...models.user_model import UserModel
 from ...schemas.template_range_schema import TemplateRangeID, TemplateRangeSchema
 
 router = APIRouter(prefix="/ranges", tags=["ranges"])
@@ -18,19 +18,20 @@ router = APIRouter(prefix="/ranges", tags=["ranges"])
 async def deploy_range_from_template(
     range_ids: list[TemplateRangeID],
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-    current_user: UserModel = Depends(get_current_user),
+    current_user: UserModel = Depends(get_current_user), # noqa: B008
 ) -> dict[str, Any]:
     """Deploy range templates.
-    
+
     Args:
     ----
         range_ids (list[TemplateRangeID]): List of range template IDs to deploy.
         db (AsyncSession): Async database connection.
         current_user (UserModel): Currently authenticated user.
-        
+
     Returns:
     -------
         dict[str, Any]: Deployment status.
+
     """
     # Import CDKTF dependencies to avoid long import times
     from ...core.cdktf.aws.aws import create_aws_stack, deploy_infrastructure
@@ -44,15 +45,15 @@ async def deploy_range_from_template(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"You don't have permission to deploy range with ID: {range_id.id}",
             )
-        
+
         # Get the template
-        range_model = await get_range_template(db, range_id, user_id=current_user.id), 
+        range_model = await get_range_template(db, range_id, user_id=current_user.id),
         if not range_model:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Range template with ID: {range_id.id} not found or you don't have access to it!",
             )
-            
+
         ranges.append(
             TemplateRangeSchema.model_validate(range_model, from_attributes=True)
         )

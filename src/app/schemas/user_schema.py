@@ -1,8 +1,8 @@
 import uuid
-import datetime
 
-from pydantic import BaseModel, Field, field_validator, ConfigDict
-from email_validator import validate_email, EmailNotValidError
+from email_validator import EmailNotValidError, validate_email
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
 
 class UserBaseSchema(BaseModel):
     """Schema for user authentication."""
@@ -26,22 +26,24 @@ class UserBaseSchema(BaseModel):
     def validate_email(
         cls, email: str) -> str:
         """Check that email format is valid.
+
         Args:
         ----
             cls: OpenLabsUser object.
             email (str): User email address.
+
         Returns:
         -------
             str: User email address.
-        """
 
+        """
         try:
             emailinfo = validate_email(email, check_deliverability=False)
 
             return emailinfo.normalized
-        except EmailNotValidError:
+        except EmailNotValidError as e:
             msg = "Provided email address is invalid."
-            raise ValueError(msg)
+            raise ValueError(msg) from e
 
 class UserCreateBaseSchema(UserBaseSchema):
     """User object for user creation in OpenLabs."""
@@ -58,24 +60,26 @@ class UserCreateBaseSchema(UserBaseSchema):
     def validate_email(
         cls, email: str) -> str:
         """Check that email format is valid.
+
         Args:
         ----
             cls: OpenLabsUser object.
             email (str): User email address.
+
         Returns:
         -------
             str: User email address.
-        """
 
+        """
         try:
             # Makes a DNS query to validate deliverability
             # We do this, as users will only be added to DB on registration
             emailinfo = validate_email(email, check_deliverability=True)
 
             return emailinfo.normalized
-        except EmailNotValidError:
+        except EmailNotValidError as e:
             msg = "Provided email address is invalid."
-            raise ValueError(msg)
+            raise ValueError(msg) from e
 
 
 class UserID(BaseModel):

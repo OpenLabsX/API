@@ -1,8 +1,9 @@
+import uuid
+
 from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import load_only, selectinload
-import uuid
 
 from ..models.template_range_model import TemplateRangeModel
 from ..models.template_subnet_model import TemplateSubnetModel
@@ -38,10 +39,10 @@ async def get_range_template_headers(
     ]
 
     stmt = select(TemplateRangeModel).options(load_only(*main_columns))
-    
+
     if user_id:
         stmt = stmt.filter(TemplateRangeModel.owner_id == user_id)
-        
+
     result = await db.execute(stmt)
     return list(result.scalars().all())
 
@@ -72,15 +73,14 @@ async def get_range_template(
         )
         .filter(TemplateRangeModel.id == range_id.id)
     )
-    
+
     if user_id:
         stmt = stmt.filter(TemplateRangeModel.owner_id == user_id)
-        
+
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
 
-# TODO: Later, we can allow anyone to deploy a range if they own it or if they can read it
 async def is_range_template_owner(
     db: AsyncSession, range_id: TemplateRangeID, user_id: uuid.UUID
 ) -> bool:
@@ -95,6 +95,7 @@ async def is_range_template_owner(
     Returns:
     -------
         bool: True if the user is the owner, False otherwise.
+
     """
     stmt = (
         select(TemplateRangeModel)
@@ -123,7 +124,7 @@ async def create_range_template(
     """
     range_template = TemplateRangeSchema(**range_template.model_dump())
     range_dict = range_template.model_dump(exclude={"vpcs"})
-    
+
     range_dict["owner_id"] = owner_id
 
     # Create the Range object (No commit yet)

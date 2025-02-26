@@ -1,6 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
+
 
 class SecretBaseSchema(BaseModel):
     """Base secret object for OpenLabs."""
@@ -17,7 +18,7 @@ class SecretBaseSchema(BaseModel):
     aws_created_at: datetime | None = Field(
         default=None,
         description="Time AWS secrets were populated",
-        examples=[datetime(2025, 2, 5)]
+        examples=[datetime(2025, 2, 5, tzinfo=timezone.utc)]
     )
 
     azure_client_id: str | None = Field(
@@ -33,7 +34,7 @@ class SecretBaseSchema(BaseModel):
     azure_created_at: datetime | None = Field(
         default=None,
         description="Time Azure secrets were populated",
-        examples=[datetime(2025, 2, 5)]
+        examples=[datetime(2025, 2, 5, tzinfo=timezone.utc)]
     )
 
 class SecretSchema(SecretBaseSchema):
