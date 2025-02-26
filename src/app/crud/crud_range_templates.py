@@ -2,6 +2,7 @@ from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import load_only, selectinload
+import uuid
 
 from ..models.template_range_model import TemplateRangeModel
 from ..models.template_subnet_model import TemplateSubnetModel
@@ -14,12 +15,15 @@ from ..schemas.template_range_schema import (
 from .crud_vpc_templates import create_vpc_template
 
 
-async def get_range_template_headers(db: AsyncSession) -> list[TemplateRangeModel]:
+async def get_range_template_headers(
+    db: AsyncSession, user_id: uuid.UUID = None
+) -> list[TemplateRangeModel]:
     """Get list of range template headers.
 
     Args:
     ----
         db (Session): Database connection.
+        user_id (Optional[uuid.UUID]): If provided, only return templates owned by this user.
 
     Returns:
     -------
@@ -34,12 +38,16 @@ async def get_range_template_headers(db: AsyncSession) -> list[TemplateRangeMode
     ]
 
     stmt = select(TemplateRangeModel).options(load_only(*main_columns))
+    
+    if user_id:
+        stmt = stmt.filter(TemplateRangeModel.owner_id == user_id)
+        
     result = await db.execute(stmt)
     return list(result.scalars().all())
 
 
 async def get_range_template(
-    db: AsyncSession, range_id: TemplateRangeID
+    db: AsyncSession, range_id: TemplateRangeID, user_id: uuid.UUID = None
 ) -> TemplateRangeModel | None:
     """Get range template by id (uuid).
 
@@ -47,6 +55,7 @@ async def get_range_template(
     ----
         db (Session): Database connection.
         range_id (TemplateRangeID): ID of the range.
+        user_id (Optional[uuid.UUID]): If provided, only return templates owned by this user.
 
     Returns:
     -------
@@ -63,12 +72,41 @@ async def get_range_template(
         )
         .filter(TemplateRangeModel.id == range_id.id)
     )
+    
+    if user_id:
+        stmt = stmt.filter(TemplateRangeModel.owner_id == user_id)
+        
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
 
+# TODO: Later, we can allow anyone to deploy a range if they own it or if they can read it
+async def is_range_template_owner(
+    db: AsyncSession, range_id: TemplateRangeID, user_id: uuid.UUID
+) -> bool:
+    """Check if a user is the owner of a range template.
+
+    Args:
+    ----
+        db (Session): Database connection.
+        range_id (TemplateRangeID): ID of the range template.
+        user_id (uuid.UUID): ID of the user.
+
+    Returns:
+    -------
+        bool: True if the user is the owner, False otherwise.
+    """
+    stmt = (
+        select(TemplateRangeModel)
+        .filter(TemplateRangeModel.id == range_id.id)
+        .filter(TemplateRangeModel.owner_id == user_id)
+    )
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none() is not None
+
+
 async def create_range_template(
-    db: AsyncSession, range_template: TemplateRangeBaseSchema
+    db: AsyncSession, range_template: TemplateRangeBaseSchema, owner_id: uuid.UUID
 ) -> TemplateRangeModel:
     """Create and add a new range template to the database.
 
@@ -76,6 +114,7 @@ async def create_range_template(
     ----
         db (Session): Database connection.
         range_template (TemplateRangeSchema): Dictionary containing OpenLabsRange data.
+        owner_id (uuid.UUID): The ID of the user who owns this template.
 
     Returns:
     -------
@@ -84,6 +123,8 @@ async def create_range_template(
     """
     range_template = TemplateRangeSchema(**range_template.model_dump())
     range_dict = range_template.model_dump(exclude={"vpcs"})
+    
+    range_dict["owner_id"] = owner_id
 
     # Create the Range object (No commit yet)
     range_obj = TemplateRangeModel(**range_dict)
@@ -94,7 +135,7 @@ async def create_range_template(
 
     # Create VPCs and associate them with the range (No commit yet)
     vpc_objects = [
-        await create_vpc_template(db, vpc_data, range_id)
+        await create_vpc_template(db, vpc_data, owner_id, range_id)
         for vpc_data in range_template.vpcs
     ]
     # range_obj.vpcs = vpc_objects

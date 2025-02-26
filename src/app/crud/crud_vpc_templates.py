@@ -2,26 +2,30 @@ from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import load_only, selectinload
+import uuid
 
 from ..models.template_subnet_model import TemplateSubnetModel
 from ..models.template_vpc_model import TemplateVPCModel
+from ..models.user_model import UserModel
 from ..schemas.template_range_schema import TemplateRangeID
 from ..schemas.template_vpc_schema import (
     TemplateVPCBaseSchema,
     TemplateVPCID,
     TemplateVPCSchema,
 )
+from ..schemas.user_schema import UserID
 from .crud_subnet_templates import create_subnet_template
 
 
 async def get_vpc_template_headers(
-    db: AsyncSession, standalone_only: bool = True
+    db: AsyncSession, user_id: uuid.UUID = None, standalone_only: bool = True
 ) -> list[TemplateVPCModel]:
     """Get list of VPC template headers.
 
     Args:
     ----
         db (AsyncSession): Database connection.
+        user_id (Optional[uuid.UUID]): If provided, only return templates owned by this user.
         standalone_only (bool): Include only VPCs that are standalone templates
             (i.e. those with a null range_id). Defaults to True.
 
@@ -36,23 +40,20 @@ async def get_vpc_template_headers(
         getattr(TemplateVPCModel, attr.key) for attr in mapped_vpc_model.column_attrs
     ]
 
-    # Build the query: filter for rows where range_id is null if standalone_only is True
+    stmt = select(TemplateVPCModel).options(load_only(*main_columns))
+    
     if standalone_only:
-        stmt = (
-            select(TemplateVPCModel)
-            .where(TemplateVPCModel.range_id.is_(None))
-            .options(load_only(*main_columns))
-        )
-    else:
-        stmt = select(TemplateVPCModel).options(load_only(*main_columns))
+        stmt = stmt.where(TemplateVPCModel.range_id.is_(None))
+        
+    if user_id:
+        stmt = stmt.where(TemplateVPCModel.owner_id == user_id)
 
-    # Execute query and return results
     result = await db.execute(stmt)
     return list(result.scalars().all())
 
 
 async def get_vpc_template(
-    db: AsyncSession, vpc_id: TemplateVPCID
+    db: AsyncSession, vpc_id: TemplateVPCID, user_id: uuid.UUID = None
 ) -> TemplateVPCModel | None:
     """Get VPC template by id (uuid).
 
@@ -60,6 +61,7 @@ async def get_vpc_template(
     ----
         db (Session): Database connection.
         vpc_id (TemplateVPCID): ID of the range.
+        user_id (Optional[uuid.UUID]): If provided, only return templates owned by this user.
 
     Returns:
     -------
@@ -75,6 +77,10 @@ async def get_vpc_template(
         )
         .filter(TemplateVPCModel.id == vpc_id.id)
     )
+    
+    if user_id:
+        stmt = stmt.filter(TemplateVPCModel.owner_id == user_id)
+        
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
@@ -82,6 +88,7 @@ async def get_vpc_template(
 async def create_vpc_template(
     db: AsyncSession,
     vpc_template: TemplateVPCBaseSchema,
+    owner_id: uuid.UUID | None = None,
     range_id: TemplateRangeID | None = None,
 ) -> TemplateVPCModel:
     """Create and add a new VPC template to the database.
@@ -90,6 +97,7 @@ async def create_vpc_template(
     ----
         db (Session): Database connection.
         vpc_template (TemplateVPCBaseSchema): Dictionary containing OpenLabsVPC data.
+        owner_id (Optional[uuid.UUID]): The ID of the user who owns this template.
         range_id (Optional[str]): Range ID to link VPC back too.
 
     Returns:
@@ -99,6 +107,11 @@ async def create_vpc_template(
     """
     vpc_template = TemplateVPCSchema(**vpc_template.model_dump())
     vpc_dict = vpc_template.model_dump(exclude={"subnets"})
+    
+    # Set owner ID and range ID if provided
+    if owner_id:
+        vpc_dict["owner_id"] = owner_id
+    
     if range_id:
         vpc_dict["range_id"] = range_id.id
 
@@ -107,7 +120,7 @@ async def create_vpc_template(
 
     # Add subnets
     subnet_objects = [
-        await create_subnet_template(db, subnet_data, TemplateVPCID(id=vpc_obj.id))
+        await create_subnet_template(db, subnet_data, TemplateVPCID(id=vpc_obj.id), owner_id)
         for subnet_data in vpc_template.subnets
     ]
 

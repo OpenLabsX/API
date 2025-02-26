@@ -10,10 +10,10 @@ from ..schemas.template_host_schema import (
     TemplateHostSchema,
 )
 from ..schemas.template_subnet_schema import TemplateSubnetID
-
+import uuid
 
 async def get_host_template_headers(
-    db: AsyncSession, standalone_only: bool = True
+    db: AsyncSession, standalone_only: bool = True, user_id: uuid.UUID = None
 ) -> list[TemplateHostModel]:
     """Get list of host template headers.
 
@@ -22,6 +22,7 @@ async def get_host_template_headers(
         db (Session): Database connection.
         standalone_only (bool): Include only hosts that are standalone templates
             (i.e. those with a null subnet_id). Defaults to True.
+        user_id (Optional[uuid.UUID]): If provided, only return templates owned by this user.
 
     Returns:
     -------
@@ -33,22 +34,22 @@ async def get_host_template_headers(
         getattr(TemplateHostModel, attr.key) for attr in mapped_host_model.column_attrs
     ]
 
-    # Build the query: filter for rows where subnet_id is null if standalone_only is True
+    stmt = select(TemplateHostModel)
+
     if standalone_only:
-        stmt = (
-            select(TemplateHostModel)
-            .where(TemplateHostModel.subnet_id.is_(None))
-            .options(load_only(*main_columns))
-        )
-    else:
-        stmt = select(TemplateHostModel).options(load_only(*main_columns))
+        stmt = stmt.where(TemplateHostModel.subnet_id.is_(None))
+    
+    if user_id:
+        stmt = stmt.filter(TemplateHostModel.owner_id == user_id)
+    
+    stmt = stmt.options(load_only(*main_columns))
 
     result = await db.execute(stmt)
     return list(result.scalars().all())
 
 
 async def get_host_template(
-    db: AsyncSession, host_id: TemplateHostID
+    db: AsyncSession, host_id: TemplateHostID, user_id: uuid.UUID = None
 ) -> TemplateHostModel | None:
     """Get host template by ID.
 
@@ -56,6 +57,7 @@ async def get_host_template(
     ----
         db (Sessions): Database connection.
         host_id (TemplateHostID): ID of the host.
+        user_id (Optional[uuid.UUID]): If provided, only return templates owned by this user.
 
     Returns:
     -------
@@ -63,6 +65,10 @@ async def get_host_template(
 
     """
     stmt = select(TemplateHostModel).filter(TemplateHostModel.id == host_id.id)
+    
+    if user_id:
+        stmt = stmt.filter(TemplateHostModel.owner_id == user_id)
+        
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
@@ -71,14 +77,16 @@ async def create_host_template(
     db: AsyncSession,
     template_host: TemplateHostBaseSchema,
     subnet_id: TemplateSubnetID | None = None,
+    owner_id: uuid.UUID = None,
 ) -> TemplateHostModel:
-    """Create and add a new host tempalte to the database.
+    """Create and add a new host template to the database.
 
     Args:
     ----
         db (Session): Database connection.
         template_host (TemplateHostBaseSchema): Dictionary containing host data.
-        subnet_id (Optional[str]): Subnet ID to link VPC back too.
+        subnet_id (Optional[TemplateSubnetID]): Subnet ID to link host back to.
+        owner_id (Optional[uuid.UUID]): ID of the user who owns this template.
 
     Returns:
     -------
@@ -89,6 +97,9 @@ async def create_host_template(
     host_dict = template_host.model_dump()
     if subnet_id:
         host_dict["subnet_id"] = subnet_id.id
+        
+    if owner_id:
+        host_dict["owner_id"] = owner_id
 
     host_obj = TemplateHostModel(**host_dict)
     db.add(host_obj)
