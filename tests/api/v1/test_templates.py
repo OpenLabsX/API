@@ -661,3 +661,35 @@ async def test_template_host_get_nonexistent_host(client: AsyncClient) -> None:
     nonexistent_host_id = uuid.uuid4()
     response = await client.get(f"{BASE_ROUTE}/templates/hosts/{nonexistent_host_id}")
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+async def test_user_cant_access_other_templates(client: AsyncClient) -> None:
+    """Test that we get a 404 response when trying to access another user's templates."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
+    response = await client.get(f"{BASE_ROUTE}/templates/ranges")
+    template_ids = set(t['id'] for t in response.json())
+
+    new_user_register_payload = copy.deepcopy(user_register_payload)
+    new_user_register_payload["email"] = "test-templates-2@ufsit.club"
+
+    response = await client.post(f"{BASE_ROUTE}/auth/register", json=new_user_register_payload)
+    assert response.status_code == status.HTTP_200_OK
+
+    response = await client.post(f"{BASE_ROUTE}/auth/login", json=new_user_register_payload)
+    assert response.status_code == status.HTTP_200_OK
+
+    new_auth_token = response.json()["token"]
+
+    client.headers.update({"Authorization": f"Bearer {new_auth_token}"})
+
+    response = await client.post(f"{BASE_ROUTE}/templates/ranges", json=valid_range_payload)
+    assert response.status_code == status.HTTP_200_OK
+
+    response = await client.get(f"{BASE_ROUTE}/templates/ranges")
+    new_template_ids = set(t['id'] for t in response.json())
+
+    assert template_ids.isdisjoint(new_template_ids)
+
+    for template_id in template_ids:
+        response = await client.get(f"{BASE_ROUTE}/templates/ranges/{template_id}")
+        assert response.status_code == status.HTTP_404_NOT_FOUND
