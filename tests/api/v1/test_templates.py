@@ -46,33 +46,64 @@ valid_vpc_payload = copy.deepcopy(valid_range_payload["vpcs"][0])
 valid_subnet_payload = copy.deepcopy(valid_vpc_payload["subnets"][0])
 valid_host_payload = copy.deepcopy(valid_subnet_payload["hosts"][0])
 
+user_register_payload = {
+    "email": "adam@ufsit.club",
+    "password": "password123",
+    "name": "Adam Hassan",
+}
+
+user_login_payload = copy.deepcopy(user_register_payload)
+user_login_payload.pop("name")
+
+# global auth token to be used in all tests
+auth_token = None
+
+async def test_get_auth_token(client: AsyncClient) -> None:
+    """Get the authentication token for the test user. This must run first to provide the global auth token for the other tests"""
+    response = await client.post(
+        f"{BASE_ROUTE}/auth/register", json=user_register_payload)
+
+
+    assert response.status_code == status.HTTP_200_OK or response.status_code == status.HTTP_409_CONFLICT
+
+    response = await client.post(f"{BASE_ROUTE}/auth/login", json=user_login_payload)
+    assert response.status_code == status.HTTP_200_OK
+    global auth_token
+    auth_token = response.json()["token"]
+    
 
 async def test_template_range_get_all_empty_list(client: AsyncClient) -> None:
     """Test that we get a 404 response when there are no range templates."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.get(f"{BASE_ROUTE}/templates/ranges")
+    print(response.json())
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 async def test_template_vpc_get_all_empty_list(client: AsyncClient) -> None:
     """Test that we get a 404 response when there are no vpc templates."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.get(f"{BASE_ROUTE}/templates/vpcs")
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 async def test_template_subnet_get_all_empty_list(client: AsyncClient) -> None:
     """Test that we get a 404 response when there are no subnet templates."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.get(f"{BASE_ROUTE}/templates/subnets")
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 async def test_template_host_get_all_empty_list(client: AsyncClient) -> None:
     """Test that we get a 404 response when there are no template templates."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.get(f"{BASE_ROUTE}/templates/hosts")
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 async def test_template_range_get_non_empty_list(client: AsyncClient) -> None:
     """Test all templates to see that we get a 200 response and that correct UUIDs exist."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.post(
         f"{BASE_ROUTE}/templates/ranges", json=valid_range_payload
     )
@@ -91,6 +122,7 @@ async def test_template_range_get_non_empty_list(client: AsyncClient) -> None:
 
 async def test_template_all_get_non_standalone_templates(client: AsyncClient) -> None:
     """Test that, after uploading range template previously, we have all non-standalone templates."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.get(f"{BASE_ROUTE}/templates/vpcs?standalone_only=false")
     assert response.status_code == status.HTTP_200_OK
     response_json = response.json()
@@ -120,6 +152,7 @@ async def test_template_all_get_non_standalone_templates(client: AsyncClient) ->
 
 async def test_template_vpc_get_non_empty_list(client: AsyncClient) -> None:
     """Test all templates to see that we get a 200 response and that correct headers exist."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.post(f"{BASE_ROUTE}/templates/vpcs", json=valid_vpc_payload)
     vpc_template_id = response.json()["id"]
     assert response.status_code == status.HTTP_200_OK
@@ -136,6 +169,7 @@ async def test_template_vpc_get_non_empty_list(client: AsyncClient) -> None:
 
 async def test_template_subnet_get_non_empty_list(client: AsyncClient) -> None:
     """Test all templates to see that we get a 200 response and that correct headers exist."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     # Create unique subnet object for this test
     unique_valid_subnet_payload = copy.deepcopy(valid_subnet_payload)
     unique_valid_subnet_payload["name"] = str(uuid.uuid4())
@@ -161,6 +195,7 @@ async def test_template_subnet_get_non_empty_list(client: AsyncClient) -> None:
 
 async def test_template_host_get_non_empty_list(client: AsyncClient) -> None:
     """Test all templates to see that we get a 200 response and that correct headers exist."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     # Create unique host object for this test
     unique_valid_host_payload = copy.deepcopy(valid_host_payload)
     unique_valid_host_payload["name"] = str(uuid.uuid4())
@@ -185,6 +220,7 @@ async def test_template_host_get_non_empty_list(client: AsyncClient) -> None:
 
 
 async def test_template_range_valid_payload(client: AsyncClient) -> None:
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     """Test that we get a 200 and a valid uuid.UUID4 in response."""
     response = await client.post(
         f"{BASE_ROUTE}/templates/ranges", json=valid_range_payload
@@ -200,6 +236,7 @@ async def test_template_range_valid_payload(client: AsyncClient) -> None:
 
 async def test_template_range_get_range_invalid_uuid(client: AsyncClient) -> None:
     """Test that we get a 400 when providing an invalid UUID4."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.post(
         f"{BASE_ROUTE}/templates/ranges", json=valid_range_payload
     )
@@ -219,6 +256,7 @@ async def test_template_range_get_range_invalid_uuid(client: AsyncClient) -> Non
 
 async def test_template_range_invalid_vpc_cidr(client: AsyncClient) -> None:
     """Test for 422 response when VPC CIDR is invalid."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     # Use deepcopy to ensure all nested dicts are copied
     invalid_payload = copy.deepcopy(valid_range_payload)
     invalid_payload["vpcs"][0][
@@ -230,6 +268,7 @@ async def test_template_range_invalid_vpc_cidr(client: AsyncClient) -> None:
 
 async def test_template_range_invalid_subnet_cidr(client: AsyncClient) -> None:
     """Test for 422 response when subnet CIDR is invalid."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     # Use deepcopy to ensure all nested dicts are copied
     invalid_payload = copy.deepcopy(valid_range_payload)
     invalid_payload["vpcs"][0]["subnets"][0][
@@ -243,6 +282,7 @@ async def test_template_range_invalid_vpc_subnet_cidr_contain(
     client: AsyncClient,
 ) -> None:
     """Test for 422 response when subnet CIDR is not contained in the VPC CIDR."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     invalid_payload = copy.deepcopy(valid_range_payload)
 
     # VPC CIDR
@@ -259,6 +299,7 @@ async def test_template_range_invalid_vpc_subnet_cidr_contain(
 
 async def test_template_range_empty_tag(client: AsyncClient) -> None:
     """Test for a 422 response when a tag is empty."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     invalid_payload = copy.deepcopy(valid_range_payload)
     invalid_payload["vpcs"][0]["subnets"][0]["hosts"][0]["tags"].append("")
     response = await client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
@@ -267,6 +308,7 @@ async def test_template_range_empty_tag(client: AsyncClient) -> None:
 
 async def test_template_range_invalid_provider(client: AsyncClient) -> None:
     """Test for a 422 response when the provider is invalid."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     invalid_payload = copy.deepcopy(valid_range_payload)
     invalid_payload["provider"] = "invalid_provider"  # Not a valid enum value
     response = await client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
@@ -275,6 +317,7 @@ async def test_template_range_invalid_provider(client: AsyncClient) -> None:
 
 async def test_template_range_invalid_hostname(client: AsyncClient) -> None:
     """Test for a 422 response when a hostname is invalid."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     invalid_payload = copy.deepcopy(valid_range_payload)
     invalid_payload["vpcs"][0]["subnets"][0]["hosts"][0]["hostname"] = "-i-am-invalid"
     response = await client.post(f"{BASE_ROUTE}/templates/ranges", json=invalid_payload)
@@ -283,6 +326,7 @@ async def test_template_range_invalid_hostname(client: AsyncClient) -> None:
 
 async def test_template_range_duplicate_vpc_names(client: AsyncClient) -> None:
     """Test for a 422 response when multiple VPCs share the same name."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     invalid_payload = copy.deepcopy(valid_range_payload)
     invalid_payload["vpcs"].append(
         copy.deepcopy(invalid_payload["vpcs"][0])
@@ -293,6 +337,7 @@ async def test_template_range_duplicate_vpc_names(client: AsyncClient) -> None:
 
 async def test_template_range_duplicate_subnet_names(client: AsyncClient) -> None:
     """Test for a 422 response when multiple subnets share the same name."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     invalid_payload = copy.deepcopy(valid_range_payload)
     invalid_payload["vpcs"][0]["subnets"].append(
         copy.deepcopy(invalid_payload["vpcs"][0]["subnets"][0])
@@ -303,6 +348,7 @@ async def test_template_range_duplicate_subnet_names(client: AsyncClient) -> Non
 
 async def test_template_range_duplicate_host_hostnames(client: AsyncClient) -> None:
     """Test for a 422 response when multiple hosts share the same hostname."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     invalid_payload = copy.deepcopy(valid_range_payload)
     invalid_payload["vpcs"][0]["subnets"][0]["hosts"].append(
         copy.deepcopy(invalid_payload["vpcs"][0]["subnets"][0]["hosts"][0])
@@ -313,6 +359,7 @@ async def test_template_range_duplicate_host_hostnames(client: AsyncClient) -> N
 
 async def test_template_range_get_range(client: AsyncClient) -> None:
     """Test that we can retrieve the correct range after saving it in the database."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.post(
         f"{BASE_ROUTE}/templates/ranges", json=valid_range_payload
     )
@@ -330,6 +377,7 @@ async def test_template_range_get_range(client: AsyncClient) -> None:
 
 async def test_template_range_get_nonexistent_range(client: AsyncClient) -> None:
     """Test that we get a 404 error when requesting an nonexistent range in the database."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     nonexistent_range_id = uuid.uuid4()
     response = await client.get(f"{BASE_ROUTE}/templates/ranges/{nonexistent_range_id}")
     assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -337,6 +385,7 @@ async def test_template_range_get_nonexistent_range(client: AsyncClient) -> None
 
 async def test_template_range_subnet_too_many_hosts(client: AsyncClient) -> None:
     """Test that we get a 422 error when more hosts in subnet that CIDR allows."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     invalid_payload = copy.deepcopy(valid_range_payload)
     invalid_payload["vpcs"][0]["subnets"][0][
         "cidr"
@@ -358,6 +407,7 @@ async def test_template_range_subnet_too_many_hosts(client: AsyncClient) -> None
 
 async def test_template_range_host_size_too_small(client: AsyncClient) -> None:
     """Test that we get a 422 error when the disk size of a host is too small."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     invalid_payload = copy.deepcopy(valid_range_payload)
     invalid_payload["vpcs"][0]["subnets"][0]["hosts"][0]["size"] = 2
 
@@ -368,6 +418,7 @@ async def test_template_range_host_size_too_small(client: AsyncClient) -> None:
 
 async def test_template_vpc_valid_payload(client: AsyncClient) -> None:
     """Test that we get a 200 response and a valid uuid.UUID4 in response."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.post(f"{BASE_ROUTE}/templates/vpcs", json=valid_vpc_payload)
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["id"]
@@ -380,6 +431,7 @@ async def test_template_vpc_valid_payload(client: AsyncClient) -> None:
 
 async def test_template_vpc_get_vpc_invalid_uuid(client: AsyncClient) -> None:
     """Test that we get a 400 when providing an invalid UUID4."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.post(f"{BASE_ROUTE}/templates/vpcs", json=valid_vpc_payload)
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["id"]
@@ -397,6 +449,7 @@ async def test_template_vpc_get_vpc_invalid_uuid(client: AsyncClient) -> None:
 
 async def test_template_vpc_invalid_cidr(client: AsyncClient) -> None:
     """Test that we get a 422 response when the VPC CIDR is invalid."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     invalid_payload = copy.deepcopy(valid_vpc_payload)
     invalid_payload["cidr"] = "192.168.300.0/24"
     response = await client.post(f"{BASE_ROUTE}/templates/vpcs", json=invalid_payload)
@@ -405,6 +458,7 @@ async def test_template_vpc_invalid_cidr(client: AsyncClient) -> None:
 
 async def test_template_vpc_invalid_subnet_cidr(client: AsyncClient) -> None:
     """Test that we get a 422 response when the VPC subnet CIDR is invalid."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     invalid_payload = copy.deepcopy(valid_vpc_payload)
     invalid_payload["subnets"][0]["cidr"] = "192.168.300.0/24"
     response = await client.post(f"{BASE_ROUTE}/templates/vpcs", json=invalid_payload)
@@ -415,6 +469,7 @@ async def test_template_vpc_invalid_vpc_subnet_cidr_contain(
     client: AsyncClient,
 ) -> None:
     """Test that we get a 422 response when the subnet CIDR is not contained in the VPC CIDR."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     invalid_payload = copy.deepcopy(valid_vpc_payload)
 
     # VPC CIDR
@@ -429,6 +484,7 @@ async def test_template_vpc_invalid_vpc_subnet_cidr_contain(
 
 async def test_template_vpc_get_vpc(client: AsyncClient) -> None:
     """Test that we can retrieve the correct VPC after saving it in the database."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.post(f"{BASE_ROUTE}/templates/vpcs", json=valid_vpc_payload)
     assert response.status_code == status.HTTP_200_OK
 
@@ -444,6 +500,7 @@ async def test_template_vpc_get_vpc(client: AsyncClient) -> None:
 
 async def test_template_vpc_get_nonexistent_vpc(client: AsyncClient) -> None:
     """Test that we get a 404 error when requesting a nonexistent vpc in the database."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     nonexistent_vpc_id = uuid.uuid4()
     response = await client.get(f"{BASE_ROUTE}/templates/vpcs/{nonexistent_vpc_id}")
     assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -451,6 +508,7 @@ async def test_template_vpc_get_nonexistent_vpc(client: AsyncClient) -> None:
 
 async def test_template_subnet_valid_payload(client: AsyncClient) -> None:
     """Test that we get a 200 reponse and a valid uuid.UUID4 in response."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.post(
         f"{BASE_ROUTE}/templates/subnets", json=valid_subnet_payload
     )
@@ -465,6 +523,7 @@ async def test_template_subnet_valid_payload(client: AsyncClient) -> None:
 
 async def test_template_subnet_get_subnet_invalid_uuid(client: AsyncClient) -> None:
     """Test that we get a 400 when providing an invalid UUID4."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.post(
         f"{BASE_ROUTE}/templates/subnets", json=valid_subnet_payload
     )
@@ -484,6 +543,7 @@ async def test_template_subnet_get_subnet_invalid_uuid(client: AsyncClient) -> N
 
 async def test_template_subnet_invalid_subnet_cidr(client: AsyncClient) -> None:
     """Test that we get a 422 response when the subnet CIDR is invalid."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     invalid_payload = copy.deepcopy(valid_subnet_payload)
     invalid_payload["cidr"] = "192.168.300.0/24"
     response = await client.post(
@@ -494,6 +554,7 @@ async def test_template_subnet_invalid_subnet_cidr(client: AsyncClient) -> None:
 
 async def test_template_subnet_too_many_hosts(client: AsyncClient) -> None:
     """Test that we get a 422 response when more hosts in subnet than CIDR allows."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     invalid_payload = copy.deepcopy(valid_subnet_payload)
     invalid_payload["cidr"] = "192.168.1.0/31"  # Maximum 2 hosts
 
@@ -515,6 +576,7 @@ async def test_template_subnet_too_many_hosts(client: AsyncClient) -> None:
 
 async def test_template_subnet_get_subnet(client: AsyncClient) -> None:
     """Test that we can retrieve the correct subnet after saving it in the database."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.post(
         f"{BASE_ROUTE}/templates/subnets", json=valid_subnet_payload
     )
@@ -532,6 +594,7 @@ async def test_template_subnet_get_subnet(client: AsyncClient) -> None:
 
 async def test_template_subnet_get_nonexistent_subnet(client: AsyncClient) -> None:
     """Test that we get a 404 error when requesting a nonexistent subnet in the database."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     nonexistent_subnet_id = uuid.uuid4()
     response = await client.get(
         f"{BASE_ROUTE}/templates/subnets/{nonexistent_subnet_id}"
@@ -541,6 +604,7 @@ async def test_template_subnet_get_nonexistent_subnet(client: AsyncClient) -> No
 
 async def test_template_host_valid_payload(client: AsyncClient) -> None:
     """Test that we get a 200 reponse and a valid uuid.UUID4 in response."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.post(
         f"{BASE_ROUTE}/templates/hosts", json=valid_host_payload
     )
@@ -555,6 +619,7 @@ async def test_template_host_valid_payload(client: AsyncClient) -> None:
 
 async def test_template_host_get_host_invalid_uuid(client: AsyncClient) -> None:
     """Test that we get a 400 when providing an invalid UUID4."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.post(
         f"{BASE_ROUTE}/templates/hosts", json=valid_host_payload
     )
@@ -574,6 +639,7 @@ async def test_template_host_get_host_invalid_uuid(client: AsyncClient) -> None:
 
 async def test_template_host_get_host(client: AsyncClient) -> None:
     """Test that we can retrieve the correct host after saving it in the database."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.post(
         f"{BASE_ROUTE}/templates/hosts", json=valid_host_payload
     )
@@ -591,6 +657,7 @@ async def test_template_host_get_host(client: AsyncClient) -> None:
 
 async def test_template_host_get_nonexistent_host(client: AsyncClient) -> None:
     """Test that we get a 404 error when requesting a nonexistent host in the database."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     nonexistent_host_id = uuid.uuid4()
     response = await client.get(f"{BASE_ROUTE}/templates/hosts/{nonexistent_host_id}")
     assert response.status_code == status.HTTP_404_NOT_FOUND
