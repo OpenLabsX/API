@@ -25,7 +25,7 @@ from datetime import datetime, timedelta, UTC
 
 from ...core.config import settings
 
-router = APIRouter(prefix="/register", tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/login")
 async def login(
