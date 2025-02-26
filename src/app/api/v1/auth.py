@@ -49,8 +49,8 @@ async def login(
 
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials or user does not exist",
         )
     
     user_hash = user.hashed_password
@@ -59,7 +59,7 @@ async def login(
     if not checkpw(openlabs_user.password.encode(), user_hash.encode()):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect password",
+            detail="Invalid credentials or user does not exist",
         )
         
     
