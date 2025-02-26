@@ -33,7 +33,7 @@ class AppSettings(BaseSettings):
 class AuthSettings(BaseSettings):
     """Authentication settings."""
 
-    SECRET_KEY: str = config("SECRET_KEY")
+    SECRET_KEY: str = config("SECRET_KEY", default="ChangeMe123!")
     ALGORITHM: str = config("ALGORITHM", default="HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = config(
         "ACCESS_TOKEN_EXPIRE_MINUTES", default=60 * 24 * 7
