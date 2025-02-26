@@ -1,14 +1,18 @@
-from sqlalchemy.ext.asyncio.session import AsyncSession
-from ..models.user_model import UserModel
-from ..models.secret_model import SecretModel
-from ..schemas.user_schema import UserBaseSchema, UserCreateBaseSchema, UserID, UserCreateSchema
-from ..schemas.secret_schema import SecretSchema
-from datetime import datetime
-
-from sqlalchemy import select, inspect
-from sqlalchemy.orm import load_only
+from datetime import datetime, UTC
 
 from bcrypt import gensalt, hashpw
+from sqlalchemy import inspect, select
+from sqlalchemy.ext.asyncio.session import AsyncSession
+from sqlalchemy.orm import load_only
+
+from ..models.secret_model import SecretModel
+from ..models.user_model import UserModel
+from ..schemas.secret_schema import SecretSchema
+from ..schemas.user_schema import (
+    UserCreateBaseSchema,
+    UserCreateSchema,
+    UserID,
+)
 
 
 async def create_secret(db: AsyncSession, secret: SecretSchema, user_id: UserID) -> SecretModel:
@@ -19,17 +23,18 @@ async def create_secret(db: AsyncSession, secret: SecretSchema, user_id: UserID)
         db (AsyncSession): Database connection.
         secret (SecretSchema): Secret data.
         user_id (UserID): ID of the user who owns this secret.
-        
+
     Returns:
     -------
         SecretModel: The created secret.
+
     """
     secret_dict = secret.model_dump()
     secret_dict["user_id"] = user_id.id
-    
+
     secret_obj = SecretModel(**secret_dict)
     db.add(secret_obj)
-    
+
     return secret_obj
 
 
@@ -44,8 +49,8 @@ async def get_user(db: AsyncSession, email: str) -> UserModel | None:
     Returns:
     -------
         User: The user.
-    """
 
+    """
     mapped_user_model = inspect(UserModel)
     main_columns = [
         getattr(UserModel, attr.key)
@@ -74,8 +79,8 @@ async def get_user_by_id(db: AsyncSession, user_id: UserID) -> UserModel | None:
     Returns:
     -------
         User: The user.
-    """
 
+    """
     mapped_user_model = inspect(UserModel)
     main_columns = [
         getattr(UserModel, attr.key)
@@ -95,15 +100,17 @@ async def get_user_by_id(db: AsyncSession, user_id: UserID) -> UserModel | None:
 
 async def create_user(db: AsyncSession, openlabs_user: UserCreateBaseSchema) -> UserModel:
     """Create and add a new OpenLabsUser to the database.
+
     Args:
     ----
         db (Session): Database connection.
         openlabs_user (UserBaseSchema): Dictionary containing User data.
+
     Returns:
     -------
         User: The newly created user.
-    """
 
+    """
     openlabs_user = UserCreateSchema(**openlabs_user.model_dump())
     user_dict = openlabs_user.model_dump(exclude={"secrets"})
 
@@ -115,8 +122,8 @@ async def create_user(db: AsyncSession, openlabs_user: UserCreateBaseSchema) -> 
 
     user_dict["hashed_password"] = hashed_password.decode()
 
-    user_dict["created_at"] = datetime.now()
-    user_dict["last_active"] = datetime.now()
+    user_dict["created_at"] = datetime.now(UTC)
+    user_dict["last_active"] = datetime.now(UTC)
 
     user_dict["is_admin"] = False
 

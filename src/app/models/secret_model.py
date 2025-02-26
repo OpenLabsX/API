@@ -1,12 +1,11 @@
-import uuid
 
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, String, DateTime
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..core.db.database import Base
+
 
 class SecretModel(Base):
     """SQLAlchemy ORM model for OpenLabs Secrets."""
@@ -17,10 +16,10 @@ class SecretModel(Base):
 
     aws_access_key: Mapped[str] = mapped_column(String, nullable=True)
     aws_secret_key: Mapped[str] = mapped_column(String, nullable=True)
-    aws_created_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    aws_created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
 
     azure_client_id: Mapped[str] = mapped_column(String, nullable=True)
     azure_client_secret: Mapped[str] = mapped_column(String, nullable=True)
-    azure_created_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    azure_created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
 
     user = relationship("UserModel", back_populates="secrets")
