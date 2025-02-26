@@ -15,7 +15,9 @@ from ..schemas.user_schema import (
 )
 
 
-async def create_secret(db: AsyncSession, secret: SecretSchema, user_id: UserID) -> SecretModel:
+async def create_secret(
+    db: AsyncSession, secret: SecretSchema, user_id: UserID
+) -> SecretModel:
     """Create a new secret.
 
     Args:
@@ -53,8 +55,7 @@ async def get_user(db: AsyncSession, email: str) -> UserModel | None:
     """
     mapped_user_model = inspect(UserModel)
     main_columns = [
-        getattr(UserModel, attr.key)
-        for attr in mapped_user_model.column_attrs
+        getattr(UserModel, attr.key) for attr in mapped_user_model.column_attrs
     ]
 
     stmt = (
@@ -83,8 +84,7 @@ async def get_user_by_id(db: AsyncSession, user_id: UserID) -> UserModel | None:
     """
     mapped_user_model = inspect(UserModel)
     main_columns = [
-        getattr(UserModel, attr.key)
-        for attr in mapped_user_model.column_attrs
+        getattr(UserModel, attr.key) for attr in mapped_user_model.column_attrs
     ]
 
     stmt = (
@@ -98,7 +98,9 @@ async def get_user_by_id(db: AsyncSession, user_id: UserID) -> UserModel | None:
     return result.scalars().first()
 
 
-async def create_user(db: AsyncSession, openlabs_user: UserCreateBaseSchema) -> UserModel:
+async def create_user(
+    db: AsyncSession, openlabs_user: UserCreateBaseSchema
+) -> UserModel:
     """Create and add a new OpenLabsUser to the database.
 
     Args:

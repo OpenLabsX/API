@@ -14,8 +14,9 @@ from ..db.database import async_get_db
 # Create a security scheme using HTTPBearer
 security = HTTPBearer()
 
+
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security), # noqa: B008
+    credentials: HTTPAuthorizationCredentials = Depends(security),  # noqa: B008
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
 ) -> UserModel:
     """Get the current user from the JWT token.
@@ -39,7 +40,7 @@ async def get_current_user(
         payload = jwt.decode(
             credentials.credentials,
             settings.SECRET_KEY,
-            algorithms=[settings.ALGORITHM]
+            algorithms=[settings.ALGORITHM],
         )
 
         # Get the user ID from the token
@@ -93,8 +94,7 @@ async def get_current_user(
         ) from e
 
 
-def is_admin(user: UserModel = Depends(get_current_user) # noqa: B008
-             ) -> UserModel:
+def is_admin(user: UserModel = Depends(get_current_user)) -> UserModel:  # noqa: B008
     """Check if the user is an admin.
 
     Args:

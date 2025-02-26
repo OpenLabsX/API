@@ -18,7 +18,7 @@ router = APIRouter(prefix="/ranges", tags=["ranges"])
 async def deploy_range_from_template(
     range_ids: list[TemplateRangeID],
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
-    current_user: UserModel = Depends(get_current_user), # noqa: B008
+    current_user: UserModel = Depends(get_current_user),  # noqa: B008
 ) -> dict[str, Any]:
     """Deploy range templates.
 
@@ -47,7 +47,7 @@ async def deploy_range_from_template(
             )
 
         # Get the template
-        range_model = await get_range_template(db, range_id, user_id=current_user.id),
+        range_model = (await get_range_template(db, range_id, user_id=current_user.id),)
         if not range_model:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

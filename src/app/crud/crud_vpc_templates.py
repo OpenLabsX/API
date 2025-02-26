@@ -119,7 +119,9 @@ async def create_vpc_template(
 
     # Add subnets
     subnet_objects = [
-        await create_subnet_template(db, subnet_data, TemplateVPCID(id=vpc_obj.id), owner_id)
+        await create_subnet_template(
+            db, subnet_data, TemplateVPCID(id=vpc_obj.id), owner_id
+        )
         for subnet_data in vpc_template.subnets
     ]
 

@@ -120,7 +120,7 @@ async def create_subnet_template(
             db,
             host_data,
             TemplateSubnetID(id=subnet_obj.id),
-            owner_id=owner_id  # Pass owner_id to hosts
+            owner_id=owner_id,  # Pass owner_id to hosts
         )
         for host_data in template_subnet.hosts
     ]

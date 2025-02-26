@@ -17,10 +17,11 @@ from ...schemas.user_schema import (
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+
 @router.post("/login")
 async def login(
     openlabs_user: UserBaseSchema,
-    db: AsyncSession = Depends(async_get_db), # noqa: B008
+    db: AsyncSession = Depends(async_get_db),  # noqa: B008
 ) -> dict[str, str]:
     """Login a user.
 
@@ -51,25 +52,23 @@ async def login(
             detail="Invalid credentials or user does not exist",
         )
 
-
-    data_dict: dict[str, Any] = {
-        "user": str(user_id)
-    }
+    data_dict: dict[str, Any] = {"user": str(user_id)}
 
     expire = datetime.now(UTC) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-
 
     data_dict.update({"exp": expire})
 
     return {
-        "token": jwt.encode(data_dict, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+        "token": jwt.encode(
+            data_dict, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+        )
     }
 
 
 @router.post("/register")
 async def register_new_user(
     openlabs_user: UserCreateBaseSchema,
-    db: AsyncSession = Depends(async_get_db), # noqa: B008
+    db: AsyncSession = Depends(async_get_db),  # noqa: B008
 ) -> UserID:
     """Create a new user.
 

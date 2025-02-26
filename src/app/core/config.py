@@ -35,7 +35,9 @@ class AuthSettings(BaseSettings):
 
     SECRET_KEY: str = config("SECRET_KEY")
     ALGORITHM: str = config("ALGORITHM", default="HS256")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = config("ACCESS_TOKEN_EXPIRE_MINUTES", default=60 * 24 * 7)  # One week
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = config(
+        "ACCESS_TOKEN_EXPIRE_MINUTES", default=60 * 24 * 7
+    )  # One week
 
 
 class CDKTFSettings(BaseSettings):

@@ -15,16 +15,12 @@ class UserBaseSchema(BaseModel):
     )
 
     password: str = Field(
-        ...,
-        description = "Password of user",
-        min_length = 1,
-        examples=["password123"]
+        ..., description="Password of user", min_length=1, examples=["password123"]
     )
 
     @field_validator("email")
     @classmethod
-    def validate_email(
-        cls, email: str) -> str:
+    def validate_email(cls, email: str) -> str:
         """Check that email format is valid.
 
         Args:
@@ -45,6 +41,7 @@ class UserBaseSchema(BaseModel):
             msg = "Provided email address is invalid."
             raise ValueError(msg) from e
 
+
 class UserCreateBaseSchema(UserBaseSchema):
     """User object for user creation in OpenLabs."""
 
@@ -52,13 +49,12 @@ class UserCreateBaseSchema(UserBaseSchema):
         ...,
         description="Full name of user",
         min_length=1,
-        examples=["Adam Hassan", "Alex Christy", "Naresh Panchal"]
+        examples=["Adam Hassan", "Alex Christy", "Naresh Panchal"],
     )
 
     @field_validator("email")
     @classmethod
-    def validate_email(
-        cls, email: str) -> str:
+    def validate_email(cls, email: str) -> str:
         """Check that email format is valid.
 
         Args:
@@ -90,6 +86,7 @@ class UserID(BaseModel):
     )
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class UserCreateSchema(UserCreateBaseSchema, UserID):
     """User creation object for OpenLabs."""
