@@ -4,7 +4,7 @@ from sqlalchemy import Boolean, String, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..core.db.database import Base
-from .openlabs_base_model import OpenLabsUserMixin
+from .template_base_model import OpenLabsUserMixin
 
 class UserModel(Base, OpenLabsUserMixin):
     """SQLAlchemy ORM model for User."""
