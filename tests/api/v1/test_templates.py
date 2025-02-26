@@ -47,7 +47,7 @@ valid_subnet_payload = copy.deepcopy(valid_vpc_payload["subnets"][0])
 valid_host_payload = copy.deepcopy(valid_subnet_payload["hosts"][0])
 
 user_register_payload = {
-    "email": "adam@ufsit.club",
+    "email": "test-templates@ufsit.club",
     "password": "password123",
     "name": "Adam Hassan",
 }
@@ -64,7 +64,7 @@ async def test_get_auth_token(client: AsyncClient) -> None:
         f"{BASE_ROUTE}/auth/register", json=user_register_payload)
 
 
-    assert response.status_code == status.HTTP_200_OK or response.status_code == status.HTTP_409_CONFLICT
+    assert response.status_code == status.HTTP_200_OK
 
     response = await client.post(f"{BASE_ROUTE}/auth/login", json=user_login_payload)
     assert response.status_code == status.HTTP_200_OK

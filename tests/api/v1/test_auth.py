@@ -9,7 +9,7 @@ from fastapi import status
 
 
 user_register_payload = {
-    "email": "adam@ufsit.club",
+    "email": "test-auth@ufsit.club",
     "password": "password123",
     "name": "Adam Hassan",
 }
