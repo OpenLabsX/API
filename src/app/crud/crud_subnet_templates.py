@@ -14,7 +14,7 @@ from .crud_host_templates import create_host_template
 import uuid
 
 async def get_subnet_template_headers(
-    db: AsyncSession, standalone_only: bool = True, user_id: uuid.UUID = None
+    db: AsyncSession, standalone_only: bool = True, user_id: uuid.UUID | None = None
 ) -> list[TemplateSubnetModel]:
     """Get list of subnet template headers.
 
@@ -53,7 +53,7 @@ async def get_subnet_template_headers(
 
 
 async def get_subnet_template(
-    db: AsyncSession, subnet_id: TemplateSubnetID, user_id: uuid.UUID = None
+    db: AsyncSession, subnet_id: TemplateSubnetID, user_id: uuid.UUID | None = None
 ) -> TemplateSubnetModel | None:
     """Get subnet template by id (uuid).
 
@@ -85,7 +85,7 @@ async def create_subnet_template(
     db: AsyncSession,
     template_subnet: TemplateSubnetBaseSchema,
     vpc_id: TemplateVPCID | None = None,
-    owner_id: uuid.UUID = None,
+    owner_id: uuid.UUID | None = None,
 ) -> TemplateSubnetModel:
     """Create and add a new subnet template to the database.
 

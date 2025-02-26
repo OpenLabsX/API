@@ -18,7 +18,7 @@ from .crud_subnet_templates import create_subnet_template
 
 
 async def get_vpc_template_headers(
-    db: AsyncSession, user_id: uuid.UUID = None, standalone_only: bool = True
+    db: AsyncSession, user_id: uuid.UUID | None = None, standalone_only: bool = True
 ) -> list[TemplateVPCModel]:
     """Get list of VPC template headers.
 
@@ -53,7 +53,7 @@ async def get_vpc_template_headers(
 
 
 async def get_vpc_template(
-    db: AsyncSession, vpc_id: TemplateVPCID, user_id: uuid.UUID = None
+    db: AsyncSession, vpc_id: TemplateVPCID, user_id: uuid.UUID | None = None
 ) -> TemplateVPCModel | None:
     """Get VPC template by id (uuid).
 

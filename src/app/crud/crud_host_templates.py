@@ -13,7 +13,7 @@ from ..schemas.template_subnet_schema import TemplateSubnetID
 import uuid
 
 async def get_host_template_headers(
-    db: AsyncSession, standalone_only: bool = True, user_id: uuid.UUID = None
+    db: AsyncSession, standalone_only: bool = True, user_id: uuid.UUID | None = None
 ) -> list[TemplateHostModel]:
     """Get list of host template headers.
 
@@ -49,7 +49,7 @@ async def get_host_template_headers(
 
 
 async def get_host_template(
-    db: AsyncSession, host_id: TemplateHostID, user_id: uuid.UUID = None
+    db: AsyncSession, host_id: TemplateHostID, user_id: uuid.UUID | None = None
 ) -> TemplateHostModel | None:
     """Get host template by ID.
 
@@ -77,7 +77,7 @@ async def create_host_template(
     db: AsyncSession,
     template_host: TemplateHostBaseSchema,
     subnet_id: TemplateSubnetID | None = None,
-    owner_id: uuid.UUID = None,
+    owner_id: uuid.UUID | None = None,
 ) -> TemplateHostModel:
     """Create and add a new host template to the database.
 

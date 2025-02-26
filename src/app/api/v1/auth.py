@@ -21,6 +21,8 @@ from bcrypt import checkpw
 
 import jwt
 
+from typing import Any
+
 from datetime import datetime, timedelta, UTC
 
 from ...core.config import settings
@@ -31,7 +33,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 async def login(
     openlabs_user: UserBaseSchema,
     db: AsyncSession = Depends(async_get_db), # noqa: B008
-) -> dict:
+) -> dict[str, str]:
     """Login a user.
 
     Args:
@@ -52,7 +54,7 @@ async def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials or user does not exist",
         )
-    
+
     user_hash = user.hashed_password
     user_id = user.id
 
@@ -61,9 +63,9 @@ async def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials or user does not exist",
         )
-        
-    
-    data_dict = {
+
+
+    data_dict: dict[str, Any] = {
         "user": str(user_id)
     }
 

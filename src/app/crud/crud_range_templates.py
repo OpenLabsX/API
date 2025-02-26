@@ -16,7 +16,7 @@ from .crud_vpc_templates import create_vpc_template
 
 
 async def get_range_template_headers(
-    db: AsyncSession, user_id: uuid.UUID = None
+    db: AsyncSession, user_id: uuid.UUID | None = None
 ) -> list[TemplateRangeModel]:
     """Get list of range template headers.
 
@@ -47,7 +47,7 @@ async def get_range_template_headers(
 
 
 async def get_range_template(
-    db: AsyncSession, range_id: TemplateRangeID, user_id: uuid.UUID = None
+    db: AsyncSession, range_id: TemplateRangeID, user_id: uuid.UUID | None = None
 ) -> TemplateRangeModel | None:
     """Get range template by id (uuid).
 

@@ -33,7 +33,7 @@ async def create_secret(db: AsyncSession, secret: SecretSchema, user_id: UserID)
     return secret_obj
 
 
-async def get_user(db: AsyncSession, email: str) -> UserModel:
+async def get_user(db: AsyncSession, email: str) -> UserModel | None:
     """Get a user by email.
 
     Args:
@@ -63,7 +63,7 @@ async def get_user(db: AsyncSession, email: str) -> UserModel:
     return result.scalars().first()
 
 
-async def get_user_by_id(db: AsyncSession, user_id: UserID) -> UserModel:
+async def get_user_by_id(db: AsyncSession, user_id: UserID) -> UserModel | None:
     """Get a user by ID.
 
     Args:
