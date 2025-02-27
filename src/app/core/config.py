@@ -30,6 +30,16 @@ class AppSettings(BaseSettings):
     CONTACT_EMAIL: str | None = config("CONTACT_EMAIL", default="support@openlabsx.com")
 
 
+class AuthSettings(BaseSettings):
+    """Authentication settings."""
+
+    SECRET_KEY: str = config("SECRET_KEY", default="ChangeMe123!")
+    ALGORITHM: str = config("ALGORITHM", default="HS256")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = config(
+        "ACCESS_TOKEN_EXPIRE_MINUTES", default=60 * 24 * 7
+    )  # One week
+
+
 class CDKTFSettings(BaseSettings):
     """CDKTF settings."""
 
@@ -60,7 +70,7 @@ class PostgresSettings(DatabaseSettings):
     POSTGRES_URL: str | None = config("POSTGRES_URL", default=None)
 
 
-class Settings(AppSettings, PostgresSettings, CDKTFSettings):
+class Settings(AppSettings, PostgresSettings, CDKTFSettings, AuthSettings):
     """FastAPI app settings."""
 
     pass
