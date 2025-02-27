@@ -1,4 +1,5 @@
 import uuid
+import logging
 
 from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +13,8 @@ from ..schemas.template_host_schema import (
     TemplateHostSchema,
 )
 from ..schemas.template_subnet_schema import TemplateSubnetID
+
+logger = logging.getLogger(__name__)
 
 
 async def get_host_template_headers(
@@ -111,3 +114,28 @@ async def create_host_template(
         await db.refresh(host_obj)
 
     return host_obj
+
+
+async def delete_host_template(db: AsyncSession, host_model: TemplateHostModel) -> bool:
+    """Delete a standalone host template.
+
+    Only allows deletion if the host template is standalone (i.e. subnet_id is None).
+
+    Args:
+    ----
+        db (Sessions): Database connection.
+        host_model (TemplateHostModel): Host template model object.
+
+    Returns:
+    -------
+        bool: True if successfully delete. False otherwise.
+
+    """
+    if not host_model.is_standalone():
+        log_msg = "Cannot delete host template because it is not a standalone template."
+        logger.error(log_msg)
+        return False
+
+    await db.delete(host_model)
+    await db.commit()
+    return True

@@ -1,4 +1,5 @@
 import uuid
+import logging
 
 from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +14,8 @@ from ..schemas.template_subnet_schema import (
 )
 from ..schemas.template_vpc_schema import TemplateVPCID
 from .crud_host_templates import create_host_template
+
+logger = logging.getLogger(__name__)
 
 
 async def get_subnet_template_headers(
@@ -133,3 +136,32 @@ async def create_subnet_template(
         await db.refresh(subnet_obj)
 
     return subnet_obj
+
+
+async def delete_subnet_template(
+    db: AsyncSession, subnet_model: TemplateSubnetModel
+) -> bool:
+    """Delete a standalone subnet template.
+
+    Only allows deletion if the subnet template is standalone (i.e. vpc_id is None).
+
+    Args:
+    ----
+        db (Sessions): Database connection.
+        subnet_model (TemplateSubnetModel): Subnet template model object.
+
+    Returns:
+    -------
+        bool: True if successfully delete. False otherwise.
+
+    """
+    if not subnet_model.is_standalone():
+        log_msg = (
+            "Cannot delete subnet template because it is not a standalone template."
+        )
+        logger.error(log_msg)
+        return False
+
+    await db.delete(subnet_model)
+    await db.commit()
+    return True
