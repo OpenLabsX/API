@@ -6,10 +6,10 @@ from sqlalchemy.dialects.postgresql import CIDR, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..core.db.database import Base
-from .template_base_model import OpenLabsTemplateMixin
+from .template_base_model import TemplateModelMixin
 
 
-class TemplateVPCModel(Base, OpenLabsTemplateMixin):
+class TemplateVPCModel(Base, TemplateModelMixin):
     """SQLAlchemy ORM model for template vpc objects."""
 
     __tablename__ = "vpc_templates"
@@ -32,3 +32,15 @@ class TemplateVPCModel(Base, OpenLabsTemplateMixin):
     subnets = relationship(
         "TemplateSubnetModel", back_populates="vpc", cascade="all, delete-orphan"
     )
+
+    def is_standalone(self) -> bool:
+        """Return whether vpc template model is a standalone model.
+
+        Standalone means that the template is not part of a larger template.
+
+        Returns
+        -------
+            bool: True if standalone. False otherwise.
+
+        """
+        return self.range_id is None

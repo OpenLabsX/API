@@ -5,10 +5,10 @@ from sqlalchemy.dialects.postgresql import CIDR, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..core.db.database import Base
-from .template_base_model import OpenLabsTemplateMixin
+from .template_base_model import TemplateModelMixin
 
 
-class TemplateSubnetModel(Base, OpenLabsTemplateMixin):
+class TemplateSubnetModel(Base, TemplateModelMixin):
     """SQLAlchemy ORM model for template subnet objects."""
 
     __tablename__ = "subnet_templates"
@@ -31,3 +31,15 @@ class TemplateSubnetModel(Base, OpenLabsTemplateMixin):
     hosts = relationship(
         "TemplateHostModel", back_populates="subnet", cascade="all, delete-orphan"
     )
+
+    def is_standalone(self) -> bool:
+        """Return whether subnet template model is a standalone model.
+
+        Standalone means that the template is not part of a larger template.
+
+        Returns
+        -------
+            bool: True if standalone. False otherwise.
+
+        """
+        return self.vpc_id is None
