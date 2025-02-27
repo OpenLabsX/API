@@ -161,6 +161,7 @@ async def delete_range_template_endpoint(
     ----
         range_id (str): Id of the range template.
         db (AsyncSession): Async database connection.
+        current_user (UserModel): Currently authenticated user.
 
     Returns:
     -------
@@ -303,6 +304,7 @@ async def delete_vpc_template_endpoint(
     ----
         vpc_id (str): Id of the VPC template.
         db (AsyncSession): Async database connection.
+        current_user (UserModel): Currently authenticated user.
 
     Returns:
     -------
@@ -447,6 +449,7 @@ async def delete_subnet_template_endpoint(
     ----
         subnet_id (str): Id of the subnet template.
         db (AsyncSession): Async database connection.
+        current_user (UserModel): Currently authenticated user.
 
     Returns:
     -------
@@ -592,6 +595,7 @@ async def delete_host_template_endpoint(
     ----
         host_id (str): Id of the host.
         db (AsyncSession): Async database connection.
+        current_user (UserModel): Currently authenticated user.
 
     Returns:
     -------
