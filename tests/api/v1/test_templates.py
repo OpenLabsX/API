@@ -424,6 +424,7 @@ async def test_template_range_host_size_too_small(client: AsyncClient) -> None:
 
 async def test_template_range_delete(client: AsyncClient) -> None:
     """Test that we can sucessfully delete a range template."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.post(
         f"{BASE_ROUTE}/templates/ranges", json=valid_range_payload
     )
@@ -443,6 +444,7 @@ async def test_template_range_delete(client: AsyncClient) -> None:
 
 async def test_template_range_delete_invalid_uuid(client: AsyncClient) -> None:
     """Test that we get a 400 when providing an invalid UUID4."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     invalid_uuid = str(uuid.uuid4())[:-1]
     response = await client.delete(f"{BASE_ROUTE}/templates/ranges/{invalid_uuid}")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -451,6 +453,7 @@ async def test_template_range_delete_invalid_uuid(client: AsyncClient) -> None:
 
 async def test_template_ramge_delete_non_existent(client: AsyncClient) -> None:
     """Test that we get a 404 when trying to delete a nonexistent range template."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     random_uuid = str(uuid.uuid4())
     response = await client.delete(f"{BASE_ROUTE}/templates/ranges/{random_uuid}")
     assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -465,6 +468,7 @@ async def test_template_range_delete_non_standalone(
     were the highest level template and as a result the is_standalone() method was
     hardcoded to always return True for compatibility. This is why the method is mocked.
     """
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     # Patch range model method to return False
     monkeypatch.setattr(TemplateRangeModel, "is_standalone", lambda self: False)
 
@@ -486,6 +490,7 @@ async def test_template_range_delete_cascade_vpcs_subnets_and_hosts(
     client: AsyncClient,
 ) -> None:
     """Test that when we delete a range template it cascades and deletes the associated vpcs, subnets, and hosts."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     # Get all existing hosts
     response = await client.get(f"{BASE_ROUTE}/templates/hosts?standalone_only=false")
 
@@ -691,6 +696,7 @@ async def test_template_vpc_get_nonexistent_vpc(client: AsyncClient) -> None:
 
 async def test_template_vpc_delete(client: AsyncClient) -> None:
     """Test that we can sucessfully delete a VPC template."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.post(f"{BASE_ROUTE}/templates/vpcs", json=valid_vpc_payload)
     assert response.status_code == status.HTTP_200_OK
 
@@ -708,6 +714,7 @@ async def test_template_vpc_delete(client: AsyncClient) -> None:
 
 async def test_template_vpc_delete_invalid_uuid(client: AsyncClient) -> None:
     """Test that we get a 400 when providing an invalid UUID4."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     invalid_uuid = str(uuid.uuid4())[:-1]
     response = await client.delete(f"{BASE_ROUTE}/templates/vpcs/{invalid_uuid}")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -716,6 +723,7 @@ async def test_template_vpc_delete_invalid_uuid(client: AsyncClient) -> None:
 
 async def test_template_vpc_delete_non_existent(client: AsyncClient) -> None:
     """Test that we get a 404 when trying to delete a nonexistent VPC template."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     random_uuid = str(uuid.uuid4())
     response = await client.delete(f"{BASE_ROUTE}/templates/vpcs/{random_uuid}")
     assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -723,6 +731,7 @@ async def test_template_vpc_delete_non_existent(client: AsyncClient) -> None:
 
 async def test_template_vpc_delete_non_standalone(client: AsyncClient) -> None:
     """Test that we get a 409 when trying to delete a non-standalone VPC template."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     # Get all existing subnets
     response = await client.get(f"{BASE_ROUTE}/templates/vpcs?standalone_only=false")
 
@@ -760,6 +769,7 @@ async def test_template_vpc_delete_cascade_subnets_and_hosts(
     client: AsyncClient,
 ) -> None:
     """Test that when we delete a subnet template it cascades and deletes the associated hosts."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     # Get all existing hosts
     response = await client.get(f"{BASE_ROUTE}/templates/hosts?standalone_only=false")
 
@@ -936,6 +946,7 @@ async def test_template_subnet_get_nonexistent_subnet(client: AsyncClient) -> No
 
 async def test_template_subnet_delete(client: AsyncClient) -> None:
     """Test that we can sucessfully delete a subnet template."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.post(
         f"{BASE_ROUTE}/templates/subnets", json=valid_subnet_payload
     )
@@ -955,6 +966,7 @@ async def test_template_subnet_delete(client: AsyncClient) -> None:
 
 async def test_template_subnet_delete_invalid_uuid(client: AsyncClient) -> None:
     """Test that we get a 400 when providing an invalid UUID4."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     invalid_uuid = str(uuid.uuid4())[:-1]
     response = await client.delete(f"{BASE_ROUTE}/templates/subnets/{invalid_uuid}")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -963,6 +975,7 @@ async def test_template_subnet_delete_invalid_uuid(client: AsyncClient) -> None:
 
 async def test_template_subnet_delete_non_existent(client: AsyncClient) -> None:
     """Test that we get a 404 when trying to delete a nonexistent subnet template."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     random_uuid = str(uuid.uuid4())
     response = await client.delete(f"{BASE_ROUTE}/templates/subnets/{random_uuid}")
     assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -970,6 +983,7 @@ async def test_template_subnet_delete_non_existent(client: AsyncClient) -> None:
 
 async def test_template_subnet_delete_non_standalone(client: AsyncClient) -> None:
     """Test that we get a 409 when trying to delete a non-standalone subnet template."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     # Get all existing subnets
     response = await client.get(f"{BASE_ROUTE}/templates/subnets?standalone_only=false")
 
@@ -1005,6 +1019,7 @@ async def test_template_subnet_delete_non_standalone(client: AsyncClient) -> Non
 
 async def test_template_subnet_delete_cascade_hosts(client: AsyncClient) -> None:
     """Test that when we delete a subnet template it cascades and deletes the associated hosts."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     # Get all existing hosts
     response = await client.get(f"{BASE_ROUTE}/templates/hosts?standalone_only=false")
 
@@ -1152,6 +1167,7 @@ async def test_user_cant_access_other_templates(client: AsyncClient) -> None:
 
 async def test_template_host_delete(client: AsyncClient) -> None:
     """Test that we get can successfully delete host templates."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.post(
         f"{BASE_ROUTE}/templates/hosts", json=valid_host_payload
     )
@@ -1171,6 +1187,7 @@ async def test_template_host_delete(client: AsyncClient) -> None:
 
 async def test_template_host_delete_invalid_uuid(client: AsyncClient) -> None:
     """Test that we get a 400 when providing an invalid UUID4."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     invalid_uuid = str(uuid.uuid4())[:-1]
     response = await client.delete(f"{BASE_ROUTE}/templates/hosts/{invalid_uuid}")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -1179,6 +1196,7 @@ async def test_template_host_delete_invalid_uuid(client: AsyncClient) -> None:
 
 async def test_template_host_delete_non_existent(client: AsyncClient) -> None:
     """Test that we get a 404 when trying to delete a nonexistent host."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     random_uuid = str(uuid.uuid4())
     response = await client.delete(f"{BASE_ROUTE}/templates/hosts/{random_uuid}")
     assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -1186,6 +1204,7 @@ async def test_template_host_delete_non_existent(client: AsyncClient) -> None:
 
 async def test_template_host_delete_non_standalone(client: AsyncClient) -> None:
     """Test that we get a 409 when trying to delete a non-standalone template."""
+    client.headers.update({"Authorization": f"Bearer {auth_token}"})
     # Get all existing hosts
     response = await client.get(f"{BASE_ROUTE}/templates/hosts?standalone_only=false")
 

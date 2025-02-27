@@ -152,7 +152,8 @@ async def upload_range_template_endpoint(
 
 @router.delete("/ranges/{range_id}")
 async def delete_range_template_endpoint(
-    range_id: str, db: AsyncSession = Depends(async_get_db)  # noqa: B008
+    range_id: str, db: AsyncSession = Depends(async_get_db),  # noqa: B008
+    current_user: UserModel = Depends(get_current_user),  # noqa: B008
 ) -> bool:
     """Delete a range template.
 
@@ -173,13 +174,13 @@ async def delete_range_template_endpoint(
             detail="ID provided is not a valid UUID4.",
         )
 
-    range_template = await get_range_template(db, TemplateRangeID(id=range_id))
+    range_template = await get_range_template(db, TemplateRangeID(id=range_id), user_id=current_user.id)
 
     # Does not exist
     if not range_template:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Range template with id: {range_id} not found!",
+            detail=f"Range template with id: {range_id} not found or you don't have access to it!",
         )
 
     # Not standalone template
@@ -293,7 +294,8 @@ async def upload_vpc_template_endpoint(
 
 @router.delete("/vpcs/{vpc_id}")
 async def delete_vpc_template_endpoint(
-    vpc_id: str, db: AsyncSession = Depends(async_get_db)  # noqa: B008
+    vpc_id: str, db: AsyncSession = Depends(async_get_db),  # noqa: B008
+    current_user: UserModel = Depends(get_current_user),  # noqa: B008
 ) -> bool:
     """Delete a VPC template.
 
@@ -314,13 +316,13 @@ async def delete_vpc_template_endpoint(
             detail="ID provided is not a valid UUID4.",
         )
 
-    vpc_template = await get_vpc_template(db, TemplateVPCID(id=vpc_id))
+    vpc_template = await get_vpc_template(db, TemplateVPCID(id=vpc_id), user_id=current_user.id)
 
     # Does not exist
     if not vpc_template:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"VPC template with id: {vpc_id} not found!",
+            detail=f"VPC template with id: {vpc_id} not found or you don't have access to it!",
         )
 
     # Not standalone template
@@ -436,7 +438,8 @@ async def upload_subnet_template_endpoint(
 
 @router.delete("/subnets/{subnet_id}")
 async def delete_subnet_template_endpoint(
-    subnet_id: str, db: AsyncSession = Depends(async_get_db)  # noqa: B008
+    subnet_id: str, db: AsyncSession = Depends(async_get_db),  # noqa: B008
+    current_user: UserModel = Depends(get_current_user),  # noqa: B008
 ) -> bool:
     """Delete a subnet template.
 
@@ -457,13 +460,13 @@ async def delete_subnet_template_endpoint(
             detail="ID provided is not a valid UUID4.",
         )
 
-    subnet_template = await get_subnet_template(db, TemplateSubnetID(id=subnet_id))
+    subnet_template = await get_subnet_template(db, TemplateSubnetID(id=subnet_id), user_id=current_user.id)
 
     # Does not exist
     if not subnet_template:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Subnet template with id: {subnet_id} not found!",
+            detail=f"Subnet template with id: {subnet_id} not found or you don't have access to it!",
         )
 
     # Not standalone template
@@ -580,7 +583,8 @@ async def upload_host_template_endpoint(
 
 @router.delete("/hosts/{host_id}")
 async def delete_host_template_endpoint(
-    host_id: str, db: AsyncSession = Depends(async_get_db)  # noqa: B008
+    host_id: str, db: AsyncSession = Depends(async_get_db),  # noqa: B008
+    current_user: UserModel = Depends(get_current_user),  # noqa: B008
 ) -> bool:
     """Delete a host template.
 
@@ -601,13 +605,13 @@ async def delete_host_template_endpoint(
             detail="ID provided is not a valid UUID4.",
         )
 
-    host_template = await get_host_template(db, TemplateHostID(id=host_id))
+    host_template = await get_host_template(db, TemplateHostID(id=host_id), user_id=current_user.id)
 
     # Does not exist
     if not host_template:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Host with id: {host_id} not found!",
+            detail=f"Host with id: {host_id} not found or you don't have access to it!",
         )
 
     # Not standalone template
