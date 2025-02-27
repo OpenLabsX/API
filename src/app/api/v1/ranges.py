@@ -47,7 +47,7 @@ async def deploy_range_from_template(
             )
 
         # Get the template
-        range_model = (await get_range_template(db, range_id, user_id=current_user.id),)
+        range_model = await get_range_template(db, range_id, user_id=current_user.id)
         if not range_model:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
