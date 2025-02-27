@@ -1165,6 +1165,7 @@ async def test_user_cant_access_other_templates(client: AsyncClient) -> None:
         response = await client.get(f"{BASE_ROUTE}/templates/ranges/{template_id}")
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
+
 async def test_template_host_delete(client: AsyncClient) -> None:
     """Test that we get can successfully delete host templates."""
     client.headers.update({"Authorization": f"Bearer {auth_token}"})

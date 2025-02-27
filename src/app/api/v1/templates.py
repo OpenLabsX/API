@@ -152,7 +152,8 @@ async def upload_range_template_endpoint(
 
 @router.delete("/ranges/{range_id}")
 async def delete_range_template_endpoint(
-    range_id: str, db: AsyncSession = Depends(async_get_db),  # noqa: B008
+    range_id: str,
+    db: AsyncSession = Depends(async_get_db),  # noqa: B008
     current_user: UserModel = Depends(get_current_user),  # noqa: B008
 ) -> bool:
     """Delete a range template.
@@ -175,7 +176,9 @@ async def delete_range_template_endpoint(
             detail="ID provided is not a valid UUID4.",
         )
 
-    range_template = await get_range_template(db, TemplateRangeID(id=range_id), user_id=current_user.id)
+    range_template = await get_range_template(
+        db, TemplateRangeID(id=range_id), user_id=current_user.id
+    )
 
     # Does not exist
     if not range_template:
@@ -295,7 +298,8 @@ async def upload_vpc_template_endpoint(
 
 @router.delete("/vpcs/{vpc_id}")
 async def delete_vpc_template_endpoint(
-    vpc_id: str, db: AsyncSession = Depends(async_get_db),  # noqa: B008
+    vpc_id: str,
+    db: AsyncSession = Depends(async_get_db),  # noqa: B008
     current_user: UserModel = Depends(get_current_user),  # noqa: B008
 ) -> bool:
     """Delete a VPC template.
@@ -318,7 +322,9 @@ async def delete_vpc_template_endpoint(
             detail="ID provided is not a valid UUID4.",
         )
 
-    vpc_template = await get_vpc_template(db, TemplateVPCID(id=vpc_id), user_id=current_user.id)
+    vpc_template = await get_vpc_template(
+        db, TemplateVPCID(id=vpc_id), user_id=current_user.id
+    )
 
     # Does not exist
     if not vpc_template:
@@ -440,7 +446,8 @@ async def upload_subnet_template_endpoint(
 
 @router.delete("/subnets/{subnet_id}")
 async def delete_subnet_template_endpoint(
-    subnet_id: str, db: AsyncSession = Depends(async_get_db),  # noqa: B008
+    subnet_id: str,
+    db: AsyncSession = Depends(async_get_db),  # noqa: B008
     current_user: UserModel = Depends(get_current_user),  # noqa: B008
 ) -> bool:
     """Delete a subnet template.
@@ -463,7 +470,9 @@ async def delete_subnet_template_endpoint(
             detail="ID provided is not a valid UUID4.",
         )
 
-    subnet_template = await get_subnet_template(db, TemplateSubnetID(id=subnet_id), user_id=current_user.id)
+    subnet_template = await get_subnet_template(
+        db, TemplateSubnetID(id=subnet_id), user_id=current_user.id
+    )
 
     # Does not exist
     if not subnet_template:
@@ -583,10 +592,10 @@ async def upload_host_template_endpoint(
     return TemplateHostID.model_validate(created_host, from_attributes=True)
 
 
-
 @router.delete("/hosts/{host_id}")
 async def delete_host_template_endpoint(
-    host_id: str, db: AsyncSession = Depends(async_get_db),  # noqa: B008
+    host_id: str,
+    db: AsyncSession = Depends(async_get_db),  # noqa: B008
     current_user: UserModel = Depends(get_current_user),  # noqa: B008
 ) -> bool:
     """Delete a host template.
@@ -609,7 +618,9 @@ async def delete_host_template_endpoint(
             detail="ID provided is not a valid UUID4.",
         )
 
-    host_template = await get_host_template(db, TemplateHostID(id=host_id), user_id=current_user.id)
+    host_template = await get_host_template(
+        db, TemplateHostID(id=host_id), user_id=current_user.id
+    )
 
     # Does not exist
     if not host_template:
