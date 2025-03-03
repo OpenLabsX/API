@@ -261,7 +261,7 @@ This workflow automatically creates GitHub tagged releases based on the tag of t
 
 5) Create a GitHub App
 
-    ***Note:** OpenLabsX already has the `auto-release-app` installed. Skip to step 7.*
+    ***Note:** OpenLabs already has the `auto-release-app` installed. Skip to step 7.*
 
     This allows us to enforce branch protection rules while allowing the Auto release tool to bypass the protections when running automated workflows. (Source: [Comment Link](https://github.com/orgs/community/discussions/13836#discussioncomment-8535364))
     

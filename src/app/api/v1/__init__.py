@@ -1,4 +1,4 @@
-"""Version 1 of the OpenLabsX API routes."""
+"""Version 1 of the OpenLabs API routes."""
 
 from fastapi import APIRouter
 
