@@ -69,14 +69,18 @@ async def test_get_auth_token(client: AsyncClient) -> None:
 
     assert response.status_code == status.HTTP_200_OK
 
-    response = await client.post(f"{BASE_ROUTE}/auth/login", json=user_login_payload)
-    assert response.status_code == status.HTTP_200_OK
+    login_response = await client.post(
+        f"{BASE_ROUTE}/auth/login", json=user_login_payload
+    )
+    assert login_response.status_code == status.HTTP_200_OK
+
     global auth_token
-    auth_token = response.json()["token"]
+    auth_token = login_response.cookies.get("token")
 
 
 async def test_template_range_get_all_empty_list(client: AsyncClient) -> None:
     """Test that we get a 404 response when there are no range templates."""
+    # For backward compatibility, continue using the Authorization header
     client.headers.update({"Authorization": f"Bearer {auth_token}"})
     response = await client.get(f"{BASE_ROUTE}/templates/ranges")
     print(response.json())
@@ -1147,7 +1151,7 @@ async def test_user_cant_access_other_templates(client: AsyncClient) -> None:
     )
     assert response.status_code == status.HTTP_200_OK
 
-    new_auth_token = response.json()["token"]
+    new_auth_token = response.cookies.get("token")
 
     client.headers.update({"Authorization": f"Bearer {new_auth_token}"})
 

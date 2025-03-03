@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Cookie, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,19 +11,23 @@ from ...schemas.user_schema import UserID
 from ..config import settings
 from ..db.database import async_get_db
 
-# Create a security scheme using HTTPBearer
-security = HTTPBearer()
+# Create a security scheme using HTTPBearer (kept for backward compatibility)
+security = HTTPBearer(auto_error=False)
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),  # noqa: B008
+    request: Request,
+    token: str | None = Cookie(None, alias="token"),
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),  # noqa: B008
     db: AsyncSession = Depends(async_get_db),  # noqa: B008
 ) -> UserModel:
     """Get the current user from the JWT token.
 
     Args:
     ----
-        credentials (HTTPAuthorizationCredentials): HTTP Bearer token
+        request (Request): The FastAPI request object
+        token (Optional[str]): HTTP-only cookie containing JWT
+        credentials (Optional[HTTPAuthorizationCredentials]): HTTP Bearer token (fallback)
         db (AsyncSession): Database connection
 
     Returns:
@@ -35,10 +39,24 @@ async def get_current_user(
         HTTPException: If the token is invalid or the user doesn't exist
 
     """
+    jwt_token = None
+    # First, try to get the token from the cookie
+    if token:
+        jwt_token = token
+    # If no cookie, try to get from Authorization header (backward compatibility)
+    elif credentials and credentials.credentials:
+        jwt_token = credentials.credentials
+    # If neither is present, raise an exception
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication credentials missing",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     try:
         # Decode the JWT token
         payload = jwt.decode(
-            credentials.credentials,
+            jwt_token,
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM],
         )
