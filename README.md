@@ -32,6 +32,12 @@ POSTGRES_DB=openlabsx
 
 # Docker Compose Configuration
 POSTGRES_DEBUG_PORT=5432  # Expose PostgreSQL on host port for debugging
+
+# Admin User Configuration (optional)
+ADMIN_EMAIL=admin@test.com        # Default admin email 
+ADMIN_PASSWORD=admin123           # Default admin password
+ADMIN_NAME=Administrator          # Default admin name
+# Admin user is automatically created when database is initialized
 ```
 </details>
 
@@ -261,7 +267,7 @@ This workflow automatically creates GitHub tagged releases based on the tag of t
 
 5) Create a GitHub App
 
-    ***Note:** OpenLabsX already has the `auto-release-app` installed. Skip to step 7.*
+    ***Note:** OpenLabs already has the `auto-release-app` installed. Skip to step 7.*
 
     This allows us to enforce branch protection rules while allowing the Auto release tool to bypass the protections when running automated workflows. (Source: [Comment Link](https://github.com/orgs/community/discussions/13836#discussioncomment-8535364))
     
