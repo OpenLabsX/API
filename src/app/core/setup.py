@@ -3,7 +3,7 @@ from typing import Any, AsyncContextManager, AsyncGenerator, Callable
 
 from fastapi import APIRouter, FastAPI
 
-from ..crud.crud_users import create_user
+from ..crud.crud_users import create_user, get_user
 from ..schemas.user_schema import UserCreateBaseSchema
 from .config import AppSettings, DatabaseSettings, settings
 from .db.database import Base, local_session
@@ -29,8 +29,9 @@ async def initialize_admin_user() -> None:
                 name=settings.ADMIN_NAME,
             )
 
-            # Create the admin user
-            await create_user(db, admin_schema, is_admin=True)
+            admin_user = await get_user(db, settings.ADMIN_EMAIL)
+            if not admin_user:
+                await create_user(db, admin_schema, is_admin=True)
     except Exception as e:
         msg = "Failed to create admin user. Check logs for more details."
         raise ValueError(msg) from e

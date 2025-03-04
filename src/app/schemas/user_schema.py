@@ -20,19 +20,22 @@ class UserBaseSchema(BaseModel):
 
     @field_validator("email")
     @classmethod
-    def validate_email(cls, email: str) -> str:
+    def validate_email(cls, email: str, info: ValidationInfo) -> str:
         """Check that email format is valid.
 
         Args:
         ----
             cls: OpenLabsUser object.
             email (str): User email address.
+            info (ValidatonInfo): Validator context
 
         Returns:
         -------
             str: User email address.
 
         """
+        # This import is not used, but must match for UserCreateBaseSchema
+
         try:
             emailinfo = validate_email(email, check_deliverability=False)
 
@@ -72,7 +75,8 @@ class UserCreateBaseSchema(UserBaseSchema):
         try:
             # Skip deliverability check if user is admin (system default)
             if is_admin:
-                return email
+                emailinfo = validate_email(email, check_deliverability=False)
+                return emailinfo.normalized
 
             # Makes a DNS query to validate deliverability
             # We do this, as users will only be added to DB on registration
