@@ -50,7 +50,7 @@ async def deploy_range_from_template(
 
         # Set user_id to None for admin to allow accessing any template
         user_id = None if current_user.is_admin else current_user.id
-        
+
         # Get the template
         range_model = await get_range_template(db, range_id, user_id=user_id)
         if not range_model:

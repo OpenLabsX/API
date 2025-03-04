@@ -38,7 +38,7 @@ class AuthSettings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = config(
         "ACCESS_TOKEN_EXPIRE_MINUTES", default=60 * 24 * 7
     )  # One week
-    
+
     # Admin user settings
     ADMIN_EMAIL: str = config("ADMIN_EMAIL", default="admin@test.com")
     ADMIN_PASSWORD: str = config("ADMIN_PASSWORD", default="admin123")

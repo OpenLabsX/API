@@ -79,7 +79,11 @@ async def get_range_template_headers_endpoint(
     range_headers = await get_range_template_headers(db, user_id=user_id)
 
     if not range_headers:
-        detail = "No range templates found!" if current_user.is_admin else "Unable to find any range templates that you own!"
+        detail = (
+            "No range templates found!"
+            if current_user.is_admin
+            else "Unable to find any range templates that you own!"
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=detail,
@@ -118,7 +122,7 @@ async def get_range_template_endpoint(
 
     # For admin users, don't filter by user_id to allow access to all templates
     user_id = None if current_user.is_admin else current_user.id
-    
+
     # Get the template
     range_template = await get_range_template(
         db, TemplateRangeID(id=range_id), user_id=user_id
@@ -184,7 +188,7 @@ async def delete_range_template_endpoint(
 
     # For admin users, don't filter by user_id to allow access to all templates
     user_id = None if current_user.is_admin else current_user.id
-    
+
     range_template = await get_range_template(
         db, TemplateRangeID(id=range_id), user_id=user_id
     )
@@ -227,14 +231,18 @@ async def get_vpc_template_headers_endpoint(
     """
     # If user is admin, get all templates, otherwise only get templates owned by the user
     user_id = None if current_user.is_admin else current_user.id
-    
+
     vpc_headers = await get_vpc_template_headers(
         db, user_id=user_id, standalone_only=standalone_only
     )
 
     if not vpc_headers:
         standalone_text = " standalone" if standalone_only else ""
-        detail = f"No{standalone_text} VPC templates found!" if current_user.is_admin else f"Unable to find any{standalone_text} VPC templates that you own!"
+        detail = (
+            f"No{standalone_text} VPC templates found!"
+            if current_user.is_admin
+            else f"Unable to find any{standalone_text} VPC templates that you own!"
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=detail,
@@ -273,11 +281,9 @@ async def get_vpc_template_endpoint(
 
     # For admin users, don't filter by user_id to allow access to all templates
     user_id = None if current_user.is_admin else current_user.id
-    
+
     # Get the template
-    vpc_template = await get_vpc_template(
-        db, TemplateVPCID(id=vpc_id), user_id=user_id
-    )
+    vpc_template = await get_vpc_template(db, TemplateVPCID(id=vpc_id), user_id=user_id)
 
     if not vpc_template:
         raise HTTPException(
@@ -340,10 +346,8 @@ async def delete_vpc_template_endpoint(
 
     # For admin users, don't filter by user_id to allow access to all templates
     user_id = None if current_user.is_admin else current_user.id
-    
-    vpc_template = await get_vpc_template(
-        db, TemplateVPCID(id=vpc_id), user_id=user_id
-    )
+
+    vpc_template = await get_vpc_template(db, TemplateVPCID(id=vpc_id), user_id=user_id)
 
     # Does not exist
     if not vpc_template:
@@ -383,7 +387,7 @@ async def get_subnet_template_headers_endpoint(
     """
     # If user is admin, get all templates, otherwise only get templates owned by the user
     user_id = None if current_user.is_admin else current_user.id
-    
+
     # Get subnet headers
     subnet_headers = await get_subnet_template_headers(
         db, standalone_only=standalone_only, user_id=user_id
@@ -391,7 +395,11 @@ async def get_subnet_template_headers_endpoint(
 
     if not subnet_headers:
         standalone_text = " standalone" if standalone_only else ""
-        detail = f"No{standalone_text} subnet templates found!" if current_user.is_admin else f"Unable to find any{standalone_text} subnet templates that you own!"
+        detail = (
+            f"No{standalone_text} subnet templates found!"
+            if current_user.is_admin
+            else f"Unable to find any{standalone_text} subnet templates that you own!"
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=detail,
@@ -430,7 +438,7 @@ async def get_subnet_template_endpoint(
 
     # For admin users, don't filter by user_id to allow access to all templates
     user_id = None if current_user.is_admin else current_user.id
-    
+
     subnet_template = await get_subnet_template(
         db, TemplateSubnetID(id=subnet_id), user_id=user_id
     )
@@ -499,7 +507,7 @@ async def delete_subnet_template_endpoint(
 
     # For admin users, don't filter by user_id to allow access to all templates
     user_id = None if current_user.is_admin else current_user.id
-    
+
     subnet_template = await get_subnet_template(
         db, TemplateSubnetID(id=subnet_id), user_id=user_id
     )
@@ -542,7 +550,7 @@ async def get_host_template_headers_endpoint(
     """
     # If user is admin, get all templates, otherwise only get templates owned by the user
     user_id = None if current_user.is_admin else current_user.id
-    
+
     # Get host headers
     host_headers = await get_host_template_headers(
         db, standalone_only=standalone_only, user_id=user_id
@@ -550,7 +558,11 @@ async def get_host_template_headers_endpoint(
 
     if not host_headers:
         standalone_text = " standalone" if standalone_only else ""
-        detail = f"No{standalone_text} host templates found!" if current_user.is_admin else f"Unable to find any{standalone_text} host templates that you own!"
+        detail = (
+            f"No{standalone_text} host templates found!"
+            if current_user.is_admin
+            else f"Unable to find any{standalone_text} host templates that you own!"
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=detail,
@@ -589,7 +601,7 @@ async def get_host_template_endpoint(
 
     # For admin users, don't filter by user_id to allow access to all templates
     user_id = None if current_user.is_admin else current_user.id
-    
+
     host_template = await get_host_template(
         db, TemplateHostID(id=host_id), user_id=user_id
     )
@@ -658,7 +670,7 @@ async def delete_host_template_endpoint(
 
     # For admin users, don't filter by user_id to allow access to all templates
     user_id = None if current_user.is_admin else current_user.id
-    
+
     host_template = await get_host_template(
         db, TemplateHostID(id=host_id), user_id=user_id
     )

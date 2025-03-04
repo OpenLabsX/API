@@ -1,7 +1,7 @@
 import uuid
 
 from email_validator import EmailNotValidError, validate_email
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 
 class UserBaseSchema(BaseModel):
@@ -54,20 +54,26 @@ class UserCreateBaseSchema(UserBaseSchema):
 
     @field_validator("email")
     @classmethod
-    def validate_email(cls, email: str) -> str:
+    def validate_email(cls, email: str, info: ValidationInfo) -> str:
         """Check that email format is valid.
 
         Args:
         ----
             cls: OpenLabsUser object.
             email (str): User email address.
+            info (ValidatonInfo): Validator context
 
         Returns:
         -------
             str: User email address.
 
         """
+        is_admin: bool = info.data.get("is_admin", False)
         try:
+            # Skip deliverability check if user is admin (system default)
+            if is_admin:
+                return email
+
             # Makes a DNS query to validate deliverability
             # We do this, as users will only be added to DB on registration
             emailinfo = validate_email(email, check_deliverability=True)

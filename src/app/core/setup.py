@@ -1,43 +1,39 @@
 from contextlib import asynccontextmanager
-import logging
 from typing import Any, AsyncContextManager, AsyncGenerator, Callable
 
 from fastapi import APIRouter, FastAPI
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..crud.crud_users import create_user
+from ..schemas.user_schema import UserCreateBaseSchema
 from .config import AppSettings, DatabaseSettings, settings
 from .db.database import Base, local_session
 from .db.database import async_engine as engine
-from ..crud.crud_users import create_admin_user
 
 
-async def initialize_database() -> None:
-    """Create database tables and initialize the admin user."""
+# Function to create database tables
+async def create_tables() -> None:
+    """Create SQL tables."""
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
+# Function to initialize admin user
+async def initialize_admin_user() -> None:
+    """Create admin user if it doesn't exist."""
     try:
-        # Create tables first
-        async with engine.beginggg() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        
-        # Then create the admin user in a separate session
         async with local_session() as db:
-            try:
-                admin_email = settings.ADMIN_EMAIL
-                admin_password = settings.ADMIN_PASSWORD
-                admin_name = settings.ADMIN_NAME
-                
-                try:
-                    await create_admin_user(
-                        db=db,
-                        email=admin_email,
-                        password=admin_password,
-                        name=admin_name
-                    )
-                except Exception as admin_error:
-                    raise ValueError(f"Failed to create admin user: {admin_error}")
-            except Exception as user_error:
-                raise ValueError(f"Failed to create admin user: {user_error}")
-    except Exception as db_error:
-        raise ValueError(f"Failed to initialize database: {db_error}")
+            # Create a UserCreateBaseSchema with the admin details
+            admin_schema = UserCreateBaseSchema(
+                email=settings.ADMIN_EMAIL,
+                password=settings.ADMIN_PASSWORD,
+                name=settings.ADMIN_NAME,
+            )
+
+            # Create the admin user
+            await create_user(db, admin_schema, is_admin=True)
+    except Exception as e:
+        msg = "Failed to create admin user. Check logs for more details."
+        raise ValueError(msg) from e
 
 
 # Lifespan factory to manage app lifecycle events
@@ -51,8 +47,8 @@ def lifespan_factory(
     async def lifespan(app: FastAPI) -> AsyncGenerator[Any, None]:
 
         if isinstance(settings, DatabaseSettings) and create_tables_on_start:
-            # Initialize database and admin user in one step
-            await initialize_database()
+            await create_tables()
+            await initialize_admin_user()
 
         yield
 
