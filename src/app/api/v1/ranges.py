@@ -38,20 +38,25 @@ async def deploy_range_from_template(
 
     ranges: list[TemplateRangeSchema] = []
     for range_id in range_ids:
-        # Check if the user owns this template
-        is_owner = await is_range_template_owner(db, range_id, current_user.id)
-        if not is_owner:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"You don't have permission to deploy range with ID: {range_id.id}",
-            )
+        # For admin users, skip ownership check to allow deploying any range
+        if not current_user.is_admin:
+            # Check if the user owns this template
+            is_owner = await is_range_template_owner(db, range_id, current_user.id)
+            if not is_owner:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"You don't have permission to deploy range with ID: {range_id.id}",
+                )
 
+        # Set user_id to None for admin to allow accessing any template
+        user_id = None if current_user.is_admin else current_user.id
+        
         # Get the template
-        range_model = await get_range_template(db, range_id, user_id=current_user.id)
+        range_model = await get_range_template(db, range_id, user_id=user_id)
         if not range_model:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Range template with ID: {range_id.id} not found or you don't have access to it!",
+                detail=f"Range template with ID: {range_id.id} not found!",
             )
 
         ranges.append(

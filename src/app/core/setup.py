@@ -1,18 +1,43 @@
 from contextlib import asynccontextmanager
+import logging
 from typing import Any, AsyncContextManager, AsyncGenerator, Callable
 
 from fastapi import APIRouter, FastAPI
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from .config import AppSettings, DatabaseSettings
-from .db.database import Base
+from .config import AppSettings, DatabaseSettings, settings
+from .db.database import Base, local_session
 from .db.database import async_engine as engine
+from ..crud.crud_users import create_admin_user
 
 
-# Function to create database tables
-async def create_tables() -> None:
-    """Create SQL tables."""
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+async def initialize_database() -> None:
+    """Create database tables and initialize the admin user."""
+    try:
+        # Create tables first
+        async with engine.beginggg() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        
+        # Then create the admin user in a separate session
+        async with local_session() as db:
+            try:
+                admin_email = settings.ADMIN_EMAIL
+                admin_password = settings.ADMIN_PASSWORD
+                admin_name = settings.ADMIN_NAME
+                
+                try:
+                    await create_admin_user(
+                        db=db,
+                        email=admin_email,
+                        password=admin_password,
+                        name=admin_name
+                    )
+                except Exception as admin_error:
+                    raise ValueError(f"Failed to create admin user: {admin_error}")
+            except Exception as user_error:
+                raise ValueError(f"Failed to create admin user: {user_error}")
+    except Exception as db_error:
+        raise ValueError(f"Failed to initialize database: {db_error}")
 
 
 # Lifespan factory to manage app lifecycle events
@@ -26,7 +51,8 @@ def lifespan_factory(
     async def lifespan(app: FastAPI) -> AsyncGenerator[Any, None]:
 
         if isinstance(settings, DatabaseSettings) and create_tables_on_start:
-            await create_tables()
+            # Initialize database and admin user in one step
+            await initialize_database()
 
         yield
 

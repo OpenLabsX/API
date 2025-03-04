@@ -32,6 +32,12 @@ POSTGRES_DB=openlabsx
 
 # Docker Compose Configuration
 POSTGRES_DEBUG_PORT=5432  # Expose PostgreSQL on host port for debugging
+
+# Admin User Configuration (optional)
+ADMIN_EMAIL=admin@test.com        # Default admin email 
+ADMIN_PASSWORD=admin123           # Default admin password
+ADMIN_NAME=Administrator          # Default admin name
+# Admin user is automatically created when database is initialized
 ```
 </details>
 

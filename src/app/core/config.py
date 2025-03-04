@@ -27,7 +27,7 @@ class AppSettings(BaseSettings):
         default="https://github.com/OpenLabs/API?tab=GPL-3.0-1-ov-file#readme",
     )
     CONTACT_NAME: str | None = config("CONTACT_NAME", default="OpenLabs Support")
-    CONTACT_EMAIL: str | None = config("CONTACT_EMAIL", default="support@openlabsx.com")
+    CONTACT_EMAIL: str | None = config("CONTACT_EMAIL", default="support@openlabs.sh")
 
 
 class AuthSettings(BaseSettings):
@@ -38,6 +38,11 @@ class AuthSettings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = config(
         "ACCESS_TOKEN_EXPIRE_MINUTES", default=60 * 24 * 7
     )  # One week
+    
+    # Admin user settings
+    ADMIN_EMAIL: str = config("ADMIN_EMAIL", default="admin@test.com")
+    ADMIN_PASSWORD: str = config("ADMIN_PASSWORD", default="admin123")
+    ADMIN_NAME: str = config("ADMIN_NAME", default="Administrator")
 
 
 class CDKTFSettings(BaseSettings):

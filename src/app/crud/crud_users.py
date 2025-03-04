@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+import uuid
 
 from bcrypt import gensalt, hashpw
 from sqlalchemy import inspect, select
@@ -99,7 +100,7 @@ async def get_user_by_id(db: AsyncSession, user_id: UserID) -> UserModel | None:
 
 
 async def create_user(
-    db: AsyncSession, openlabs_user: UserCreateBaseSchema
+    db: AsyncSession, openlabs_user: UserCreateBaseSchema, is_admin: bool = False
 ) -> UserModel:
     """Create and add a new OpenLabsUser to the database.
 
@@ -107,6 +108,7 @@ async def create_user(
     ----
         db (Session): Database connection.
         openlabs_user (UserBaseSchema): Dictionary containing User data.
+        is_admin (bool): Whether the user should be an admin. Defaults to False.
 
     Returns:
     -------
@@ -127,7 +129,7 @@ async def create_user(
     user_dict["created_at"] = datetime.now(UTC)
     user_dict["last_active"] = datetime.now(UTC)
 
-    user_dict["is_admin"] = False
+    user_dict["is_admin"] = is_admin
 
     user_obj = UserModel(**user_dict)
     db.add(user_obj)
@@ -143,3 +145,66 @@ async def create_user(
     await db.commit()
 
     return user_obj
+
+
+async def create_admin_user(
+    db: AsyncSession, email: str, password: str, name: str
+) -> UserModel:
+    """Create an admin user if one with the provided email doesn't exist.
+
+    Args:
+    ----
+        db (Session): Database connection.
+        email (str): Admin email.
+        password (str): Admin password.
+        name (str): Admin name.
+
+    Returns:
+    -------
+        UserModel: The created admin user or existing user.
+    """
+    # Check if admin user already exists
+    existing_user = await get_user(db, email)
+    
+    if existing_user:
+        # If the user exists but is not an admin, make them an admin
+        if not existing_user.is_admin:
+            existing_user.is_admin = True
+            await db.commit()
+        return existing_user
+    
+    try:
+        # Create the user using the ORM
+        now = datetime.now(UTC)
+        user_id = uuid.uuid4()
+        
+        # Hash the password
+        hash_salt = gensalt()
+        hashed_password = hashpw(password.encode(), hash_salt).decode()
+        
+        # Create the user model directly
+        stmt = UserModel.__table__.insert().values(
+            id=user_id,
+            name=name,
+            email=email,
+            hashed_password=hashed_password,
+            created_at=now,
+            last_active=now,
+            is_admin=True
+        )
+        
+        await db.execute(stmt)
+        
+        # Create the secret model directly
+        stmt = SecretModel.__table__.insert().values(user_id=user_id)
+        await db.execute(stmt)
+        
+        await db.commit()
+        
+        # Get the created user
+        user_obj = await get_user_by_id(db, UserID(id=user_id))
+        return user_obj
+        
+    except Exception as e:
+        await db.rollback()
+        raise ValueError(f"Error creating admin user: {str(e)}") from e
